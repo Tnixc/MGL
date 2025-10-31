@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "spirv_cross_c.h"
 
 #include "shaders.h"
@@ -28,6 +29,33 @@
 #include "glm_context.h"
 
 #pragma mark uniforms
+
+// Encode UBO binding and member info into a location
+// Bits 0-15: UBO binding
+// Bit 16: 1 if this is a UBO member, 0 otherwise
+// Bits 17-31: member offset in bytes
+static inline GLint encodeUBOMemberLocation(GLuint binding, GLuint offset)
+{
+    return (GLint)((1 << 16) | (offset << 17) | (binding & 0xFFFF));
+}
+
+// Decode a location to check if it's a UBO member
+static inline GLboolean isUBOMemberLocation(GLint location)
+{
+    return (location >= 0) && ((location & (1 << 16)) != 0);
+}
+
+// Extract UBO binding from encoded location
+static inline GLuint getUBOBinding(GLint location)
+{
+    return location & 0xFFFF;
+}
+
+// Extract member offset from encoded location
+static inline GLuint getMemberOffset(GLint location)
+{
+    return (location >> 17) & 0x7FFF;
+}
 
 GLint mglGetUniformLocation(GLMContext ctx, GLuint program, const GLchar *name)
 {
@@ -100,9 +128,10 @@ GLint mglGetUniformLocation(GLMContext ctx, GLuint program, const GLchar *name)
                     // Match either exact name or base name (for array elements)
                     if (!strcmp(member_name, name) || !strcmp(member_name, base_name))
                     {
-                        DEBUG_PRINT("      FOUND! Returning binding=%u\n", resource->binding);
-                        // Found the member! Return the binding of the uniform block
-                        return resource->binding;
+                        GLuint offset = resource->uniform_block->members[m].offset;
+                        DEBUG_PRINT("      FOUND! UBO binding=%u, member offset=%u\n", resource->binding, offset);
+                        // Return an encoded location that includes both UBO binding and member offset
+                        return encodeUBOMemberLocation(resource->binding, offset);
                     }
                 }
             }
@@ -226,10 +255,17 @@ bool checkUniformParams(GLMContext ctx, GLint location)
         return false;
     }
 
-    if (location >= MAX_BINDABLE_BUFFERS) {
-        DEBUG_PRINT("  ERROR: location >= MAX_BINDABLE_BUFFERS (%d >= %d)\n", location, MAX_BINDABLE_BUFFERS);
+    // If this is an encoded UBO member location, extract the binding for validation
+    GLuint binding_to_check = location;
+    if (isUBOMemberLocation(location)) {
+        binding_to_check = getUBOBinding(location);
+        DEBUG_PRINT("  UBO member location, binding=%u\n", binding_to_check);
     }
-    ERROR_CHECK_RETURN_VALUE(location < MAX_BINDABLE_BUFFERS, GL_INVALID_OPERATION, false)
+    
+    if (binding_to_check >= MAX_BINDABLE_BUFFERS) {
+        DEBUG_PRINT("  ERROR: binding >= MAX_BINDABLE_BUFFERS (%d >= %d)\n", binding_to_check, MAX_BINDABLE_BUFFERS);
+    }
+    ERROR_CHECK_RETURN_VALUE(binding_to_check < MAX_BINDABLE_BUFFERS, GL_INVALID_OPERATION, false)
 
     DEBUG_PRINT("  OK\n");
     return true;
@@ -240,17 +276,69 @@ void mglUniform(GLMContext ctx, GLint location, void *ptr, GLsizei size)
     if (!checkUniformParams(ctx, location))
         return;
 
-    // Use _UNIFORM_BUFFER for uniform blocks (SPVC_RESOURCE_TYPE_UNIFORM_BUFFER)
-    // This changed with uniform block support
-    Buffer *buf = ctx->state.buffer_base[_UNIFORM_BUFFER].buffers[location].buf;
-
-    if (buf == NULL)
+    // Check if this is a UBO member location (encoded)
+    if (isUBOMemberLocation(location))
     {
-        ctx->state.buffer_base[_UNIFORM_BUFFER].buffers[location].buf = newBuffer(ctx, GL_UNIFORM_BUFFER, location);
-        buf = ctx->state.buffer_base[_UNIFORM_BUFFER].buffers[location].buf;
+        GLuint binding = getUBOBinding(location);
+        GLuint offset = getMemberOffset(location);
+        
+        DEBUG_PRINT("mglUniform: UBO member at binding=%u, offset=%u, size=%d\n", binding, offset, size);
+        
+        // Get or create the UBO buffer
+        Buffer *buf = ctx->state.buffer_base[_UNIFORM_BUFFER].buffers[binding].buf;
+        
+        if (buf == NULL)
+        {
+            // Create a UBO buffer - start with a reasonable size that will grow as needed
+            ctx->state.buffer_base[_UNIFORM_BUFFER].buffers[binding].buf = newBuffer(ctx, GL_UNIFORM_BUFFER, binding);
+            buf = ctx->state.buffer_base[_UNIFORM_BUFFER].buffers[binding].buf;
+            
+            // Initialize with a larger buffer to hold all members
+            // Start with 256 bytes, will grow if needed
+            size_t initial_size = 256;
+            initBufferData(ctx, buf, initial_size, NULL, true);
+        }
+        
+        // Ensure buffer is large enough for this member
+        if (buf->data.buffer_size < offset + size)
+        {
+            // Need to grow the buffer
+            size_t new_size = offset + size;
+            // Round up to nearest 256 bytes
+            new_size = ((new_size + 255) / 256) * 256;
+            
+            // Allocate new buffer and copy old data
+            void *new_data = calloc(1, new_size);
+            if (buf->data.buffer_data != 0)
+            {
+                memcpy(new_data, (void *)buf->data.buffer_data, buf->data.buffer_size);
+                free((void *)buf->data.buffer_data);
+            }
+            buf->data.buffer_data = (vm_address_t)new_data;
+            buf->data.buffer_size = new_size;
+            buf->size = new_size;
+            buf->data.dirty_bits |= DIRTY_BUFFER;
+        }
+        
+        // Update the specific member at its offset
+        memcpy((char *)buf->data.buffer_data + offset, ptr, size);
+        buf->data.dirty_bits |= DIRTY_BUFFER;
     }
+    else
+    {
+        // Regular uniform (not in a UBO) - use the old behavior
+        // Use _UNIFORM_BUFFER for uniform blocks (SPVC_RESOURCE_TYPE_UNIFORM_BUFFER)
+        // This changed with uniform block support
+        Buffer *buf = ctx->state.buffer_base[_UNIFORM_BUFFER].buffers[location].buf;
 
-    initBufferData(ctx, buf, size, ptr, true);
+        if (buf == NULL)
+        {
+            ctx->state.buffer_base[_UNIFORM_BUFFER].buffers[location].buf = newBuffer(ctx, GL_UNIFORM_BUFFER, location);
+            buf = ctx->state.buffer_base[_UNIFORM_BUFFER].buffers[location].buf;
+        }
+
+        initBufferData(ctx, buf, size, ptr, true);
+    }
 }
 
 void mglUniform1d(GLMContext ctx, GLint location, GLdouble x)

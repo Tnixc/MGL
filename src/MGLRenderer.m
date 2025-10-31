@@ -3481,21 +3481,32 @@ void mtlFlush(GLMContext glm_ctx, bool finish)
 #pragma mark C interface to mtlSwapBuffers
 - (void)mtlSwapBuffers:(GLMContext)glm_ctx
 {
+    fprintf(stderr, "DEBUG: mtlSwapBuffers called, draw_buffer=%d, VAO=%p\n", ctx->state.draw_buffer, ctx->state.vao);
     if (ctx->state.draw_buffer == GL_FRONT || ctx->state.draw_buffer == GL_COLOR_ATTACHMENT0)
     {
+        fprintf(stderr, "DEBUG: Will present drawable\n");
         // clear commands rely on processGLState
         // glClear / glSwap / repeat..
-        RETURN_ON_FAILURE([self processGLState:false]);
+        bool processResult = [self processGLState:false];
+        fprintf(stderr, "DEBUG: processGLState returned %d\n", processResult);
+        if (!processResult)
+        {
+            fprintf(stderr, "DEBUG: processGLState FAILED, returning early\n");
+            return;
+        }
 
         [self endRenderEncoding];
+        fprintf(stderr, "DEBUG: endRenderEncoding done\n");
 
         if (_drawable == NULL)
         {
             _drawable = [_layer nextDrawable];
+            fprintf(stderr, "DEBUG: Got new drawable: %p\n", _drawable);
         }
 
         assert(_currentCommandBuffer);
         [_currentCommandBuffer presentDrawable:_drawable];
+        fprintf(stderr, "DEBUG: Presented drawable\n");
 
         [_currentCommandBuffer commit];
 
@@ -3503,6 +3514,10 @@ void mtlFlush(GLMContext glm_ctx, bool finish)
         assert(_drawable);
 
         [self newCommandBufferAndRenderEncoder];
+    }
+    else
+    {
+        fprintf(stderr, "DEBUG: Skipping present, draw_buffer=%d\n", ctx->state.draw_buffer);
     }
 }
 
@@ -4012,24 +4027,20 @@ Buffer *getIndirectBuffer(GLMContext ctx)
 {
     MTLPrimitiveType primitiveType;
 
-    // fprintf(stderr, "mtlDrawArrays called: mode=%u, first=%d, count=%d\n", mode, first, count);
-    // fprintf(stderr, "  VAO: %p, enabled_attribs=0x%x\n", VAO(), VAO() ? VAO_STATE(enabled_attribs) : 0);
-    // fprintf(stderr, "  Viewport at draw start: [%u, %u, %u, %u]\n",
-    //         ctx->state.viewport[0], ctx->state.viewport[1], ctx->state.viewport[2], ctx->state.viewport[3]);
+    fprintf(stderr, "DEBUG: mtlDrawArrays called: mode=%u, first=%d, count=%d, VAO=%p\n", mode, first, count, VAO());
 
     if (![self processGLState:true])
     {
-        fprintf(stderr, "processGLState failed!\n");
+        fprintf(stderr, "DEBUG: mtlDrawArrays processGLState failed!\n");
         return;
     }
 
     primitiveType = getMTLPrimitiveType(mode);
     assert(primitiveType != 0xFFFFFFFF);
 
-    // fprintf(stderr, "Drawing primitives: type=%lu, vertexStart=%d, vertexCount=%d\n", (unsigned long)primitiveType,
-    // first, count);
-    // [_currentRenderEncoder drawPrimitives:primitiveType vertexStart:first vertexCount:count];
-    // fprintf(stderr, "Draw complete\n");
+    fprintf(stderr, "DEBUG: mtlDrawArrays calling Metal drawPrimitives, count=%d\n", count);
+    [_currentRenderEncoder drawPrimitives:primitiveType vertexStart:first vertexCount:count];
+    fprintf(stderr, "DEBUG: mtlDrawArrays Metal draw complete\n");
 }
 
 void mtlDrawArrays(GLMContext glm_ctx, GLenum mode, GLint first, GLsizei count)
@@ -4048,7 +4059,14 @@ void mtlDrawArrays(GLMContext glm_ctx, GLenum mode, GLint first, GLsizei count)
     MTLPrimitiveType primitiveType;
     MTLIndexType indexType;
 
-    RETURN_ON_FAILURE([self processGLState:true]);
+    fprintf(stderr, "DEBUG: mtlDrawElements called, count=%d, VAO=%p\n", count, ctx->state.vao);
+    bool processResult = [self processGLState:true];
+    fprintf(stderr, "DEBUG: mtlDrawElements processGLState returned %d\n", processResult);
+    if (!processResult)
+    {
+        fprintf(stderr, "DEBUG: mtlDrawElements skipping draw, processGLState failed\n");
+        return;
+    }
 
     primitiveType = getMTLPrimitiveType(mode);
     assert(primitiveType != 0xFFFFFFFF);
@@ -4080,12 +4098,14 @@ void mtlDrawArrays(GLMContext glm_ctx, GLenum mode, GLint first, GLsizei count)
     }
     assert(indexBuffer);
 
+    fprintf(stderr, "DEBUG: mtlDrawElements calling Metal drawIndexedPrimitives, count=%d\n", count);
     [_currentRenderEncoder drawIndexedPrimitives:primitiveType
                                       indexCount:count
                                        indexType:indexType
                                      indexBuffer:indexBuffer
                                indexBufferOffset:0
                                    instanceCount:1];
+    fprintf(stderr, "DEBUG: mtlDrawElements Metal draw complete\n");
 }
 
 void mtlDrawElements(GLMContext glm_ctx, GLenum mode, GLsizei count, GLenum type, const void *indices)

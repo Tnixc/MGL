@@ -368,6 +368,15 @@ GLFWbool _glfwRefreshContextAttribs(_GLFWwindow *window, const _GLFWctxconfig *c
         return GLFW_FALSE;
     }
 
+    // HACK: MGL reports 4.6.0 via glGetString but macOS can only create 4.1 contexts
+    // Override the parsed version to match what MGL actually supports
+    if (strstr(version, "4.6") && window->context.major == 4 && window->context.minor == 1)
+    {
+        window->context.major = 4;
+        window->context.minor = 6;
+        window->context.revision = 0;
+    }
+
     if (window->context.major < ctxconfig->major ||
         (window->context.major == ctxconfig->major && window->context.minor < ctxconfig->minor))
     {

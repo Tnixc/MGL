@@ -86,13 +86,13 @@ fn main() {
         rl::set_shader_value(shader, locs["y_max"], &y_max, ShaderUniformDataType::SHADER_UNIFORM_FLOAT);
 
         rl::begin_drawing();
-            rl::clear_background(RAYWHITE);
-            rl::begin_shader_mode(shader);
+            rl::clear_background(BLACK);
+            
+            // Test: just draw with default Raylib rendering (no custom shader)
+            rl::draw_rectangle(100, 100, 400, 400, RED);
+            rl::draw_rectangle(200, 200, 200, 200, GREEN);
+            rl::draw_rectangle(250, 250, 100, 100, BLUE);
 
-            rl::draw_rectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, WHITE);
-
-            rl::end_shader_mode();
-            // rl::draw_fps(4, 4);  // Commented out due to Elle string formatting bug
         rl::end_drawing();
     }
 }

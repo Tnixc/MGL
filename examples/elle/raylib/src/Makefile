@@ -1,906 +1,2938 @@
-#******************************************************************************
-#
-#   raylib makefile
-#
-#   This file supports building raylib library for the following platforms:
-#
-#     > PLATFORM_DESKTOP
-#         - Defaults to PLATFORM_DESKTOP_GLFW
-#     > PLATFORM_DESKTOP_GLFW (GLFW backend):
-#         - Windows (Win32, Win64)
-#         - Linux (X11/Wayland desktop mode)
-#         - macOS/OSX (x64, arm64)
-#         - FreeBSD, OpenBSD, NetBSD, DragonFly (X11 desktop)
-#     > PLATFORM_DESKTOP_SDL (SDL backend):
-#         - Windows (Win32, Win64)
-#         - Linux (X11/Wayland desktop mode)
-#         - Others (not tested)
-#     > PLATFORM_DESKTOP_RGFW (RGFW backend):
-#         - Windows (Win32, Win64)
-#         - Linux (X11 desktop mode)
-#         - macOS/OSX (x64, arm64 (not tested))
-#         - Others (not tested)
-#     > PLATFORM_WEB_RGFW:
-#         - HTML5 (WebAssembly)
-#     > PLATFORM_WEB:
-#         - HTML5 (WebAssembly)
-#     > PLATFORM_DRM:
-#         - Raspberry Pi 0-5 (DRM/KMS)
-#         - Linux DRM subsystem (KMS mode)
-#     > PLATFORM_ANDROID:
-#         - Android (ARM, ARM64)
-#
-#   Many thanks to Milan Nikolic (@gen2brain) for implementing Android platform pipeline.
-#   Many thanks to Emanuele Petriglia for his contribution on GNU/Linux pipeline.
-#
-#   Copyright (c) 2013-2025 Ramon Santamaria (@raysan5)
-#
-#   This software is provided "as-is", without any express or implied warranty. In no event
-#   will the authors be held liable for any damages arising from the use of this software.
-#
-#   Permission is granted to anyone to use this software for any purpose, including commercial
-#   applications, and to alter it and redistribute it freely, subject to the following restrictions:
-#
-#     1. The origin of this software must not be misrepresented; you must not claim that you
-#     wrote the original software. If you use this software in a product, an acknowledgment
-#     in the product documentation would be appreciated but is not required.
-#
-#     2. Altered source versions must be plainly marked as such, and must not be misrepresented
-#     as being the original software.
-#
-#     3. This notice may not be removed or altered from any source distribution.
-#
-#**************************************************************************************************
-
-# NOTE: Highly recommended to read the raylib Wiki to know how to compile raylib for different platforms
-# https://github.com/raysan5/raylib/wiki
-
-.PHONY: all clean install uninstall
-
-# Define required environment variables
-#------------------------------------------------------------------------------------------------
-# Define target platform
-PLATFORM             ?= PLATFORM_DESKTOP
-ifeq ($(PLATFORM), PLATFORM_DESKTOP)
-    TARGET_PLATFORM   = PLATFORM_DESKTOP_GLFW
-else
-    TARGET_PLATFORM   = $(PLATFORM)
-endif
-
-# Define required raylib variables
-RAYLIB_VERSION        = 5.5.0
-RAYLIB_API_VERSION    = 550
-
-# Define raylib source code path
-RAYLIB_SRC_PATH      ?= ../src
-
-# Define output directory for compiled library, defaults to src directory
-# NOTE: If externally provided, make sure directory exists
-RAYLIB_RELEASE_PATH  ?= $(RAYLIB_SRC_PATH)
-
-# Library type used for raylib: STATIC (.a) or SHARED (.so/.dll)
-RAYLIB_LIBTYPE       ?= STATIC
-
-# Build mode for library: DEBUG or RELEASE
-RAYLIB_BUILD_MODE    ?= RELEASE
-
-# Build output name for the library
-RAYLIB_LIB_NAME      ?= raylib
-
-# Define resource file for DLL properties
-RAYLIB_RES_FILE      ?= ./raylib.dll.rc.data
-
-# Define external config flags
-# NOTE: It will override config.h flags with the provided ones,
-# if NONE, default config.h flags are used
-RAYLIB_CONFIG_FLAGS  ?= NONE
-
-# To define additional cflags: Use make CUSTOM_CFLAGS=""
-
-# Include raylib modules on compilation
-# NOTE: Some programs like tools could not require those modules
-RAYLIB_MODULE_AUDIO  ?= TRUE
-RAYLIB_MODULE_MODELS ?= TRUE
-RAYLIB_MODULE_RAYGUI ?= FALSE
-
-# NOTE: Additional libraries have been moved to their own repos:
-# raygui: https://github.com/raysan5/raygui
-RAYLIB_MODULE_RAYGUI_PATH ?= $(RAYLIB_SRC_PATH)/../../raygui/src
-
-# Use external GLFW library instead of rglfw module
-USE_EXTERNAL_GLFW     ?= FALSE
-
-# Enable support for X11 by default on Linux when using GLFW
-# NOTE: Wayland is disabled by default, only enable if you are sure
-GLFW_LINUX_ENABLE_WAYLAND  ?= FALSE
-GLFW_LINUX_ENABLE_X11      ?= TRUE
-
-# PLATFORM_DESKTOP_SDL: It requires SDL library to be provided externally
-# WARNING: Library is not included in raylib, it MUST be configured by users
-SDL_INCLUDE_PATH      ?= $(RAYLIB_SRC_PATH)/external/SDL2/include
-SDL_LIBRARY_PATH      ?= $(RAYLIB_SRC_PATH)/external/SDL2/lib
-SDL_LIBRARIES         ?= -lSDL2 -lSDL2main
-
-# Determine if the file has root access (only required to install raylib)
-# "whoami" prints the name of the user that calls him (so, if it is the root user, "whoami" prints "root")
-ROOT = $(shell whoami)
-
-# By default we suppose we are working on Windows
-HOST_PLATFORM_OS ?= WINDOWS
-PLATFORM_OS ?= WINDOWS
-
-# Determine PLATFORM_OS when required
-ifeq ($(TARGET_PLATFORM),$(filter $(TARGET_PLATFORM),PLATFORM_DESKTOP_GLFW PLATFORM_DESKTOP_SDL PLATFORM_DESKTOP_RGFW PLATFORM_DESKTOP_WIN32 PLATFORM_WEB PLATFORM_WEB_RGFW PLATFORM_ANDROID))
-    # No uname.exe on MinGW!, but OS=Windows_NT on Windows!
-    # ifeq ($(UNAME),Msys) -> Windows
-    ifeq ($(OS),Windows_NT)
-        PLATFORM_OS = WINDOWS
-        ifndef PLATFORM_SHELL
-            PLATFORM_SHELL = cmd
-        endif
-    else
-        UNAMEOS = $(shell uname)
-        ifeq ($(UNAMEOS),Linux)
-            PLATFORM_OS = LINUX
-        endif
-        ifeq ($(UNAMEOS),FreeBSD)
-            PLATFORM_OS = BSD
-        endif
-        ifeq ($(UNAMEOS),OpenBSD)
-            PLATFORM_OS = BSD
-        endif
-        ifeq ($(UNAMEOS),NetBSD)
-            PLATFORM_OS = BSD
-        endif
-        ifeq ($(UNAMEOS),DragonFly)
-            PLATFORM_OS = BSD
-        endif
-        ifeq ($(UNAMEOS),Darwin)
-            PLATFORM_OS = OSX
-        endif
-        ifndef PLATFORM_SHELL
-            PLATFORM_SHELL = sh
-        endif
-    endif
-endif
-ifeq ($(TARGET_PLATFORM),PLATFORM_DRM)
-    UNAMEOS = $(shell uname)
-    ifeq ($(UNAMEOS),Linux)
-        PLATFORM_OS = LINUX
-    endif
-    ifndef PLATFORM_SHELL
-        PLATFORM_SHELL = sh
-    endif
-endif
-ifeq ($(TARGET_PLATFORM),$(filter $(TARGET_PLATFORM),PLATFORM_WEB PLATFORM_WEB_RGFW))
-    ifeq ($(PLATFORM_OS),LINUX)
-        ifndef PLATFORM_SHELL
-            PLATFORM_SHELL = sh
-        endif
-    endif
-endif
-
-ifeq ($(TARGET_PLATFORM),$(filter $(TARGET_PLATFORM),PLATFORM_WEB PLATFORM_WEB_RGFW))
-    ifeq ($(PLATFORM_OS), WINDOWS)
-        # Emscripten required variables
-        EMSDK_PATH         ?= C:/raylib/emsdk
-        EMSCRIPTEN_PATH    ?= $(EMSDK_PATH)/upstream/emscripten
-        CLANG_PATH         := $(EMSDK_PATH)/upstream/bin
-        PYTHON_PATH        := $(EMSDK_PATH)/python/3.9.2-nuget_64bit
-        NODE_PATH          := $(EMSDK_PATH)/node/20.18.0_64bit/bin
-        export PATH        := $(EMSDK_PATH);$(EMSCRIPTEN_PATH);$(CLANG_PATH);$(NODE_PATH);$(PYTHON_PATH);C:/raylib/MinGW/bin;$(PATH)
-    endif
-endif
-
-ifeq ($(TARGET_PLATFORM),PLATFORM_ANDROID)
-    # Android architecture
-    # Starting at 2019 using arm64 is mandatory for published apps,
-    # Starting on August 2020, minimum required target API is Android 10 (API level 29)
-    ANDROID_ARCH ?= arm64
-    ANDROID_API_VERSION ?= 29
-
-    # Android required path variables
-    # NOTE: Starting with Android NDK r21, no more toolchain generation is required, NDK is the toolchain on itself
-    ifeq ($(OS),Windows_NT)
-        ANDROID_NDK ?= C:/android-ndk
-        ANDROID_TOOLCHAIN = $(ANDROID_NDK)/toolchains/llvm/prebuilt/windows-x86_64
-    else
-		ANDROID_NDK ?= /usr/lib/android/ndk
-		ifeq ($(PLATFORM_OS), OSX)
-			ANDROID_TOOLCHAIN = $(ANDROID_NDK)/toolchains/llvm/prebuilt/darwin-x86_64
-		else
-			ANDROID_TOOLCHAIN = $(ANDROID_NDK)/toolchains/llvm/prebuilt/linux-x86_64
-		endif
-    endif
-
-    # NOTE: Sysroot can also be reference from $(ANDROID_NDK)/sysroot
-    ANDROID_SYSROOT ?= $(ANDROID_TOOLCHAIN)/sysroot
-
-    ifeq ($(ANDROID_ARCH),arm)
-        ANDROID_COMPILER_ARCH = armv7a
-    endif
-    ifeq ($(ANDROID_ARCH),arm64)
-        ANDROID_COMPILER_ARCH = aarch64
-    endif
-    ifeq ($(ANDROID_ARCH),x86)
-        ANDROID_COMPILER_ARCH = i686
-    endif
-    ifeq ($(ANDROID_ARCH),x86_64)
-        ANDROID_COMPILER_ARCH = x86_64
-    endif
-endif
-
-# Define raylib graphics api depending on selected platform
-# NOTE: By default use OpenGL 3.3 on desktop platforms
-ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_GLFW)
-    GRAPHICS ?= GRAPHICS_API_OPENGL_33
-    #GRAPHICS = GRAPHICS_API_OPENGL_11_SOFTWARE # Uncomment to use software rendering
-    #GRAPHICS = GRAPHICS_API_OPENGL_11          # Uncomment to use OpenGL 1.1
-    #GRAPHICS = GRAPHICS_API_OPENGL_21          # Uncomment to use OpenGL 2.1
-    #GRAPHICS = GRAPHICS_API_OPENGL_43          # Uncomment to use OpenGL 4.3
-    #GRAPHICS = GRAPHICS_API_OPENGL_ES2         # Uncomment to use OpenGL ES 2.0 (ANGLE)
-endif
-ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_SDL)
-    GRAPHICS ?= GRAPHICS_API_OPENGL_33
-endif
-ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_RGFW)
-    GRAPHICS ?= GRAPHICS_API_OPENGL_33
-    #GRAPHICS = GRAPHICS_API_OPENGL_11_SOFTWARE # Uncomment to use software rendering
-    #GRAPHICS = GRAPHICS_API_OPENGL_11          # Uncomment to use OpenGL 1.1
-    #GRAPHICS = GRAPHICS_API_OPENGL_21          # Uncomment to use OpenGL 2.1
-    #GRAPHICS = GRAPHICS_API_OPENGL_43          # Uncomment to use OpenGL 4.3
-    #GRAPHICS = GRAPHICS_API_OPENGL_ES2         # Uncomment to use OpenGL ES 2.0 (ANGLE)
-endif
-ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_WIN32)
-    GRAPHICS ?= GRAPHICS_API_OPENGL_33
-    #GRAPHICS = GRAPHICS_API_OPENGL_11_SOFTWARE # Uncomment to use software rendering
-    #GRAPHICS = GRAPHICS_API_OPENGL_11          # Uncomment to use OpenGL 1.1
-    #GRAPHICS = GRAPHICS_API_OPENGL_21          # Uncomment to use OpenGL 2.1
-    #GRAPHICS = GRAPHICS_API_OPENGL_43          # Uncomment to use OpenGL 4.3
-    #GRAPHICS = GRAPHICS_API_OPENGL_ES2         # Uncomment to use OpenGL ES 2.0 (ANGLE)
-endif
-ifeq ($(TARGET_PLATFORM),PLATFORM_DRM)
-    GRAPHICS ?= GRAPHICS_API_OPENGL_ES2
-    #GRAPHICS = GRAPHICS_API_OPENGL_11_SOFTWARE # Uncomment to use software rendering
-endif
-ifeq ($(TARGET_PLATFORM),$(filter $(TARGET_PLATFORM),PLATFORM_WEB PLATFORM_WEB_RGFW))
-    # On HTML5 OpenGL ES 2.0 is used, emscripten translates it to WebGL 1.0
-    GRAPHICS ?= GRAPHICS_API_OPENGL_ES2
-    #GRAPHICS = GRAPHICS_API_OPENGL_ES3
-endif
-ifeq ($(TARGET_PLATFORM),PLATFORM_ANDROID)
-    # By default use OpenGL ES 2.0 on Android
-    GRAPHICS ?= GRAPHICS_API_OPENGL_ES2
-endif
-
-# Define default C compiler and archiver to pack library: CC, AR
-#------------------------------------------------------------------------------------------------
-CC = gcc
-AR = ar
-
-ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_GLFW)
-    ifeq ($(PLATFORM_OS),OSX)
-        # OSX default compiler
-        CC = clang
-        GLFW_OSX = -x objective-c
-    endif
-    ifeq ($(PLATFORM_OS),BSD)
-        # FreeBSD, OpenBSD, NetBSD, DragonFly default compiler
-        CC = clang
-    endif
-endif
-ifeq ($(TARGET_PLATFORM),PLATFORM_DRM)
-    ifeq ($(USE_RPI_CROSSCOMPILER),TRUE)
-        # Define RPI cross-compiler
-        #CC = armv6j-hardfloat-linux-gnueabi-gcc
-        CC = $(RPI_TOOLCHAIN)/bin/$(RPI_TOOLCHAIN_NAME)-gcc
-        AR = $(RPI_TOOLCHAIN)/bin/$(RPI_TOOLCHAIN_NAME)-ar
-    endif
-endif
-ifeq ($(TARGET_PLATFORM),$(filter $(TARGET_PLATFORM),PLATFORM_WEB PLATFORM_WEB_RGFW))
-    # HTML5 emscripten compiler
-    CC = emcc
-    AR = emar
-endif
-ifeq ($(TARGET_PLATFORM),PLATFORM_ANDROID)
-    # Android toolchain (must be provided for desired architecture and compiler)
-    ifeq ($(ANDROID_ARCH),arm)
-        CC = $(ANDROID_TOOLCHAIN)/bin/$(ANDROID_COMPILER_ARCH)-linux-androideabi$(ANDROID_API_VERSION)-clang
-    endif
-    ifeq ($(ANDROID_ARCH),arm64)
-        CC = $(ANDROID_TOOLCHAIN)/bin/$(ANDROID_COMPILER_ARCH)-linux-android$(ANDROID_API_VERSION)-clang
-    endif
-    ifeq ($(ANDROID_ARCH),x86)
-        CC = $(ANDROID_TOOLCHAIN)/bin/$(ANDROID_COMPILER_ARCH)-linux-android$(ANDROID_API_VERSION)-clang
-    endif
-    ifeq ($(ANDROID_ARCH),x86_64)
-        CC = $(ANDROID_TOOLCHAIN)/bin/$(ANDROID_COMPILER_ARCH)-linux-android$(ANDROID_API_VERSION)-clang
-    endif
-    # It seems from Android NDK r22 onwards we need to use llvm-ar
-    AR = $(ANDROID_TOOLCHAIN)/bin/llvm-ar
-endif
-
-# Define compiler flags: CFLAGS
-#------------------------------------------------------------------------------------------------
-#  -O1                      defines optimization level
-#  -g                       include debug information on compilation
-#  -s                       strip unnecessary data from build --> linker
-#  -Wall                    turns on most, but not all, compiler warnings
-#  -std=c99                 defines C language mode (standard C from 1999 revision)
-#  -std=gnu99               defines C language mode (GNU C from 1999 revision)
-#  -Wno-missing-braces      ignore invalid warning (GCC bug 53119)
-#  -Wno-unused-value        ignore unused return values of some functions (i.e. fread())
-#  -D_DEFAULT_SOURCE        use with -std=c99 on Linux and PLATFORM_WEB, required for timespec
-#  -D_GNU_SOURCE            access to lots of nonstandard GNU/Linux extension functions
-#  -Werror=pointer-arith    catch unportable code that does direct arithmetic on void pointers
-#  -fno-strict-aliasing     jar_xm.h does shady stuff (breaks strict aliasing)
-CFLAGS = -Wall -D_GNU_SOURCE -D$(TARGET_PLATFORM) -D$(GRAPHICS) -Wno-missing-braces -Werror=pointer-arith -fno-strict-aliasing
-
-ifneq ($(RAYLIB_CONFIG_FLAGS), NONE)
-    CFLAGS += -DEXTERNAL_CONFIG_FLAGS $(RAYLIB_CONFIG_FLAGS)
-endif
-
-ifeq ($(TARGET_PLATFORM),$(filter $(TARGET_PLATFORM),PLATFORM_WEB PLATFORM_WEB_RGFW))
-    # NOTE: When using multi-threading in the user code, it requires -pthread enabled
-    CFLAGS += -std=gnu99
-else
-    CFLAGS += -std=c99
-endif
-
-ifeq ($(PLATFORM_OS), LINUX)
-    CFLAGS += -fPIC
-endif
-
-ifeq ($(PLATFORM_OS),WINDOWS)
-    CFLAGS += -DUNICODE
-endif
-
-ifeq ($(RAYLIB_BUILD_MODE),DEBUG)
-    CFLAGS += -g -D_DEBUG
-endif
-
-ifeq ($(RAYLIB_BUILD_MODE),RELEASE)
-    ifeq ($(TARGET_PLATFORM),$(filter $(TARGET_PLATFORM),PLATFORM_WEB PLATFORM_WEB_RGFW))
-        CFLAGS += -Os
-    endif
-    ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_GLFW)
-        CFLAGS += -O1
-    endif
-    ifeq ($(TARGET_PLATFORM),PLATFORM_ANDROID)
-        CFLAGS += -O2
-    endif
-endif
-
-# Additional flags for compiler (if desired)
-#  -Wextra                  enables some extra warning flags that are not enabled by -Wall
-#  -Wmissing-prototypes     warn if a global function is defined without a previous prototype declaration
-#  -Wstrict-prototypes      warn if a function is declared or defined without specifying the argument types
-#  -Werror=implicit-function-declaration   catch function calls without prior declaration
-ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_GLFW)
-    CFLAGS += -Werror=implicit-function-declaration
-endif
-ifeq ($(TARGET_PLATFORM),$(filter $(TARGET_PLATFORM),PLATFORM_WEB PLATFORM_WEB_RGFW))
-    # -Os                        # size optimization
-    # -O2                        # optimization level 2, if used, also set --memory-init-file 0
-    # -sUSE_GLFW=3               # Use glfw3 library (context/input management)
-    # -sALLOW_MEMORY_GROWTH=1    # to allow memory resizing -> WARNING: Audio buffers could FAIL!
-    # -sTOTAL_MEMORY=16777216    # to specify heap memory size (default = 16MB) (67108864 = 64MB)
-    # -sUSE_PTHREADS=1           # multithreading support
-    # -sWASM=0                   # disable Web Assembly, emitted by default
-    # -sASYNCIFY                 # lets synchronous C/C++ code interact with asynchronous JS
-    # -sFORCE_FILESYSTEM=1       # force filesystem to load/save files data
-    # -sASSERTIONS=1             # enable runtime checks for common memory allocation errors (-O1 and above turn it off)
-    # -sMINIFY_HTML=0            # minify generated html from shell.html
-    # --profiling                # include information for code profiling
-    # --memory-init-file 0       # to avoid an external memory initialization code file (.mem)
-    # --preload-file resources   # specify a resources folder for data compilation
-    # --source-map-base          # allow debugging in browser with source map
-    # --shell-file shell.html    # define a custom shell .html and output extension
-    ifeq ($(RAYLIB_BUILD_MODE),DEBUG)
-        CFLAGS += --profiling
-    endif
-endif
-ifeq ($(TARGET_PLATFORM),PLATFORM_ANDROID)
-    # Compiler flags for arquitecture
-    ifeq ($(ANDROID_ARCH),arm)
-        CFLAGS += -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16
-    endif
-    ifeq ($(ANDROID_ARCH),arm64)
-        CFLAGS += -target aarch64 -mfix-cortex-a53-835769
-    endif
-    ifeq ($(ANDROID_ARCH),x86)
-        CFLAGS += -march=i686
-    endif
-    ifeq ($(ANDROID_ARCH),x86_64)
-        CFLAGS += -march=x86-64
-    endif
-    # Compilation functions attributes options
-    CFLAGS += -ffunction-sections -funwind-tables -fstack-protector-strong -fPIE -fPIC
-    # Compiler options for the linker
-    # -Werror=format-security
-    CFLAGS += -Wa,--noexecstack -Wformat -no-canonical-prefixes
-    # Preprocessor macro definitions
-    CFLAGS += -D__ANDROID__ -DPLATFORM_ANDROID -D__ANDROID_API__=$(ANDROID_API_VERSION)
-endif
-
-# Define required compilation flags for raylib SHARED lib
-ifeq ($(RAYLIB_LIBTYPE),SHARED)
-    # make sure code is compiled as position independent
-    # BE CAREFUL: It seems that for gcc -fpic is not the same as -fPIC
-    # MinGW32 just doesn't need -fPIC, it shows warnings
-    CFLAGS += -fPIC -DBUILD_LIBTYPE_SHARED
-
-    # hide all symbols by default, so RLAPI can expose them
-    ifeq ($(PLATFORM_OS),$(filter $(PLATFORM_OS), LINUX BSD OSX))
-        CFLAGS += -fvisibility=hidden
-    endif
-endif
-
-ifeq ($(TARGET_PLATFORM),PLATFORM_DRM)
-    # without EGL_NO_X11 eglplatform.h tears Xlib.h in which tears X.h in
-    # which contains a conflicting type Font
-    CFLAGS += -DEGL_NO_X11
-    CFLAGS += -Werror=implicit-function-declaration
-endif
-# Use Wayland display on Linux desktop
-ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_GLFW)
-    ifeq ($(PLATFORM_OS), LINUX)
-        ifeq ($(GLFW_LINUX_ENABLE_X11),TRUE)
-            CFLAGS += -D_GLFW_X11
-        endif
-        ifeq ($(GLFW_LINUX_ENABLE_WAYLAND),TRUE)
-            CFLAGS += -D_GLFW_WAYLAND
-            LDFLAGS += $(shell pkg-config wayland-client wayland-cursor wayland-egl xkbcommon --libs)
-
-            WL_PROTOCOLS_DIR := external/glfw/deps/wayland
-
-            wl_generate = \
-                $(eval protocol=$(1)) \
-                $(eval basename=$(2)) \
-                $(shell wayland-scanner client-header $(protocol) $(RAYLIB_SRC_PATH)/$(basename).h) \
-                $(shell wayland-scanner private-code $(protocol) $(RAYLIB_SRC_PATH)/$(basename)-code.h)
-
-            $(call wl_generate, $(WL_PROTOCOLS_DIR)/wayland.xml, wayland-client-protocol)
-            $(call wl_generate, $(WL_PROTOCOLS_DIR)/xdg-shell.xml, xdg-shell-client-protocol)
-            $(call wl_generate, $(WL_PROTOCOLS_DIR)/xdg-decoration-unstable-v1.xml, xdg-decoration-unstable-v1-client-protocol)
-            $(call wl_generate, $(WL_PROTOCOLS_DIR)/viewporter.xml, viewporter-client-protocol)
-            $(call wl_generate, $(WL_PROTOCOLS_DIR)/relative-pointer-unstable-v1.xml, relative-pointer-unstable-v1-client-protocol)
-            $(call wl_generate, $(WL_PROTOCOLS_DIR)/pointer-constraints-unstable-v1.xml, pointer-constraints-unstable-v1-client-protocol)
-            $(call wl_generate, $(WL_PROTOCOLS_DIR)/fractional-scale-v1.xml, fractional-scale-v1-client-protocol)
-            $(call wl_generate, $(WL_PROTOCOLS_DIR)/xdg-activation-v1.xml, xdg-activation-v1-client-protocol)
-            $(call wl_generate, $(WL_PROTOCOLS_DIR)/idle-inhibit-unstable-v1.xml, idle-inhibit-unstable-v1-client-protocol)
-        endif
-    endif
-endif
-
-CFLAGS += $(CUSTOM_CFLAGS)
-
-# Define include paths for required headers: INCLUDE_PATHS
-# NOTE: Several external required libraries (stb and others)
-#------------------------------------------------------------------------------------------------
-INCLUDE_PATHS = -I. $(EXTRA_INCLUDE_PATHS)
-
-# Define additional directories containing required header files
-ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_GLFW)
-    INCLUDE_PATHS += -Iexternal/glfw/include
-    ifeq ($(PLATFORM_OS),BSD)
-        INCLUDE_PATHS += -I/usr/local/include -I/usr/pkg/include -I/usr/X11R7/include
-    endif
-endif
-ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_SDL)
-    INCLUDE_PATHS += -I$(SDL_INCLUDE_PATH)
-endif
-ifeq ($(TARGET_PLATFORM),PLATFORM_WEB)
-    INCLUDE_PATHS += -Iexternal/glfw/include
-endif
-ifeq ($(TARGET_PLATFORM),PLATFORM_DRM)
-    INCLUDE_PATHS += -I/usr/include/libdrm
-    ifeq ($(USE_RPI_CROSSCOMPILER), TRUE)
-        INCLUDE_PATHS += -I$(RPI_TOOLCHAIN_SYSROOT)/usr/include
-        INCLUDE_PATHS += -I$(RPI_TOOLCHAIN_SYSROOT)/opt/vc/include
-    endif
-endif
-ifeq ($(TARGET_PLATFORM),PLATFORM_ANDROID)
-    NATIVE_APP_GLUE = $(ANDROID_NDK)/sources/android/native_app_glue
-    # Include android_native_app_glue.h
-    INCLUDE_PATHS += -I$(NATIVE_APP_GLUE)
-
-    # Android required libraries
-    INCLUDE_PATHS += -I$(ANDROID_SYSROOT)/usr/include
-    ifeq ($(ANDROID_ARCH),arm)
-        INCLUDE_PATHS += -I$(ANDROID_SYSROOT)/usr/include/arm-linux-androideabi
-    endif
-    ifeq ($(ANDROID_ARCH),arm64)
-        INCLUDE_PATHS += -I$(ANDROID_SYSROOT)/usr/include/aarch64-linux-android
-    endif
-    ifeq ($(ANDROID_ARCH),x86)
-        INCLUDE_PATHS += -I$(ANDROID_SYSROOT)/usr/include/i686-linux-android
-    endif
-    ifeq ($(ANDROID_ARCH),x86_64)
-        INCLUDE_PATHS += -I$(ANDROID_SYSROOT)/usr/include/x86_64-linux-android
-    endif
-endif
-
-# Define library paths containing required libs: LDFLAGS
-# NOTE: This is only required for dynamic library generation
-#------------------------------------------------------------------------------------------------
-LDFLAGS = $(CUSTOM_LDFLAGS) -L. -L$(RAYLIB_RELEASE_PATH)
-
-ifeq ($(TARGET_PLATFORM),$(filter $(TARGET_PLATFORM),PLATFORM_DESKTOP_GLFW PLATFORM_DESKTOP_SDL PLATFORM_DESKTOP_RGFW PLATFORM_DESKTOP_WIN32))
-    ifeq ($(PLATFORM_OS),WINDOWS)
-        ifneq ($(CC), tcc)
-            LDFLAGS += -Wl,--out-implib,$(RAYLIB_RELEASE_PATH)/lib$(RAYLIB_LIB_NAME)dll.a
-        endif
-    endif
-    ifeq ($(PLATFORM_OS),OSX)
-        LDFLAGS += -compatibility_version $(RAYLIB_API_VERSION) -current_version $(RAYLIB_VERSION)
-    endif
-    ifeq ($(PLATFORM_OS),LINUX)
-        LDFLAGS += -Wl,-soname,lib$(RAYLIB_LIB_NAME).so.$(RAYLIB_API_VERSION)
-    endif
-    ifeq ($(PLATFORM_OS),BSD)
-        LDFLAGS += -Wl,-soname,lib$(RAYLIB_LIB_NAME).$(RAYLIB_API_VERSION).so -Lsrc -L/usr/local/lib -L/usr/pkg/lib -Wl,-R/usr/pkg/lib
-    endif
-endif
-ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_SDL)
-    LDFLAGS += -L$(SDL_LIBRARY_PATH)
-endif
-ifeq ($(TARGET_PLATFORM),$(filter $(TARGET_PLATFORM),PLATFORM_WEB PLATFORM_WEB_RGFW))
-    ifeq ($(RAYLIB_BUILD_MODE),DEBUG)
-        LDFLAGS += -sASSERTIONS=1
-    endif
-endif
-ifeq ($(TARGET_PLATFORM),PLATFORM_DRM)
-    LDFLAGS += -Wl,-soname,lib$(RAYLIB_LIB_NAME).so.$(RAYLIB_API_VERSION)
-    ifeq ($(USE_RPI_CROSSCOMPILER), TRUE)
-        LDFLAGS += -L$(RPI_TOOLCHAIN_SYSROOT)/opt/vc/lib -L$(RPI_TOOLCHAIN_SYSROOT)/usr/lib
-    endif
-endif
-ifeq ($(TARGET_PLATFORM),PLATFORM_ANDROID)
-    LDFLAGS += -Wl,-soname,libraylib.$(RAYLIB_API_VERSION).so -Wl,--exclude-libs,libatomic.a
-    LDFLAGS += -Wl,--build-id -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now -Wl,--warn-shared-textrel -Wl,--fatal-warnings
-    # Force linking of library module to define symbol
-    LDFLAGS += -u ANativeActivity_onCreate
-    # Library paths containing required libs
-    LDFLAGS += -Lsrc
-    # Avoid unresolved symbol pointing to external main()
-    LDFLAGS += -Wl,-undefined,dynamic_lookup
-endif
-
-# Define libraries required on linking: LDLIBS
-# NOTE: This is only required for dynamic library generation
-#------------------------------------------------------------------------------------------------
-ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_GLFW)
-    ifeq ($(PLATFORM_OS),WINDOWS)
-        ifeq ($(CC), tcc)
-            LDLIBS = -lopengl32 -lgdi32 -lwinmm -lshell32
-        else
-            LDLIBS = -static-libgcc -lopengl32 -lgdi32 -lwinmm
-        endif
-    endif
-    ifeq ($(PLATFORM_OS),LINUX)
-        LDLIBS = -lGL -lc -lm -lpthread -ldl -lrt
-        ifeq ($(GLFW_LINUX_ENABLE_X11),TRUE)
-            LDLIBS += -lX11
-        endif
-        # TODO: On ARM 32bit arch, miniaudio requires atomics library
-        #LDLIBS += -latomic
-    endif
-    ifeq ($(PLATFORM_OS),OSX)
-        LDLIBS = -framework OpenGL -framework Cocoa -framework IOKit -framework CoreAudio -framework CoreVideo
-    endif
-    ifeq ($(PLATFORM_OS),BSD)
-        LDLIBS = -lGL -lpthread
-    endif
-    ifeq ($(USE_EXTERNAL_GLFW),TRUE)
-        # Check the version name. If GLFW3 was built manually, it may have produced
-        # a static library known as libglfw3.a. In that case, the name should be -lglfw3
-        LDLIBS = -lglfw
-    endif
-endif
-ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_SDL)
-    ifeq ($(PLATFORM_OS),WINDOWS)
-        LDLIBS = -static-libgcc -lopengl32 -lgdi32
-    endif
-    ifeq ($(PLATFORM_OS),LINUX)
-        LDLIBS = -lGL -lc -lm -lpthread -ldl -lrt
-        ifeq ($(USE_WAYLAND_DISPLAY),FALSE)
-            LDLIBS += -lX11
-        endif
-    endif
-    LDLIBS += $(SDL_LIBRARIES)
-endif
-ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_RGFW)
-    ifeq ($(PLATFORM_OS),WINDOWS)
-        # Libraries for Windows desktop compilation
-        LDLIBS = -lgdi32 -lwinmm -lopengl32
-    endif
-    ifeq ($(PLATFORM_OS),LINUX)
-        # Libraries for Debian GNU/Linux desktop compipling
-        # NOTE: Required packages: libegl1-mesa-dev
-        LDLIBS = -lGL -lX11 -lXrandr -lXinerama -lXi -lXcursor -lm -lpthread -ldl -lrt
-
-        # Explicit link to libc
-        ifeq ($(RAYLIB_LIBTYPE),SHARED)
-            LDLIBS += -lc
-        endif
-
-        # NOTE: On ARM 32bit arch, miniaudio requires atomics library
-        LDLIBS += -latomic
-    endif
-    ifeq ($(PLATFORM_OS),OSX)
-        # Libraries for Debian MacOS desktop compiling
-        # NOTE: Required packages: libegl1-mesa-dev
-        LDLIBS += -lm -framework Foundation -framework AppKit -framework IOKit  -framework OpenGL -framework CoreVideo
-    endif
-endif
-ifeq ($(TARGET_PLATFORM),PLATFORM_DRM)
-    LDLIBS = -ldrm -lgbm -lpthread -lrt -lm -ldl
-    ifeq ($(GRAPHICS),GRAPHICS_API_OPENGL_ES2)
-        LDLIBS += -lGLESv2 -lEGL
-    endif
-    ifeq ($(RAYLIB_MODULE_AUDIO),TRUE)
-        LDLIBS += -latomic
-    endif
-endif
-ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_WIN32)
-    LDLIBS = -lgdi32 -lwinmm -lshcore
-    ifneq ($(GRAPHICS),GRAPHICS_API_OPENGL_11_SOFTWARE)
-        LDLIBS += -lopengl32
-    endif
-endif
-ifeq ($(TARGET_PLATFORM),PLATFORM_ANDROID)
-    LDLIBS = -llog -landroid -lEGL -lGLESv2 -lOpenSLES -lc -lm
-endif
-
-# Define source code object files required
-#------------------------------------------------------------------------------------------------
-OBJS = rcore.o \
-       rshapes.o \
-       rtextures.o \
-       rtext.o \
-       utils.o
-
-ifeq ($(TARGET_PLATFORM),PLATFORM_DESKTOP_GLFW)
-    ifeq ($(USE_EXTERNAL_GLFW),FALSE)
-        OBJS += rglfw.o
-    endif
-endif
-ifeq ($(RAYLIB_MODULE_MODELS),TRUE)
-    OBJS += rmodels.o
-endif
-ifeq ($(RAYLIB_MODULE_AUDIO),TRUE)
-    OBJS += raudio.o
-endif
-ifeq ($(RAYLIB_MODULE_RAYGUI),TRUE)
-    OBJS += raygui.o
-endif
-
-ifeq ($(TARGET_PLATFORM),PLATFORM_ANDROID)
-    OBJS += android_native_app_glue.o
-endif
-
-# Define processes to execute
-#------------------------------------------------------------------------------------------------
-# Default target entry
-all: raylib
-
-# Compile raylib library
-# NOTE: Release directory is created if not exist
-raylib: $(OBJS)
-ifeq ($(TARGET_PLATFORM),$(filter $(TARGET_PLATFORM),PLATFORM_WEB PLATFORM_WEB_RGFW))
-    # Compile raylib libray for web
-    #$(CC) $(OBJS) -r -o $(RAYLIB_RELEASE_PATH)/lib$(RAYLIB_LIB_NAME).bc
-    ifeq ($(RAYLIB_LIBTYPE),SHARED)
-		@echo "WARNING: $(TARGET_PLATFORM) does not support SHARED libraries. Generating STATIC library."
-    endif
-	$(AR) rcs $(RAYLIB_RELEASE_PATH)/lib$(RAYLIB_LIB_NAME).web.a $(OBJS)
-	@echo "raylib library generated (lib$(RAYLIB_LIB_NAME).web.a)!"
-else
-    ifeq ($(RAYLIB_LIBTYPE),SHARED)
-        ifeq ($(TARGET_PLATFORM),$(filter $(TARGET_PLATFORM),PLATFORM_DESKTOP_GLFW PLATFORM_DESKTOP_SDL PLATFORM_DESKTOP_RGFW))
-            ifeq ($(PLATFORM_OS),WINDOWS)
-                # NOTE: Linking with provided resource file
-				$(CC) -shared -o $(RAYLIB_RELEASE_PATH)/$(RAYLIB_LIB_NAME).dll $(OBJS) $(RAYLIB_RES_FILE) $(LDFLAGS) $(LDLIBS)
-				@echo "raylib dynamic library ($(RAYLIB_LIB_NAME).dll) and import library (lib$(RAYLIB_LIB_NAME)dll.a) generated!"
-            endif
-            ifeq ($(PLATFORM_OS),LINUX)
-                # Compile raylib shared library version $(RAYLIB_VERSION).
-                # WARNING: you should type "make clean" before doing this target
-				$(CC) -shared -o $(RAYLIB_RELEASE_PATH)/lib$(RAYLIB_LIB_NAME).so.$(RAYLIB_VERSION) $(OBJS) $(LDFLAGS) $(LDLIBS)
-				@echo "raylib shared library generated (lib$(RAYLIB_LIB_NAME).so.$(RAYLIB_VERSION)) in $(RAYLIB_RELEASE_PATH)!"
-				cd $(RAYLIB_RELEASE_PATH) && ln -fsv lib$(RAYLIB_LIB_NAME).so.$(RAYLIB_VERSION) lib$(RAYLIB_LIB_NAME).so.$(RAYLIB_API_VERSION)
-				cd $(RAYLIB_RELEASE_PATH) && ln -fsv lib$(RAYLIB_LIB_NAME).so.$(RAYLIB_API_VERSION) lib$(RAYLIB_LIB_NAME).so
-            endif
-            ifeq ($(PLATFORM_OS),OSX)
-				$(CC) -dynamiclib -o $(RAYLIB_RELEASE_PATH)/lib$(RAYLIB_LIB_NAME).$(RAYLIB_VERSION).dylib $(OBJS) $(LDFLAGS) $(LDLIBS)
-				install_name_tool -id "@rpath/lib$(RAYLIB_LIB_NAME).$(RAYLIB_API_VERSION).dylib" $(RAYLIB_RELEASE_PATH)/lib$(RAYLIB_LIB_NAME).$(RAYLIB_VERSION).dylib
-				@echo "raylib shared library generated (lib$(RAYLIB_LIB_NAME).$(RAYLIB_VERSION).dylib)!"
-				cd $(RAYLIB_RELEASE_PATH) && ln -fs lib$(RAYLIB_LIB_NAME).$(RAYLIB_VERSION).dylib lib$(RAYLIB_LIB_NAME).$(RAYLIB_API_VERSION).dylib
-				cd $(RAYLIB_RELEASE_PATH) && ln -fs lib$(RAYLIB_LIB_NAME).$(RAYLIB_VERSION).dylib lib$(RAYLIB_LIB_NAME).dylib
-            endif
-            ifeq ($(PLATFORM_OS),BSD)
-                # WARNING: you should type "gmake clean" before doing this target
-				$(CC) -shared -o $(RAYLIB_RELEASE_PATH)/lib$(RAYLIB_LIB_NAME).$(RAYLIB_VERSION).so $(OBJS) $(LDFLAGS) $(LDLIBS)
-				@echo "raylib shared library generated (lib$(RAYLIB_LIB_NAME).$(RAYLIB_VERSION).so)!"
-				cd $(RAYLIB_RELEASE_PATH) && ln -fs lib$(RAYLIB_LIB_NAME).$(RAYLIB_VERSION).so lib$(RAYLIB_LIB_NAME).$(RAYLIB_API_VERSION).so
-				cd $(RAYLIB_RELEASE_PATH) && ln -fs lib$(RAYLIB_LIB_NAME).$(RAYLIB_VERSION).so lib$(RAYLIB_LIB_NAME).so
-            endif
-        endif
-        ifeq ($(TARGET_PLATFORM),PLATFORM_DRM)
-                # Compile raylib shared library version $(RAYLIB_VERSION).
-                # WARNING: you should type "make clean" before doing this target
-				$(CC) -shared -o $(RAYLIB_RELEASE_PATH)/lib$(RAYLIB_LIB_NAME).so.$(RAYLIB_VERSION) $(OBJS) $(LDFLAGS) $(LDLIBS)
-				@echo "raylib shared library generated (lib$(RAYLIB_LIB_NAME).so.$(RAYLIB_VERSION)) in $(RAYLIB_RELEASE_PATH)!"
-				cd $(RAYLIB_RELEASE_PATH) && ln -fsv lib$(RAYLIB_LIB_NAME).so.$(RAYLIB_VERSION) lib$(RAYLIB_LIB_NAME).so.$(RAYLIB_API_VERSION)
-				cd $(RAYLIB_RELEASE_PATH) && ln -fsv lib$(RAYLIB_LIB_NAME).so.$(RAYLIB_API_VERSION) lib$(RAYLIB_LIB_NAME).so
-        endif
-        ifeq ($(TARGET_PLATFORM),PLATFORM_ANDROID)
-			$(CC) -shared -o $(RAYLIB_RELEASE_PATH)/lib$(RAYLIB_LIB_NAME).$(RAYLIB_VERSION).so $(OBJS) $(LDFLAGS) $(LDLIBS)
-			@echo "raylib shared library generated (lib$(RAYLIB_LIB_NAME).$(RAYLIB_VERSION).so)!"
-            # WARNING: symbolic links creation on Windows should be done using mklink command, no ln available
-            ifeq ($(HOST_PLATFORM_OS),LINUX)
-				cd $(RAYLIB_RELEASE_PATH) && ln -fs lib$(RAYLIB_LIB_NAME).$(RAYLIB_VERSION).so lib$(RAYLIB_LIB_NAME).$(RAYLIB_API_VERSION).so
-				cd $(RAYLIB_RELEASE_PATH) && ln -fs lib$(RAYLIB_LIB_NAME).$(RAYLIB_VERSION).so lib$(RAYLIB_LIB_NAME).so
-            endif
-        endif
-    else
-        # Compile raylib static library version $(RAYLIB_VERSION)
-        # WARNING: You should type "make clean" before doing this target.
-		$(AR) rcs $(RAYLIB_RELEASE_PATH)/lib$(RAYLIB_LIB_NAME).a $(OBJS)
-		@echo "raylib static library generated (lib$(RAYLIB_LIB_NAME).a) in $(RAYLIB_RELEASE_PATH)!"
-    endif
-endif
-
-# Compile all modules with their prerequisites
-
-# Prerequisites of core module
-rcore.o : platforms/*.c
-
-# Compile core module
-rcore.o : rcore.c raylib.h rlgl.h utils.h raymath.h rcamera.h rgestures.h
-	$(CC) -c $< $(CFLAGS) $(INCLUDE_PATHS)
-
-# Compile rglfw module
-rglfw.o : rglfw.c
-	$(CC) $(GLFW_OSX) -c $< $(CFLAGS) $(INCLUDE_PATHS) -U_GNU_SOURCE
-
-# Compile shapes module
-rshapes.o : rshapes.c raylib.h rlgl.h
-	$(CC) -c $< $(CFLAGS) $(INCLUDE_PATHS)
-
-# Compile textures module
-rtextures.o : rtextures.c raylib.h rlgl.h utils.h
-	$(CC) -c $< $(CFLAGS) $(INCLUDE_PATHS)
-
-# Compile text module
-rtext.o : rtext.c raylib.h utils.h
-	$(CC) -c $< $(CFLAGS) $(INCLUDE_PATHS)
-
-# Compile utils module
-utils.o : utils.c utils.h
-	$(CC) -c $< $(CFLAGS) $(INCLUDE_PATHS)
-
-# Compile models module
-rmodels.o : rmodels.c raylib.h rlgl.h raymath.h
-	$(CC) -c $< $(CFLAGS) $(INCLUDE_PATHS)
-
-# Compile audio module
-raudio.o : raudio.c raylib.h
-	$(CC) -c $< $(CFLAGS) $(INCLUDE_PATHS)
-
-# Compile raygui module
-# NOTE: raygui header should be distributed with raylib.h
-raygui.o : raygui.c
-	$(CC) -c $< $(CFLAGS) $(INCLUDE_PATHS)
-raygui.c:
-ifeq ($(PLATFORM_SHELL), cmd)
-	@echo #define RAYGUI_IMPLEMENTATION > raygui.c
-	@echo #include "$(RAYLIB_MODULE_RAYGUI_PATH)/raygui.h" >> raygui.c
-else
-	@echo "#define RAYGUI_IMPLEMENTATION" > raygui.c
-	@echo "#include \"$(RAYLIB_MODULE_RAYGUI_PATH)/raygui.h\"" >> raygui.c
-endif
-
-# Compile android_native_app_glue module
-android_native_app_glue.o : $(NATIVE_APP_GLUE)/android_native_app_glue.c
-	$(CC) -c $< $(CFLAGS) $(INCLUDE_PATHS)
-
-# Install generated and needed files to desired directories.
-# On GNU/Linux and BSDs, there are some standard directories that contain extra
-# libraries and header files. These directories (often /usr/local/lib and
-# /usr/local/include) are for libraries that are installed manually
-# (without a package manager). We'll use /usr/local/lib/raysan5 and /usr/local/include/raysan5
-# for our -L and -I specification to simplify management of the raylib source package.
-# Customize these locations if you like but don't forget to pass them to make
-# for compilation and enable runtime linking with -rpath, LD_LIBRARY_PATH, or ldconfig.
-# HINT: Add -L$(RAYLIB_INSTALL_PATH) -I$(RAYLIB_H_INSTALL_PATH) to your own makefiles.
-# See below and ../examples/Makefile for more information.
-
-# RAYLIB_INSTALL_PATH should be the desired full path to libraylib. No relative paths.
-DESTDIR ?= /usr/local
-RAYLIB_INSTALL_PATH ?= $(DESTDIR)/lib
-# RAYLIB_H_INSTALL_PATH locates the installed raylib header and associated source files.
-RAYLIB_H_INSTALL_PATH ?= $(DESTDIR)/include
-
-install :
-ifeq ($(ROOT),root)
-    ifeq ($(PLATFORM_OS),LINUX)
-        # Attention! You are root, writing files to $(RAYLIB_INSTALL_PATH)
-        # and $(RAYLIB_H_INSTALL_PATH). Consult this Makefile for more information.
-        # Prepare the environment as needed.
-		mkdir --parents --verbose $(RAYLIB_INSTALL_PATH)
-		mkdir --parents --verbose $(RAYLIB_H_INSTALL_PATH)
-        ifeq ($(RAYLIB_LIBTYPE),SHARED)
-            # Installing raylib to $(RAYLIB_INSTALL_PATH).
-			cp --update --verbose $(RAYLIB_RELEASE_PATH)/libraylib.so.$(RAYLIB_VERSION) $(RAYLIB_INSTALL_PATH)/lib$(RAYLIB_LIB_NAME).so.$(RAYLIB_VERSION)
-			cd $(RAYLIB_INSTALL_PATH); ln -fsv lib$(RAYLIB_LIB_NAME).so.$(RAYLIB_VERSION) lib$(RAYLIB_LIB_NAME).so.$(RAYLIB_API_VERSION)
-			cd $(RAYLIB_INSTALL_PATH); ln -fsv lib$(RAYLIB_LIB_NAME).so.$(RAYLIB_API_VERSION) lib$(RAYLIB_LIB_NAME).so
-            # Uncomment to update the runtime linker cache with RAYLIB_INSTALL_PATH.
-            # Not necessary if later embedding RPATH in your executable. See examples/Makefile.
-			ldconfig $(RAYLIB_INSTALL_PATH)
-        else
-            # Installing raylib to $(RAYLIB_INSTALL_PATH).
-			cp --update --verbose $(RAYLIB_RELEASE_PATH)/lib$(RAYLIB_LIB_NAME).a $(RAYLIB_INSTALL_PATH)/lib$(RAYLIB_LIB_NAME).a
-        endif
-        # Copying raylib development files to $(RAYLIB_H_INSTALL_PATH).
-		cp --update raylib.h $(RAYLIB_H_INSTALL_PATH)/raylib.h
-		cp --update raymath.h $(RAYLIB_H_INSTALL_PATH)/raymath.h
-		cp --update rlgl.h $(RAYLIB_H_INSTALL_PATH)/rlgl.h
-		@echo "raylib development files installed/updated!"
-    else
-		@echo "This function currently works on GNU/Linux systems. Add yours today (^;"
-    endif
-else
-	@echo "ERROR: Root permissions needed for installation. Try sudo make install" && exit 1
-endif
-
-# Remove raylib dev files installed on the system
-# NOTE: see 'install' target.
-uninstall :
-ifeq ($(ROOT),root)
-    # WARNING: You are root, about to delete items from $(RAYLIB_INSTALL_PATH).
-    # and $(RAYLIB_H_INSTALL_PATH). Please confirm each item.
-    ifeq ($(PLATFORM_OS),LINUX)
-        ifeq ($(RAYLIB_LIBTYPE),SHARED)
-			rm --force --interactive --verbose $(RAYLIB_INSTALL_PATH)/libraylib.so
-			rm --force --interactive --verbose $(RAYLIB_INSTALL_PATH)/libraylib.so.$(RAYLIB_API_VERSION)
-			rm --force --interactive --verbose $(RAYLIB_INSTALL_PATH)/libraylib.so.$(RAYLIB_VERSION)
-            # Uncomment to clean up the runtime linker cache. See install target.
-			ldconfig
-        else
-			rm --force --interactive --verbose $(RAYLIB_INSTALL_PATH)/libraylib.a
-        endif
-		rm --force --interactive --verbose $(RAYLIB_H_INSTALL_PATH)/raylib.h
-		rm --force --interactive --verbose $(RAYLIB_H_INSTALL_PATH)/raymath.h
-		rm --force --interactive --verbose $(RAYLIB_H_INSTALL_PATH)/rlgl.h
-		@echo "raylib development files removed!"
-    else
-		@echo "This function currently works on GNU/Linux systems. Add yours today (^;"
-    endif
-else
-	@echo "ERROR: Root permissions needed for uninstallation. Try sudo make uninstall" && exit 1
-endif
-
-.PHONY: clean_shell_cmd clean_shell_sh
-
-# Clean everything
-clean:	clean_shell_$(PLATFORM_SHELL)
-	@echo "removed all generated files!"
-
-clean_shell_sh:
-	rm -fv *.o $(RAYLIB_RELEASE_PATH)/lib$(RAYLIB_LIB_NAME).a $(RAYLIB_RELEASE_PATH)/lib$(RAYLIB_LIB_NAME).web.a $(RAYLIB_RELEASE_PATH)/lib$(RAYLIB_LIB_NAME).so* raygui.c $(RAYLIB_RELEASE_PATH)/*-protocol.h $(RAYLIB_RELEASE_PATH)/*-protocol-code.h
-ifeq ($(TARGET_PLATFORM),PLATFORM_ANDROID)
-	rm -fv $(NATIVE_APP_GLUE)/android_native_app_glue.o
-endif
-
-# Set specific target variable
-clean_shell_cmd: SHELL=cmd
-clean_shell_cmd:
-	del *.o /s
-	cd $(RAYLIB_RELEASE_PATH) & \
-	del lib$(RAYLIB_LIB_NAME).a /s & \
-        del lib$(RAYLIB_LIB_NAME).web.a /s & \
-	del lib$(RAYLIB_LIB_NAME)dll.a /s & \
-	del $(RAYLIB_LIB_NAME).dll /s & \
-	del raygui.c /s & \
+# CMAKE generated file: DO NOT EDIT!
+# Generated by "Unix Makefiles" Generator, CMake Version 4.1
+
+# Default target executed when no arguments are given to make.
+default_target: all
+.PHONY : default_target
+
+# Allow only one "make -f Makefile2" at a time, but pass parallelism.
+.NOTPARALLEL:
+
+#=============================================================================
+# Special targets provided by cmake.
+
+# Disable implicit rules so canonical targets will work.
+.SUFFIXES:
+
+# Disable VCS-based implicit rules.
+% : %,v
+
+# Disable VCS-based implicit rules.
+% : RCS/%
+
+# Disable VCS-based implicit rules.
+% : RCS/%,v
+
+# Disable VCS-based implicit rules.
+% : SCCS/s.%
+
+# Disable VCS-based implicit rules.
+% : s.%
+
+.SUFFIXES: .hpux_make_needs_suffix_list
+
+# Command-line flag to silence nested $(MAKE).
+$(VERBOSE)MAKESILENT = -s
+
+#Suppress display of executed commands.
+$(VERBOSE).SILENT:
+
+# A target that is always out of date.
+cmake_force:
+.PHONY : cmake_force
+
+#=============================================================================
+# Set environment variables for the build.
+
+# The shell in which to execute make rules.
+SHELL = /bin/sh
+
+# The CMake executable.
+CMAKE_COMMAND = /opt/homebrew/bin/cmake
+
+# The command to remove a file.
+RM = /opt/homebrew/bin/cmake -E rm -f
+
+# Escaping for special characters.
+EQUALS = =
+
+# The top-level source directory on which CMake was run.
+CMAKE_SOURCE_DIR = /Users/tnixc/Developer/MGL/examples/elle/raylib
+
+# The top-level build directory on which CMake was run.
+CMAKE_BINARY_DIR = /Users/tnixc/Developer/MGL/examples/elle/raylib/src
+
+#=============================================================================
+# Targets provided globally by CMake.
+
+# Special rule for the target package
+package: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Run CPack packaging tool..."
+	/opt/homebrew/bin/cpack --config ./CPackConfig.cmake
+.PHONY : package
+
+# Special rule for the target package
+package/fast: package
+.PHONY : package/fast
+
+# Special rule for the target package_source
+package_source:
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Run CPack packaging tool for source..."
+	/opt/homebrew/bin/cpack --config ./CPackSourceConfig.cmake /Users/tnixc/Developer/MGL/examples/elle/raylib/src/CPackSourceConfig.cmake
+.PHONY : package_source
+
+# Special rule for the target package_source
+package_source/fast: package_source
+.PHONY : package_source/fast
+
+# Special rule for the target test
+test:
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Running tests..."
+	/opt/homebrew/bin/ctest $(ARGS)
+.PHONY : test
+
+# Special rule for the target test
+test/fast: test
+.PHONY : test/fast
+
+# Special rule for the target edit_cache
+edit_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Running CMake cache editor..."
+	/opt/homebrew/bin/ccmake -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+.PHONY : edit_cache
+
+# Special rule for the target edit_cache
+edit_cache/fast: edit_cache
+.PHONY : edit_cache/fast
+
+# Special rule for the target rebuild_cache
+rebuild_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Running CMake to regenerate build system..."
+	/opt/homebrew/bin/cmake --regenerate-during-build -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+.PHONY : rebuild_cache
+
+# Special rule for the target rebuild_cache
+rebuild_cache/fast: rebuild_cache
+.PHONY : rebuild_cache/fast
+
+# Special rule for the target list_install_components
+list_install_components:
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Available install components are: \"Unspecified\""
+.PHONY : list_install_components
+
+# Special rule for the target list_install_components
+list_install_components/fast: list_install_components
+.PHONY : list_install_components/fast
+
+# Special rule for the target install
+install: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Install the project..."
+	/opt/homebrew/bin/cmake -P cmake_install.cmake
+.PHONY : install
+
+# Special rule for the target install
+install/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Install the project..."
+	/opt/homebrew/bin/cmake -P cmake_install.cmake
+.PHONY : install/fast
+
+# Special rule for the target install/local
+install/local: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Installing only the local directory..."
+	/opt/homebrew/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local
+
+# Special rule for the target install/local
+install/local/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Installing only the local directory..."
+	/opt/homebrew/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local/fast
+
+# Special rule for the target install/strip
+install/strip: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Installing the project stripped..."
+	/opt/homebrew/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+.PHONY : install/strip
+
+# Special rule for the target install/strip
+install/strip/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Installing the project stripped..."
+	/opt/homebrew/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+.PHONY : install/strip/fast
+
+# The main all target
+all: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/tnixc/Developer/MGL/examples/elle/raylib/src/CMakeFiles /Users/tnixc/Developer/MGL/examples/elle/raylib/src//CMakeFiles/progress.marks
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/tnixc/Developer/MGL/examples/elle/raylib/src/CMakeFiles 0
+.PHONY : all
+
+# The main clean target
+clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 clean
+.PHONY : clean
+
+# The main clean target
+clean/fast: clean
+.PHONY : clean/fast
+
+# Prepare targets for installation.
+preinstall: all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 preinstall
+.PHONY : preinstall
+
+# Prepare targets for installation.
+preinstall/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 preinstall
+.PHONY : preinstall/fast
+
+# clear depends
+depend:
+	$(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
+.PHONY : depend
+
+#=============================================================================
+# Target rules for targets named uninstall
+
+# Build rule for target.
+uninstall: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 uninstall
+.PHONY : uninstall
+
+# fast build rule for target.
+uninstall/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/uninstall.dir/build.make CMakeFiles/uninstall.dir/build
+.PHONY : uninstall/fast
+
+#=============================================================================
+# Target rules for targets named raylib
+
+# Build rule for target.
+raylib: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 raylib
+.PHONY : raylib
+
+# fast build rule for target.
+raylib/fast:
+	$(MAKE) $(MAKESILENT) -f raylib/CMakeFiles/raylib.dir/build.make raylib/CMakeFiles/raylib.dir/build
+.PHONY : raylib/fast
+
+#=============================================================================
+# Target rules for targets named audio_mixed_processor
+
+# Build rule for target.
+audio_mixed_processor: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 audio_mixed_processor
+.PHONY : audio_mixed_processor
+
+# fast build rule for target.
+audio_mixed_processor/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/audio_mixed_processor.dir/build.make examples/CMakeFiles/audio_mixed_processor.dir/build
+.PHONY : audio_mixed_processor/fast
+
+#=============================================================================
+# Target rules for targets named audio_module_playing
+
+# Build rule for target.
+audio_module_playing: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 audio_module_playing
+.PHONY : audio_module_playing
+
+# fast build rule for target.
+audio_module_playing/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/audio_module_playing.dir/build.make examples/CMakeFiles/audio_module_playing.dir/build
+.PHONY : audio_module_playing/fast
+
+#=============================================================================
+# Target rules for targets named audio_music_stream
+
+# Build rule for target.
+audio_music_stream: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 audio_music_stream
+.PHONY : audio_music_stream
+
+# fast build rule for target.
+audio_music_stream/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/audio_music_stream.dir/build.make examples/CMakeFiles/audio_music_stream.dir/build
+.PHONY : audio_music_stream/fast
+
+#=============================================================================
+# Target rules for targets named audio_raw_stream
+
+# Build rule for target.
+audio_raw_stream: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 audio_raw_stream
+.PHONY : audio_raw_stream
+
+# fast build rule for target.
+audio_raw_stream/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/audio_raw_stream.dir/build.make examples/CMakeFiles/audio_raw_stream.dir/build
+.PHONY : audio_raw_stream/fast
+
+#=============================================================================
+# Target rules for targets named audio_sound_loading
+
+# Build rule for target.
+audio_sound_loading: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 audio_sound_loading
+.PHONY : audio_sound_loading
+
+# fast build rule for target.
+audio_sound_loading/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/audio_sound_loading.dir/build.make examples/CMakeFiles/audio_sound_loading.dir/build
+.PHONY : audio_sound_loading/fast
+
+#=============================================================================
+# Target rules for targets named audio_sound_multi
+
+# Build rule for target.
+audio_sound_multi: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 audio_sound_multi
+.PHONY : audio_sound_multi
+
+# fast build rule for target.
+audio_sound_multi/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/audio_sound_multi.dir/build.make examples/CMakeFiles/audio_sound_multi.dir/build
+.PHONY : audio_sound_multi/fast
+
+#=============================================================================
+# Target rules for targets named audio_sound_positioning
+
+# Build rule for target.
+audio_sound_positioning: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 audio_sound_positioning
+.PHONY : audio_sound_positioning
+
+# fast build rule for target.
+audio_sound_positioning/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/audio_sound_positioning.dir/build.make examples/CMakeFiles/audio_sound_positioning.dir/build
+.PHONY : audio_sound_positioning/fast
+
+#=============================================================================
+# Target rules for targets named audio_stream_effects
+
+# Build rule for target.
+audio_stream_effects: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 audio_stream_effects
+.PHONY : audio_stream_effects
+
+# fast build rule for target.
+audio_stream_effects/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/audio_stream_effects.dir/build.make examples/CMakeFiles/audio_stream_effects.dir/build
+.PHONY : audio_stream_effects/fast
+
+#=============================================================================
+# Target rules for targets named core_2d_camera
+
+# Build rule for target.
+core_2d_camera: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_2d_camera
+.PHONY : core_2d_camera
+
+# fast build rule for target.
+core_2d_camera/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_2d_camera.dir/build.make examples/CMakeFiles/core_2d_camera.dir/build
+.PHONY : core_2d_camera/fast
+
+#=============================================================================
+# Target rules for targets named core_2d_camera_mouse_zoom
+
+# Build rule for target.
+core_2d_camera_mouse_zoom: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_2d_camera_mouse_zoom
+.PHONY : core_2d_camera_mouse_zoom
+
+# fast build rule for target.
+core_2d_camera_mouse_zoom/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_2d_camera_mouse_zoom.dir/build.make examples/CMakeFiles/core_2d_camera_mouse_zoom.dir/build
+.PHONY : core_2d_camera_mouse_zoom/fast
+
+#=============================================================================
+# Target rules for targets named core_2d_camera_platformer
+
+# Build rule for target.
+core_2d_camera_platformer: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_2d_camera_platformer
+.PHONY : core_2d_camera_platformer
+
+# fast build rule for target.
+core_2d_camera_platformer/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_2d_camera_platformer.dir/build.make examples/CMakeFiles/core_2d_camera_platformer.dir/build
+.PHONY : core_2d_camera_platformer/fast
+
+#=============================================================================
+# Target rules for targets named core_2d_camera_split_screen
+
+# Build rule for target.
+core_2d_camera_split_screen: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_2d_camera_split_screen
+.PHONY : core_2d_camera_split_screen
+
+# fast build rule for target.
+core_2d_camera_split_screen/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_2d_camera_split_screen.dir/build.make examples/CMakeFiles/core_2d_camera_split_screen.dir/build
+.PHONY : core_2d_camera_split_screen/fast
+
+#=============================================================================
+# Target rules for targets named core_3d_camera_first_person
+
+# Build rule for target.
+core_3d_camera_first_person: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_3d_camera_first_person
+.PHONY : core_3d_camera_first_person
+
+# fast build rule for target.
+core_3d_camera_first_person/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_3d_camera_first_person.dir/build.make examples/CMakeFiles/core_3d_camera_first_person.dir/build
+.PHONY : core_3d_camera_first_person/fast
+
+#=============================================================================
+# Target rules for targets named core_3d_camera_fps
+
+# Build rule for target.
+core_3d_camera_fps: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_3d_camera_fps
+.PHONY : core_3d_camera_fps
+
+# fast build rule for target.
+core_3d_camera_fps/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_3d_camera_fps.dir/build.make examples/CMakeFiles/core_3d_camera_fps.dir/build
+.PHONY : core_3d_camera_fps/fast
+
+#=============================================================================
+# Target rules for targets named core_3d_camera_free
+
+# Build rule for target.
+core_3d_camera_free: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_3d_camera_free
+.PHONY : core_3d_camera_free
+
+# fast build rule for target.
+core_3d_camera_free/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_3d_camera_free.dir/build.make examples/CMakeFiles/core_3d_camera_free.dir/build
+.PHONY : core_3d_camera_free/fast
+
+#=============================================================================
+# Target rules for targets named core_3d_camera_mode
+
+# Build rule for target.
+core_3d_camera_mode: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_3d_camera_mode
+.PHONY : core_3d_camera_mode
+
+# fast build rule for target.
+core_3d_camera_mode/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_3d_camera_mode.dir/build.make examples/CMakeFiles/core_3d_camera_mode.dir/build
+.PHONY : core_3d_camera_mode/fast
+
+#=============================================================================
+# Target rules for targets named core_3d_camera_split_screen
+
+# Build rule for target.
+core_3d_camera_split_screen: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_3d_camera_split_screen
+.PHONY : core_3d_camera_split_screen
+
+# fast build rule for target.
+core_3d_camera_split_screen/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_3d_camera_split_screen.dir/build.make examples/CMakeFiles/core_3d_camera_split_screen.dir/build
+.PHONY : core_3d_camera_split_screen/fast
+
+#=============================================================================
+# Target rules for targets named core_3d_picking
+
+# Build rule for target.
+core_3d_picking: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_3d_picking
+.PHONY : core_3d_picking
+
+# fast build rule for target.
+core_3d_picking/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_3d_picking.dir/build.make examples/CMakeFiles/core_3d_picking.dir/build
+.PHONY : core_3d_picking/fast
+
+#=============================================================================
+# Target rules for targets named core_automation_events
+
+# Build rule for target.
+core_automation_events: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_automation_events
+.PHONY : core_automation_events
+
+# fast build rule for target.
+core_automation_events/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_automation_events.dir/build.make examples/CMakeFiles/core_automation_events.dir/build
+.PHONY : core_automation_events/fast
+
+#=============================================================================
+# Target rules for targets named core_basic_screen_manager
+
+# Build rule for target.
+core_basic_screen_manager: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_basic_screen_manager
+.PHONY : core_basic_screen_manager
+
+# fast build rule for target.
+core_basic_screen_manager/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_basic_screen_manager.dir/build.make examples/CMakeFiles/core_basic_screen_manager.dir/build
+.PHONY : core_basic_screen_manager/fast
+
+#=============================================================================
+# Target rules for targets named core_basic_window
+
+# Build rule for target.
+core_basic_window: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_basic_window
+.PHONY : core_basic_window
+
+# fast build rule for target.
+core_basic_window/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_basic_window.dir/build.make examples/CMakeFiles/core_basic_window.dir/build
+.PHONY : core_basic_window/fast
+
+#=============================================================================
+# Target rules for targets named core_clipboard_text
+
+# Build rule for target.
+core_clipboard_text: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_clipboard_text
+.PHONY : core_clipboard_text
+
+# fast build rule for target.
+core_clipboard_text/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_clipboard_text.dir/build.make examples/CMakeFiles/core_clipboard_text.dir/build
+.PHONY : core_clipboard_text/fast
+
+#=============================================================================
+# Target rules for targets named core_custom_frame_control
+
+# Build rule for target.
+core_custom_frame_control: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_custom_frame_control
+.PHONY : core_custom_frame_control
+
+# fast build rule for target.
+core_custom_frame_control/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_custom_frame_control.dir/build.make examples/CMakeFiles/core_custom_frame_control.dir/build
+.PHONY : core_custom_frame_control/fast
+
+#=============================================================================
+# Target rules for targets named core_custom_logging
+
+# Build rule for target.
+core_custom_logging: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_custom_logging
+.PHONY : core_custom_logging
+
+# fast build rule for target.
+core_custom_logging/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_custom_logging.dir/build.make examples/CMakeFiles/core_custom_logging.dir/build
+.PHONY : core_custom_logging/fast
+
+#=============================================================================
+# Target rules for targets named core_delta_time
+
+# Build rule for target.
+core_delta_time: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_delta_time
+.PHONY : core_delta_time
+
+# fast build rule for target.
+core_delta_time/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_delta_time.dir/build.make examples/CMakeFiles/core_delta_time.dir/build
+.PHONY : core_delta_time/fast
+
+#=============================================================================
+# Target rules for targets named core_directory_files
+
+# Build rule for target.
+core_directory_files: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_directory_files
+.PHONY : core_directory_files
+
+# fast build rule for target.
+core_directory_files/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_directory_files.dir/build.make examples/CMakeFiles/core_directory_files.dir/build
+.PHONY : core_directory_files/fast
+
+#=============================================================================
+# Target rules for targets named core_drop_files
+
+# Build rule for target.
+core_drop_files: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_drop_files
+.PHONY : core_drop_files
+
+# fast build rule for target.
+core_drop_files/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_drop_files.dir/build.make examples/CMakeFiles/core_drop_files.dir/build
+.PHONY : core_drop_files/fast
+
+#=============================================================================
+# Target rules for targets named core_high_dpi
+
+# Build rule for target.
+core_high_dpi: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_high_dpi
+.PHONY : core_high_dpi
+
+# fast build rule for target.
+core_high_dpi/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_high_dpi.dir/build.make examples/CMakeFiles/core_high_dpi.dir/build
+.PHONY : core_high_dpi/fast
+
+#=============================================================================
+# Target rules for targets named core_highdpi_testbed
+
+# Build rule for target.
+core_highdpi_testbed: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_highdpi_testbed
+.PHONY : core_highdpi_testbed
+
+# fast build rule for target.
+core_highdpi_testbed/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_highdpi_testbed.dir/build.make examples/CMakeFiles/core_highdpi_testbed.dir/build
+.PHONY : core_highdpi_testbed/fast
+
+#=============================================================================
+# Target rules for targets named core_input_actions
+
+# Build rule for target.
+core_input_actions: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_input_actions
+.PHONY : core_input_actions
+
+# fast build rule for target.
+core_input_actions/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_input_actions.dir/build.make examples/CMakeFiles/core_input_actions.dir/build
+.PHONY : core_input_actions/fast
+
+#=============================================================================
+# Target rules for targets named core_input_gamepad
+
+# Build rule for target.
+core_input_gamepad: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_input_gamepad
+.PHONY : core_input_gamepad
+
+# fast build rule for target.
+core_input_gamepad/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_input_gamepad.dir/build.make examples/CMakeFiles/core_input_gamepad.dir/build
+.PHONY : core_input_gamepad/fast
+
+#=============================================================================
+# Target rules for targets named core_input_gestures
+
+# Build rule for target.
+core_input_gestures: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_input_gestures
+.PHONY : core_input_gestures
+
+# fast build rule for target.
+core_input_gestures/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_input_gestures.dir/build.make examples/CMakeFiles/core_input_gestures.dir/build
+.PHONY : core_input_gestures/fast
+
+#=============================================================================
+# Target rules for targets named core_input_gestures_testbed
+
+# Build rule for target.
+core_input_gestures_testbed: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_input_gestures_testbed
+.PHONY : core_input_gestures_testbed
+
+# fast build rule for target.
+core_input_gestures_testbed/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_input_gestures_testbed.dir/build.make examples/CMakeFiles/core_input_gestures_testbed.dir/build
+.PHONY : core_input_gestures_testbed/fast
+
+#=============================================================================
+# Target rules for targets named core_input_keys
+
+# Build rule for target.
+core_input_keys: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_input_keys
+.PHONY : core_input_keys
+
+# fast build rule for target.
+core_input_keys/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_input_keys.dir/build.make examples/CMakeFiles/core_input_keys.dir/build
+.PHONY : core_input_keys/fast
+
+#=============================================================================
+# Target rules for targets named core_input_mouse
+
+# Build rule for target.
+core_input_mouse: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_input_mouse
+.PHONY : core_input_mouse
+
+# fast build rule for target.
+core_input_mouse/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_input_mouse.dir/build.make examples/CMakeFiles/core_input_mouse.dir/build
+.PHONY : core_input_mouse/fast
+
+#=============================================================================
+# Target rules for targets named core_input_mouse_wheel
+
+# Build rule for target.
+core_input_mouse_wheel: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_input_mouse_wheel
+.PHONY : core_input_mouse_wheel
+
+# fast build rule for target.
+core_input_mouse_wheel/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_input_mouse_wheel.dir/build.make examples/CMakeFiles/core_input_mouse_wheel.dir/build
+.PHONY : core_input_mouse_wheel/fast
+
+#=============================================================================
+# Target rules for targets named core_input_multitouch
+
+# Build rule for target.
+core_input_multitouch: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_input_multitouch
+.PHONY : core_input_multitouch
+
+# fast build rule for target.
+core_input_multitouch/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_input_multitouch.dir/build.make examples/CMakeFiles/core_input_multitouch.dir/build
+.PHONY : core_input_multitouch/fast
+
+#=============================================================================
+# Target rules for targets named core_input_virtual_controls
+
+# Build rule for target.
+core_input_virtual_controls: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_input_virtual_controls
+.PHONY : core_input_virtual_controls
+
+# fast build rule for target.
+core_input_virtual_controls/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_input_virtual_controls.dir/build.make examples/CMakeFiles/core_input_virtual_controls.dir/build
+.PHONY : core_input_virtual_controls/fast
+
+#=============================================================================
+# Target rules for targets named core_monitor_detector
+
+# Build rule for target.
+core_monitor_detector: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_monitor_detector
+.PHONY : core_monitor_detector
+
+# fast build rule for target.
+core_monitor_detector/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_monitor_detector.dir/build.make examples/CMakeFiles/core_monitor_detector.dir/build
+.PHONY : core_monitor_detector/fast
+
+#=============================================================================
+# Target rules for targets named core_random_sequence
+
+# Build rule for target.
+core_random_sequence: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_random_sequence
+.PHONY : core_random_sequence
+
+# fast build rule for target.
+core_random_sequence/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_random_sequence.dir/build.make examples/CMakeFiles/core_random_sequence.dir/build
+.PHONY : core_random_sequence/fast
+
+#=============================================================================
+# Target rules for targets named core_random_values
+
+# Build rule for target.
+core_random_values: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_random_values
+.PHONY : core_random_values
+
+# fast build rule for target.
+core_random_values/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_random_values.dir/build.make examples/CMakeFiles/core_random_values.dir/build
+.PHONY : core_random_values/fast
+
+#=============================================================================
+# Target rules for targets named core_render_texture
+
+# Build rule for target.
+core_render_texture: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_render_texture
+.PHONY : core_render_texture
+
+# fast build rule for target.
+core_render_texture/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_render_texture.dir/build.make examples/CMakeFiles/core_render_texture.dir/build
+.PHONY : core_render_texture/fast
+
+#=============================================================================
+# Target rules for targets named core_scissor_test
+
+# Build rule for target.
+core_scissor_test: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_scissor_test
+.PHONY : core_scissor_test
+
+# fast build rule for target.
+core_scissor_test/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_scissor_test.dir/build.make examples/CMakeFiles/core_scissor_test.dir/build
+.PHONY : core_scissor_test/fast
+
+#=============================================================================
+# Target rules for targets named core_screen_recording
+
+# Build rule for target.
+core_screen_recording: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_screen_recording
+.PHONY : core_screen_recording
+
+# fast build rule for target.
+core_screen_recording/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_screen_recording.dir/build.make examples/CMakeFiles/core_screen_recording.dir/build
+.PHONY : core_screen_recording/fast
+
+#=============================================================================
+# Target rules for targets named core_smooth_pixelperfect
+
+# Build rule for target.
+core_smooth_pixelperfect: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_smooth_pixelperfect
+.PHONY : core_smooth_pixelperfect
+
+# fast build rule for target.
+core_smooth_pixelperfect/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_smooth_pixelperfect.dir/build.make examples/CMakeFiles/core_smooth_pixelperfect.dir/build
+.PHONY : core_smooth_pixelperfect/fast
+
+#=============================================================================
+# Target rules for targets named core_storage_values
+
+# Build rule for target.
+core_storage_values: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_storage_values
+.PHONY : core_storage_values
+
+# fast build rule for target.
+core_storage_values/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_storage_values.dir/build.make examples/CMakeFiles/core_storage_values.dir/build
+.PHONY : core_storage_values/fast
+
+#=============================================================================
+# Target rules for targets named core_text_file_loading
+
+# Build rule for target.
+core_text_file_loading: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_text_file_loading
+.PHONY : core_text_file_loading
+
+# fast build rule for target.
+core_text_file_loading/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_text_file_loading.dir/build.make examples/CMakeFiles/core_text_file_loading.dir/build
+.PHONY : core_text_file_loading/fast
+
+#=============================================================================
+# Target rules for targets named core_undo_redo
+
+# Build rule for target.
+core_undo_redo: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_undo_redo
+.PHONY : core_undo_redo
+
+# fast build rule for target.
+core_undo_redo/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_undo_redo.dir/build.make examples/CMakeFiles/core_undo_redo.dir/build
+.PHONY : core_undo_redo/fast
+
+#=============================================================================
+# Target rules for targets named core_vr_simulator
+
+# Build rule for target.
+core_vr_simulator: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_vr_simulator
+.PHONY : core_vr_simulator
+
+# fast build rule for target.
+core_vr_simulator/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_vr_simulator.dir/build.make examples/CMakeFiles/core_vr_simulator.dir/build
+.PHONY : core_vr_simulator/fast
+
+#=============================================================================
+# Target rules for targets named core_window_flags
+
+# Build rule for target.
+core_window_flags: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_window_flags
+.PHONY : core_window_flags
+
+# fast build rule for target.
+core_window_flags/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_window_flags.dir/build.make examples/CMakeFiles/core_window_flags.dir/build
+.PHONY : core_window_flags/fast
+
+#=============================================================================
+# Target rules for targets named core_window_letterbox
+
+# Build rule for target.
+core_window_letterbox: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_window_letterbox
+.PHONY : core_window_letterbox
+
+# fast build rule for target.
+core_window_letterbox/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_window_letterbox.dir/build.make examples/CMakeFiles/core_window_letterbox.dir/build
+.PHONY : core_window_letterbox/fast
+
+#=============================================================================
+# Target rules for targets named core_window_should_close
+
+# Build rule for target.
+core_window_should_close: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_window_should_close
+.PHONY : core_window_should_close
+
+# fast build rule for target.
+core_window_should_close/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_window_should_close.dir/build.make examples/CMakeFiles/core_window_should_close.dir/build
+.PHONY : core_window_should_close/fast
+
+#=============================================================================
+# Target rules for targets named core_world_screen
+
+# Build rule for target.
+core_world_screen: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core_world_screen
+.PHONY : core_world_screen
+
+# fast build rule for target.
+core_world_screen/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/core_world_screen.dir/build.make examples/CMakeFiles/core_world_screen.dir/build
+.PHONY : core_world_screen/fast
+
+#=============================================================================
+# Target rules for targets named models_animation_gpu_skinning
+
+# Build rule for target.
+models_animation_gpu_skinning: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 models_animation_gpu_skinning
+.PHONY : models_animation_gpu_skinning
+
+# fast build rule for target.
+models_animation_gpu_skinning/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/models_animation_gpu_skinning.dir/build.make examples/CMakeFiles/models_animation_gpu_skinning.dir/build
+.PHONY : models_animation_gpu_skinning/fast
+
+#=============================================================================
+# Target rules for targets named models_animation_playing
+
+# Build rule for target.
+models_animation_playing: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 models_animation_playing
+.PHONY : models_animation_playing
+
+# fast build rule for target.
+models_animation_playing/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/models_animation_playing.dir/build.make examples/CMakeFiles/models_animation_playing.dir/build
+.PHONY : models_animation_playing/fast
+
+#=============================================================================
+# Target rules for targets named models_basic_voxel
+
+# Build rule for target.
+models_basic_voxel: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 models_basic_voxel
+.PHONY : models_basic_voxel
+
+# fast build rule for target.
+models_basic_voxel/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/models_basic_voxel.dir/build.make examples/CMakeFiles/models_basic_voxel.dir/build
+.PHONY : models_basic_voxel/fast
+
+#=============================================================================
+# Target rules for targets named models_billboard_rendering
+
+# Build rule for target.
+models_billboard_rendering: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 models_billboard_rendering
+.PHONY : models_billboard_rendering
+
+# fast build rule for target.
+models_billboard_rendering/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/models_billboard_rendering.dir/build.make examples/CMakeFiles/models_billboard_rendering.dir/build
+.PHONY : models_billboard_rendering/fast
+
+#=============================================================================
+# Target rules for targets named models_bone_socket
+
+# Build rule for target.
+models_bone_socket: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 models_bone_socket
+.PHONY : models_bone_socket
+
+# fast build rule for target.
+models_bone_socket/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/models_bone_socket.dir/build.make examples/CMakeFiles/models_bone_socket.dir/build
+.PHONY : models_bone_socket/fast
+
+#=============================================================================
+# Target rules for targets named models_box_collisions
+
+# Build rule for target.
+models_box_collisions: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 models_box_collisions
+.PHONY : models_box_collisions
+
+# fast build rule for target.
+models_box_collisions/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/models_box_collisions.dir/build.make examples/CMakeFiles/models_box_collisions.dir/build
+.PHONY : models_box_collisions/fast
+
+#=============================================================================
+# Target rules for targets named models_cubicmap_rendering
+
+# Build rule for target.
+models_cubicmap_rendering: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 models_cubicmap_rendering
+.PHONY : models_cubicmap_rendering
+
+# fast build rule for target.
+models_cubicmap_rendering/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/models_cubicmap_rendering.dir/build.make examples/CMakeFiles/models_cubicmap_rendering.dir/build
+.PHONY : models_cubicmap_rendering/fast
+
+#=============================================================================
+# Target rules for targets named models_decals
+
+# Build rule for target.
+models_decals: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 models_decals
+.PHONY : models_decals
+
+# fast build rule for target.
+models_decals/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/models_decals.dir/build.make examples/CMakeFiles/models_decals.dir/build
+.PHONY : models_decals/fast
+
+#=============================================================================
+# Target rules for targets named models_first_person_maze
+
+# Build rule for target.
+models_first_person_maze: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 models_first_person_maze
+.PHONY : models_first_person_maze
+
+# fast build rule for target.
+models_first_person_maze/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/models_first_person_maze.dir/build.make examples/CMakeFiles/models_first_person_maze.dir/build
+.PHONY : models_first_person_maze/fast
+
+#=============================================================================
+# Target rules for targets named models_geometric_shapes
+
+# Build rule for target.
+models_geometric_shapes: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 models_geometric_shapes
+.PHONY : models_geometric_shapes
+
+# fast build rule for target.
+models_geometric_shapes/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/models_geometric_shapes.dir/build.make examples/CMakeFiles/models_geometric_shapes.dir/build
+.PHONY : models_geometric_shapes/fast
+
+#=============================================================================
+# Target rules for targets named models_heightmap_rendering
+
+# Build rule for target.
+models_heightmap_rendering: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 models_heightmap_rendering
+.PHONY : models_heightmap_rendering
+
+# fast build rule for target.
+models_heightmap_rendering/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/models_heightmap_rendering.dir/build.make examples/CMakeFiles/models_heightmap_rendering.dir/build
+.PHONY : models_heightmap_rendering/fast
+
+#=============================================================================
+# Target rules for targets named models_loading
+
+# Build rule for target.
+models_loading: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 models_loading
+.PHONY : models_loading
+
+# fast build rule for target.
+models_loading/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/models_loading.dir/build.make examples/CMakeFiles/models_loading.dir/build
+.PHONY : models_loading/fast
+
+#=============================================================================
+# Target rules for targets named models_loading_gltf
+
+# Build rule for target.
+models_loading_gltf: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 models_loading_gltf
+.PHONY : models_loading_gltf
+
+# fast build rule for target.
+models_loading_gltf/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/models_loading_gltf.dir/build.make examples/CMakeFiles/models_loading_gltf.dir/build
+.PHONY : models_loading_gltf/fast
+
+#=============================================================================
+# Target rules for targets named models_loading_m3d
+
+# Build rule for target.
+models_loading_m3d: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 models_loading_m3d
+.PHONY : models_loading_m3d
+
+# fast build rule for target.
+models_loading_m3d/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/models_loading_m3d.dir/build.make examples/CMakeFiles/models_loading_m3d.dir/build
+.PHONY : models_loading_m3d/fast
+
+#=============================================================================
+# Target rules for targets named models_loading_vox
+
+# Build rule for target.
+models_loading_vox: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 models_loading_vox
+.PHONY : models_loading_vox
+
+# fast build rule for target.
+models_loading_vox/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/models_loading_vox.dir/build.make examples/CMakeFiles/models_loading_vox.dir/build
+.PHONY : models_loading_vox/fast
+
+#=============================================================================
+# Target rules for targets named models_mesh_generation
+
+# Build rule for target.
+models_mesh_generation: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 models_mesh_generation
+.PHONY : models_mesh_generation
+
+# fast build rule for target.
+models_mesh_generation/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/models_mesh_generation.dir/build.make examples/CMakeFiles/models_mesh_generation.dir/build
+.PHONY : models_mesh_generation/fast
+
+#=============================================================================
+# Target rules for targets named models_mesh_picking
+
+# Build rule for target.
+models_mesh_picking: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 models_mesh_picking
+.PHONY : models_mesh_picking
+
+# fast build rule for target.
+models_mesh_picking/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/models_mesh_picking.dir/build.make examples/CMakeFiles/models_mesh_picking.dir/build
+.PHONY : models_mesh_picking/fast
+
+#=============================================================================
+# Target rules for targets named models_orthographic_projection
+
+# Build rule for target.
+models_orthographic_projection: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 models_orthographic_projection
+.PHONY : models_orthographic_projection
+
+# fast build rule for target.
+models_orthographic_projection/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/models_orthographic_projection.dir/build.make examples/CMakeFiles/models_orthographic_projection.dir/build
+.PHONY : models_orthographic_projection/fast
+
+#=============================================================================
+# Target rules for targets named models_point_rendering
+
+# Build rule for target.
+models_point_rendering: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 models_point_rendering
+.PHONY : models_point_rendering
+
+# fast build rule for target.
+models_point_rendering/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/models_point_rendering.dir/build.make examples/CMakeFiles/models_point_rendering.dir/build
+.PHONY : models_point_rendering/fast
+
+#=============================================================================
+# Target rules for targets named models_rlgl_solar_system
+
+# Build rule for target.
+models_rlgl_solar_system: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 models_rlgl_solar_system
+.PHONY : models_rlgl_solar_system
+
+# fast build rule for target.
+models_rlgl_solar_system/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/models_rlgl_solar_system.dir/build.make examples/CMakeFiles/models_rlgl_solar_system.dir/build
+.PHONY : models_rlgl_solar_system/fast
+
+#=============================================================================
+# Target rules for targets named models_rotating_cube
+
+# Build rule for target.
+models_rotating_cube: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 models_rotating_cube
+.PHONY : models_rotating_cube
+
+# fast build rule for target.
+models_rotating_cube/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/models_rotating_cube.dir/build.make examples/CMakeFiles/models_rotating_cube.dir/build
+.PHONY : models_rotating_cube/fast
+
+#=============================================================================
+# Target rules for targets named models_skybox_rendering
+
+# Build rule for target.
+models_skybox_rendering: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 models_skybox_rendering
+.PHONY : models_skybox_rendering
+
+# fast build rule for target.
+models_skybox_rendering/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/models_skybox_rendering.dir/build.make examples/CMakeFiles/models_skybox_rendering.dir/build
+.PHONY : models_skybox_rendering/fast
+
+#=============================================================================
+# Target rules for targets named models_tesseract_view
+
+# Build rule for target.
+models_tesseract_view: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 models_tesseract_view
+.PHONY : models_tesseract_view
+
+# fast build rule for target.
+models_tesseract_view/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/models_tesseract_view.dir/build.make examples/CMakeFiles/models_tesseract_view.dir/build
+.PHONY : models_tesseract_view/fast
+
+#=============================================================================
+# Target rules for targets named models_textured_cube
+
+# Build rule for target.
+models_textured_cube: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 models_textured_cube
+.PHONY : models_textured_cube
+
+# fast build rule for target.
+models_textured_cube/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/models_textured_cube.dir/build.make examples/CMakeFiles/models_textured_cube.dir/build
+.PHONY : models_textured_cube/fast
+
+#=============================================================================
+# Target rules for targets named models_waving_cubes
+
+# Build rule for target.
+models_waving_cubes: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 models_waving_cubes
+.PHONY : models_waving_cubes
+
+# fast build rule for target.
+models_waving_cubes/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/models_waving_cubes.dir/build.make examples/CMakeFiles/models_waving_cubes.dir/build
+.PHONY : models_waving_cubes/fast
+
+#=============================================================================
+# Target rules for targets named models_yaw_pitch_roll
+
+# Build rule for target.
+models_yaw_pitch_roll: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 models_yaw_pitch_roll
+.PHONY : models_yaw_pitch_roll
+
+# fast build rule for target.
+models_yaw_pitch_roll/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/models_yaw_pitch_roll.dir/build.make examples/CMakeFiles/models_yaw_pitch_roll.dir/build
+.PHONY : models_yaw_pitch_roll/fast
+
+#=============================================================================
+# Target rules for targets named easings_testbed
+
+# Build rule for target.
+easings_testbed: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 easings_testbed
+.PHONY : easings_testbed
+
+# fast build rule for target.
+easings_testbed/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/easings_testbed.dir/build.make examples/CMakeFiles/easings_testbed.dir/build
+.PHONY : easings_testbed/fast
+
+#=============================================================================
+# Target rules for targets named embedded_files_loading
+
+# Build rule for target.
+embedded_files_loading: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 embedded_files_loading
+.PHONY : embedded_files_loading
+
+# fast build rule for target.
+embedded_files_loading/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/embedded_files_loading.dir/build.make examples/CMakeFiles/embedded_files_loading.dir/build
+.PHONY : embedded_files_loading/fast
+
+#=============================================================================
+# Target rules for targets named raylib_opengl_interop
+
+# Build rule for target.
+raylib_opengl_interop: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 raylib_opengl_interop
+.PHONY : raylib_opengl_interop
+
+# fast build rule for target.
+raylib_opengl_interop/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/raylib_opengl_interop.dir/build.make examples/CMakeFiles/raylib_opengl_interop.dir/build
+.PHONY : raylib_opengl_interop/fast
+
+#=============================================================================
+# Target rules for targets named rlgl_compute_shader
+
+# Build rule for target.
+rlgl_compute_shader: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 rlgl_compute_shader
+.PHONY : rlgl_compute_shader
+
+# fast build rule for target.
+rlgl_compute_shader/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/rlgl_compute_shader.dir/build.make examples/CMakeFiles/rlgl_compute_shader.dir/build
+.PHONY : rlgl_compute_shader/fast
+
+#=============================================================================
+# Target rules for targets named rlgl_standalone
+
+# Build rule for target.
+rlgl_standalone: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 rlgl_standalone
+.PHONY : rlgl_standalone
+
+# fast build rule for target.
+rlgl_standalone/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/rlgl_standalone.dir/build.make examples/CMakeFiles/rlgl_standalone.dir/build
+.PHONY : rlgl_standalone/fast
+
+#=============================================================================
+# Target rules for targets named web_basic_window
+
+# Build rule for target.
+web_basic_window: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 web_basic_window
+.PHONY : web_basic_window
+
+# fast build rule for target.
+web_basic_window/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/web_basic_window.dir/build.make examples/CMakeFiles/web_basic_window.dir/build
+.PHONY : web_basic_window/fast
+
+#=============================================================================
+# Target rules for targets named shaders_ascii_rendering
+
+# Build rule for target.
+shaders_ascii_rendering: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shaders_ascii_rendering
+.PHONY : shaders_ascii_rendering
+
+# fast build rule for target.
+shaders_ascii_rendering/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shaders_ascii_rendering.dir/build.make examples/CMakeFiles/shaders_ascii_rendering.dir/build
+.PHONY : shaders_ascii_rendering/fast
+
+#=============================================================================
+# Target rules for targets named shaders_basic_lighting
+
+# Build rule for target.
+shaders_basic_lighting: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shaders_basic_lighting
+.PHONY : shaders_basic_lighting
+
+# fast build rule for target.
+shaders_basic_lighting/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shaders_basic_lighting.dir/build.make examples/CMakeFiles/shaders_basic_lighting.dir/build
+.PHONY : shaders_basic_lighting/fast
+
+#=============================================================================
+# Target rules for targets named shaders_basic_pbr
+
+# Build rule for target.
+shaders_basic_pbr: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shaders_basic_pbr
+.PHONY : shaders_basic_pbr
+
+# fast build rule for target.
+shaders_basic_pbr/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shaders_basic_pbr.dir/build.make examples/CMakeFiles/shaders_basic_pbr.dir/build
+.PHONY : shaders_basic_pbr/fast
+
+#=============================================================================
+# Target rules for targets named shaders_color_correction
+
+# Build rule for target.
+shaders_color_correction: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shaders_color_correction
+.PHONY : shaders_color_correction
+
+# fast build rule for target.
+shaders_color_correction/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shaders_color_correction.dir/build.make examples/CMakeFiles/shaders_color_correction.dir/build
+.PHONY : shaders_color_correction/fast
+
+#=============================================================================
+# Target rules for targets named shaders_custom_uniform
+
+# Build rule for target.
+shaders_custom_uniform: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shaders_custom_uniform
+.PHONY : shaders_custom_uniform
+
+# fast build rule for target.
+shaders_custom_uniform/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shaders_custom_uniform.dir/build.make examples/CMakeFiles/shaders_custom_uniform.dir/build
+.PHONY : shaders_custom_uniform/fast
+
+#=============================================================================
+# Target rules for targets named shaders_deferred_rendering
+
+# Build rule for target.
+shaders_deferred_rendering: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shaders_deferred_rendering
+.PHONY : shaders_deferred_rendering
+
+# fast build rule for target.
+shaders_deferred_rendering/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shaders_deferred_rendering.dir/build.make examples/CMakeFiles/shaders_deferred_rendering.dir/build
+.PHONY : shaders_deferred_rendering/fast
+
+#=============================================================================
+# Target rules for targets named shaders_depth_rendering
+
+# Build rule for target.
+shaders_depth_rendering: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shaders_depth_rendering
+.PHONY : shaders_depth_rendering
+
+# fast build rule for target.
+shaders_depth_rendering/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shaders_depth_rendering.dir/build.make examples/CMakeFiles/shaders_depth_rendering.dir/build
+.PHONY : shaders_depth_rendering/fast
+
+#=============================================================================
+# Target rules for targets named shaders_depth_writing
+
+# Build rule for target.
+shaders_depth_writing: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shaders_depth_writing
+.PHONY : shaders_depth_writing
+
+# fast build rule for target.
+shaders_depth_writing/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shaders_depth_writing.dir/build.make examples/CMakeFiles/shaders_depth_writing.dir/build
+.PHONY : shaders_depth_writing/fast
+
+#=============================================================================
+# Target rules for targets named shaders_eratosthenes_sieve
+
+# Build rule for target.
+shaders_eratosthenes_sieve: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shaders_eratosthenes_sieve
+.PHONY : shaders_eratosthenes_sieve
+
+# fast build rule for target.
+shaders_eratosthenes_sieve/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shaders_eratosthenes_sieve.dir/build.make examples/CMakeFiles/shaders_eratosthenes_sieve.dir/build
+.PHONY : shaders_eratosthenes_sieve/fast
+
+#=============================================================================
+# Target rules for targets named shaders_fog_rendering
+
+# Build rule for target.
+shaders_fog_rendering: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shaders_fog_rendering
+.PHONY : shaders_fog_rendering
+
+# fast build rule for target.
+shaders_fog_rendering/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shaders_fog_rendering.dir/build.make examples/CMakeFiles/shaders_fog_rendering.dir/build
+.PHONY : shaders_fog_rendering/fast
+
+#=============================================================================
+# Target rules for targets named shaders_hot_reloading
+
+# Build rule for target.
+shaders_hot_reloading: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shaders_hot_reloading
+.PHONY : shaders_hot_reloading
+
+# fast build rule for target.
+shaders_hot_reloading/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shaders_hot_reloading.dir/build.make examples/CMakeFiles/shaders_hot_reloading.dir/build
+.PHONY : shaders_hot_reloading/fast
+
+#=============================================================================
+# Target rules for targets named shaders_hybrid_rendering
+
+# Build rule for target.
+shaders_hybrid_rendering: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shaders_hybrid_rendering
+.PHONY : shaders_hybrid_rendering
+
+# fast build rule for target.
+shaders_hybrid_rendering/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shaders_hybrid_rendering.dir/build.make examples/CMakeFiles/shaders_hybrid_rendering.dir/build
+.PHONY : shaders_hybrid_rendering/fast
+
+#=============================================================================
+# Target rules for targets named shaders_julia_set
+
+# Build rule for target.
+shaders_julia_set: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shaders_julia_set
+.PHONY : shaders_julia_set
+
+# fast build rule for target.
+shaders_julia_set/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shaders_julia_set.dir/build.make examples/CMakeFiles/shaders_julia_set.dir/build
+.PHONY : shaders_julia_set/fast
+
+#=============================================================================
+# Target rules for targets named shaders_lightmap_rendering
+
+# Build rule for target.
+shaders_lightmap_rendering: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shaders_lightmap_rendering
+.PHONY : shaders_lightmap_rendering
+
+# fast build rule for target.
+shaders_lightmap_rendering/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shaders_lightmap_rendering.dir/build.make examples/CMakeFiles/shaders_lightmap_rendering.dir/build
+.PHONY : shaders_lightmap_rendering/fast
+
+#=============================================================================
+# Target rules for targets named shaders_mandelbrot_set
+
+# Build rule for target.
+shaders_mandelbrot_set: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shaders_mandelbrot_set
+.PHONY : shaders_mandelbrot_set
+
+# fast build rule for target.
+shaders_mandelbrot_set/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shaders_mandelbrot_set.dir/build.make examples/CMakeFiles/shaders_mandelbrot_set.dir/build
+.PHONY : shaders_mandelbrot_set/fast
+
+#=============================================================================
+# Target rules for targets named shaders_mesh_instancing
+
+# Build rule for target.
+shaders_mesh_instancing: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shaders_mesh_instancing
+.PHONY : shaders_mesh_instancing
+
+# fast build rule for target.
+shaders_mesh_instancing/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shaders_mesh_instancing.dir/build.make examples/CMakeFiles/shaders_mesh_instancing.dir/build
+.PHONY : shaders_mesh_instancing/fast
+
+#=============================================================================
+# Target rules for targets named shaders_model_shader
+
+# Build rule for target.
+shaders_model_shader: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shaders_model_shader
+.PHONY : shaders_model_shader
+
+# fast build rule for target.
+shaders_model_shader/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shaders_model_shader.dir/build.make examples/CMakeFiles/shaders_model_shader.dir/build
+.PHONY : shaders_model_shader/fast
+
+#=============================================================================
+# Target rules for targets named shaders_multi_sample2d
+
+# Build rule for target.
+shaders_multi_sample2d: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shaders_multi_sample2d
+.PHONY : shaders_multi_sample2d
+
+# fast build rule for target.
+shaders_multi_sample2d/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shaders_multi_sample2d.dir/build.make examples/CMakeFiles/shaders_multi_sample2d.dir/build
+.PHONY : shaders_multi_sample2d/fast
+
+#=============================================================================
+# Target rules for targets named shaders_normalmap_rendering
+
+# Build rule for target.
+shaders_normalmap_rendering: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shaders_normalmap_rendering
+.PHONY : shaders_normalmap_rendering
+
+# fast build rule for target.
+shaders_normalmap_rendering/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shaders_normalmap_rendering.dir/build.make examples/CMakeFiles/shaders_normalmap_rendering.dir/build
+.PHONY : shaders_normalmap_rendering/fast
+
+#=============================================================================
+# Target rules for targets named shaders_palette_switch
+
+# Build rule for target.
+shaders_palette_switch: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shaders_palette_switch
+.PHONY : shaders_palette_switch
+
+# fast build rule for target.
+shaders_palette_switch/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shaders_palette_switch.dir/build.make examples/CMakeFiles/shaders_palette_switch.dir/build
+.PHONY : shaders_palette_switch/fast
+
+#=============================================================================
+# Target rules for targets named shaders_postprocessing
+
+# Build rule for target.
+shaders_postprocessing: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shaders_postprocessing
+.PHONY : shaders_postprocessing
+
+# fast build rule for target.
+shaders_postprocessing/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shaders_postprocessing.dir/build.make examples/CMakeFiles/shaders_postprocessing.dir/build
+.PHONY : shaders_postprocessing/fast
+
+#=============================================================================
+# Target rules for targets named shaders_raymarching_rendering
+
+# Build rule for target.
+shaders_raymarching_rendering: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shaders_raymarching_rendering
+.PHONY : shaders_raymarching_rendering
+
+# fast build rule for target.
+shaders_raymarching_rendering/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shaders_raymarching_rendering.dir/build.make examples/CMakeFiles/shaders_raymarching_rendering.dir/build
+.PHONY : shaders_raymarching_rendering/fast
+
+#=============================================================================
+# Target rules for targets named shaders_rounded_rectangle
+
+# Build rule for target.
+shaders_rounded_rectangle: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shaders_rounded_rectangle
+.PHONY : shaders_rounded_rectangle
+
+# fast build rule for target.
+shaders_rounded_rectangle/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shaders_rounded_rectangle.dir/build.make examples/CMakeFiles/shaders_rounded_rectangle.dir/build
+.PHONY : shaders_rounded_rectangle/fast
+
+#=============================================================================
+# Target rules for targets named shaders_shadowmap_rendering
+
+# Build rule for target.
+shaders_shadowmap_rendering: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shaders_shadowmap_rendering
+.PHONY : shaders_shadowmap_rendering
+
+# fast build rule for target.
+shaders_shadowmap_rendering/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shaders_shadowmap_rendering.dir/build.make examples/CMakeFiles/shaders_shadowmap_rendering.dir/build
+.PHONY : shaders_shadowmap_rendering/fast
+
+#=============================================================================
+# Target rules for targets named shaders_shapes_textures
+
+# Build rule for target.
+shaders_shapes_textures: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shaders_shapes_textures
+.PHONY : shaders_shapes_textures
+
+# fast build rule for target.
+shaders_shapes_textures/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shaders_shapes_textures.dir/build.make examples/CMakeFiles/shaders_shapes_textures.dir/build
+.PHONY : shaders_shapes_textures/fast
+
+#=============================================================================
+# Target rules for targets named shaders_simple_mask
+
+# Build rule for target.
+shaders_simple_mask: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shaders_simple_mask
+.PHONY : shaders_simple_mask
+
+# fast build rule for target.
+shaders_simple_mask/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shaders_simple_mask.dir/build.make examples/CMakeFiles/shaders_simple_mask.dir/build
+.PHONY : shaders_simple_mask/fast
+
+#=============================================================================
+# Target rules for targets named shaders_spotlight_rendering
+
+# Build rule for target.
+shaders_spotlight_rendering: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shaders_spotlight_rendering
+.PHONY : shaders_spotlight_rendering
+
+# fast build rule for target.
+shaders_spotlight_rendering/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shaders_spotlight_rendering.dir/build.make examples/CMakeFiles/shaders_spotlight_rendering.dir/build
+.PHONY : shaders_spotlight_rendering/fast
+
+#=============================================================================
+# Target rules for targets named shaders_texture_outline
+
+# Build rule for target.
+shaders_texture_outline: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shaders_texture_outline
+.PHONY : shaders_texture_outline
+
+# fast build rule for target.
+shaders_texture_outline/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shaders_texture_outline.dir/build.make examples/CMakeFiles/shaders_texture_outline.dir/build
+.PHONY : shaders_texture_outline/fast
+
+#=============================================================================
+# Target rules for targets named shaders_texture_rendering
+
+# Build rule for target.
+shaders_texture_rendering: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shaders_texture_rendering
+.PHONY : shaders_texture_rendering
+
+# fast build rule for target.
+shaders_texture_rendering/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shaders_texture_rendering.dir/build.make examples/CMakeFiles/shaders_texture_rendering.dir/build
+.PHONY : shaders_texture_rendering/fast
+
+#=============================================================================
+# Target rules for targets named shaders_texture_tiling
+
+# Build rule for target.
+shaders_texture_tiling: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shaders_texture_tiling
+.PHONY : shaders_texture_tiling
+
+# fast build rule for target.
+shaders_texture_tiling/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shaders_texture_tiling.dir/build.make examples/CMakeFiles/shaders_texture_tiling.dir/build
+.PHONY : shaders_texture_tiling/fast
+
+#=============================================================================
+# Target rules for targets named shaders_texture_waves
+
+# Build rule for target.
+shaders_texture_waves: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shaders_texture_waves
+.PHONY : shaders_texture_waves
+
+# fast build rule for target.
+shaders_texture_waves/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shaders_texture_waves.dir/build.make examples/CMakeFiles/shaders_texture_waves.dir/build
+.PHONY : shaders_texture_waves/fast
+
+#=============================================================================
+# Target rules for targets named shaders_vertex_displacement
+
+# Build rule for target.
+shaders_vertex_displacement: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shaders_vertex_displacement
+.PHONY : shaders_vertex_displacement
+
+# fast build rule for target.
+shaders_vertex_displacement/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shaders_vertex_displacement.dir/build.make examples/CMakeFiles/shaders_vertex_displacement.dir/build
+.PHONY : shaders_vertex_displacement/fast
+
+#=============================================================================
+# Target rules for targets named shapes_basic_shapes
+
+# Build rule for target.
+shapes_basic_shapes: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shapes_basic_shapes
+.PHONY : shapes_basic_shapes
+
+# fast build rule for target.
+shapes_basic_shapes/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shapes_basic_shapes.dir/build.make examples/CMakeFiles/shapes_basic_shapes.dir/build
+.PHONY : shapes_basic_shapes/fast
+
+#=============================================================================
+# Target rules for targets named shapes_bouncing_ball
+
+# Build rule for target.
+shapes_bouncing_ball: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shapes_bouncing_ball
+.PHONY : shapes_bouncing_ball
+
+# fast build rule for target.
+shapes_bouncing_ball/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shapes_bouncing_ball.dir/build.make examples/CMakeFiles/shapes_bouncing_ball.dir/build
+.PHONY : shapes_bouncing_ball/fast
+
+#=============================================================================
+# Target rules for targets named shapes_bullet_hell
+
+# Build rule for target.
+shapes_bullet_hell: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shapes_bullet_hell
+.PHONY : shapes_bullet_hell
+
+# fast build rule for target.
+shapes_bullet_hell/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shapes_bullet_hell.dir/build.make examples/CMakeFiles/shapes_bullet_hell.dir/build
+.PHONY : shapes_bullet_hell/fast
+
+#=============================================================================
+# Target rules for targets named shapes_circle_sector_drawing
+
+# Build rule for target.
+shapes_circle_sector_drawing: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shapes_circle_sector_drawing
+.PHONY : shapes_circle_sector_drawing
+
+# fast build rule for target.
+shapes_circle_sector_drawing/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shapes_circle_sector_drawing.dir/build.make examples/CMakeFiles/shapes_circle_sector_drawing.dir/build
+.PHONY : shapes_circle_sector_drawing/fast
+
+#=============================================================================
+# Target rules for targets named shapes_clock_of_clocks
+
+# Build rule for target.
+shapes_clock_of_clocks: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shapes_clock_of_clocks
+.PHONY : shapes_clock_of_clocks
+
+# fast build rule for target.
+shapes_clock_of_clocks/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shapes_clock_of_clocks.dir/build.make examples/CMakeFiles/shapes_clock_of_clocks.dir/build
+.PHONY : shapes_clock_of_clocks/fast
+
+#=============================================================================
+# Target rules for targets named shapes_collision_area
+
+# Build rule for target.
+shapes_collision_area: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shapes_collision_area
+.PHONY : shapes_collision_area
+
+# fast build rule for target.
+shapes_collision_area/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shapes_collision_area.dir/build.make examples/CMakeFiles/shapes_collision_area.dir/build
+.PHONY : shapes_collision_area/fast
+
+#=============================================================================
+# Target rules for targets named shapes_colors_palette
+
+# Build rule for target.
+shapes_colors_palette: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shapes_colors_palette
+.PHONY : shapes_colors_palette
+
+# fast build rule for target.
+shapes_colors_palette/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shapes_colors_palette.dir/build.make examples/CMakeFiles/shapes_colors_palette.dir/build
+.PHONY : shapes_colors_palette/fast
+
+#=============================================================================
+# Target rules for targets named shapes_dashed_line
+
+# Build rule for target.
+shapes_dashed_line: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shapes_dashed_line
+.PHONY : shapes_dashed_line
+
+# fast build rule for target.
+shapes_dashed_line/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shapes_dashed_line.dir/build.make examples/CMakeFiles/shapes_dashed_line.dir/build
+.PHONY : shapes_dashed_line/fast
+
+#=============================================================================
+# Target rules for targets named shapes_digital_clock
+
+# Build rule for target.
+shapes_digital_clock: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shapes_digital_clock
+.PHONY : shapes_digital_clock
+
+# fast build rule for target.
+shapes_digital_clock/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shapes_digital_clock.dir/build.make examples/CMakeFiles/shapes_digital_clock.dir/build
+.PHONY : shapes_digital_clock/fast
+
+#=============================================================================
+# Target rules for targets named shapes_double_pendulum
+
+# Build rule for target.
+shapes_double_pendulum: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shapes_double_pendulum
+.PHONY : shapes_double_pendulum
+
+# fast build rule for target.
+shapes_double_pendulum/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shapes_double_pendulum.dir/build.make examples/CMakeFiles/shapes_double_pendulum.dir/build
+.PHONY : shapes_double_pendulum/fast
+
+#=============================================================================
+# Target rules for targets named shapes_easings_ball
+
+# Build rule for target.
+shapes_easings_ball: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shapes_easings_ball
+.PHONY : shapes_easings_ball
+
+# fast build rule for target.
+shapes_easings_ball/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shapes_easings_ball.dir/build.make examples/CMakeFiles/shapes_easings_ball.dir/build
+.PHONY : shapes_easings_ball/fast
+
+#=============================================================================
+# Target rules for targets named shapes_easings_box
+
+# Build rule for target.
+shapes_easings_box: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shapes_easings_box
+.PHONY : shapes_easings_box
+
+# fast build rule for target.
+shapes_easings_box/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shapes_easings_box.dir/build.make examples/CMakeFiles/shapes_easings_box.dir/build
+.PHONY : shapes_easings_box/fast
+
+#=============================================================================
+# Target rules for targets named shapes_easings_rectangles
+
+# Build rule for target.
+shapes_easings_rectangles: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shapes_easings_rectangles
+.PHONY : shapes_easings_rectangles
+
+# fast build rule for target.
+shapes_easings_rectangles/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shapes_easings_rectangles.dir/build.make examples/CMakeFiles/shapes_easings_rectangles.dir/build
+.PHONY : shapes_easings_rectangles/fast
+
+#=============================================================================
+# Target rules for targets named shapes_following_eyes
+
+# Build rule for target.
+shapes_following_eyes: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shapes_following_eyes
+.PHONY : shapes_following_eyes
+
+# fast build rule for target.
+shapes_following_eyes/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shapes_following_eyes.dir/build.make examples/CMakeFiles/shapes_following_eyes.dir/build
+.PHONY : shapes_following_eyes/fast
+
+#=============================================================================
+# Target rules for targets named shapes_kaleidoscope
+
+# Build rule for target.
+shapes_kaleidoscope: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shapes_kaleidoscope
+.PHONY : shapes_kaleidoscope
+
+# fast build rule for target.
+shapes_kaleidoscope/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shapes_kaleidoscope.dir/build.make examples/CMakeFiles/shapes_kaleidoscope.dir/build
+.PHONY : shapes_kaleidoscope/fast
+
+#=============================================================================
+# Target rules for targets named shapes_lines_bezier
+
+# Build rule for target.
+shapes_lines_bezier: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shapes_lines_bezier
+.PHONY : shapes_lines_bezier
+
+# fast build rule for target.
+shapes_lines_bezier/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shapes_lines_bezier.dir/build.make examples/CMakeFiles/shapes_lines_bezier.dir/build
+.PHONY : shapes_lines_bezier/fast
+
+#=============================================================================
+# Target rules for targets named shapes_lines_drawing
+
+# Build rule for target.
+shapes_lines_drawing: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shapes_lines_drawing
+.PHONY : shapes_lines_drawing
+
+# fast build rule for target.
+shapes_lines_drawing/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shapes_lines_drawing.dir/build.make examples/CMakeFiles/shapes_lines_drawing.dir/build
+.PHONY : shapes_lines_drawing/fast
+
+#=============================================================================
+# Target rules for targets named shapes_logo_raylib
+
+# Build rule for target.
+shapes_logo_raylib: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shapes_logo_raylib
+.PHONY : shapes_logo_raylib
+
+# fast build rule for target.
+shapes_logo_raylib/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shapes_logo_raylib.dir/build.make examples/CMakeFiles/shapes_logo_raylib.dir/build
+.PHONY : shapes_logo_raylib/fast
+
+#=============================================================================
+# Target rules for targets named shapes_logo_raylib_anim
+
+# Build rule for target.
+shapes_logo_raylib_anim: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shapes_logo_raylib_anim
+.PHONY : shapes_logo_raylib_anim
+
+# fast build rule for target.
+shapes_logo_raylib_anim/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shapes_logo_raylib_anim.dir/build.make examples/CMakeFiles/shapes_logo_raylib_anim.dir/build
+.PHONY : shapes_logo_raylib_anim/fast
+
+#=============================================================================
+# Target rules for targets named shapes_math_angle_rotation
+
+# Build rule for target.
+shapes_math_angle_rotation: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shapes_math_angle_rotation
+.PHONY : shapes_math_angle_rotation
+
+# fast build rule for target.
+shapes_math_angle_rotation/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shapes_math_angle_rotation.dir/build.make examples/CMakeFiles/shapes_math_angle_rotation.dir/build
+.PHONY : shapes_math_angle_rotation/fast
+
+#=============================================================================
+# Target rules for targets named shapes_math_sine_cosine
+
+# Build rule for target.
+shapes_math_sine_cosine: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shapes_math_sine_cosine
+.PHONY : shapes_math_sine_cosine
+
+# fast build rule for target.
+shapes_math_sine_cosine/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shapes_math_sine_cosine.dir/build.make examples/CMakeFiles/shapes_math_sine_cosine.dir/build
+.PHONY : shapes_math_sine_cosine/fast
+
+#=============================================================================
+# Target rules for targets named shapes_mouse_trail
+
+# Build rule for target.
+shapes_mouse_trail: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shapes_mouse_trail
+.PHONY : shapes_mouse_trail
+
+# fast build rule for target.
+shapes_mouse_trail/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shapes_mouse_trail.dir/build.make examples/CMakeFiles/shapes_mouse_trail.dir/build
+.PHONY : shapes_mouse_trail/fast
+
+#=============================================================================
+# Target rules for targets named shapes_pie_chart
+
+# Build rule for target.
+shapes_pie_chart: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shapes_pie_chart
+.PHONY : shapes_pie_chart
+
+# fast build rule for target.
+shapes_pie_chart/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shapes_pie_chart.dir/build.make examples/CMakeFiles/shapes_pie_chart.dir/build
+.PHONY : shapes_pie_chart/fast
+
+#=============================================================================
+# Target rules for targets named shapes_rectangle_advanced
+
+# Build rule for target.
+shapes_rectangle_advanced: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shapes_rectangle_advanced
+.PHONY : shapes_rectangle_advanced
+
+# fast build rule for target.
+shapes_rectangle_advanced/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shapes_rectangle_advanced.dir/build.make examples/CMakeFiles/shapes_rectangle_advanced.dir/build
+.PHONY : shapes_rectangle_advanced/fast
+
+#=============================================================================
+# Target rules for targets named shapes_rectangle_scaling
+
+# Build rule for target.
+shapes_rectangle_scaling: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shapes_rectangle_scaling
+.PHONY : shapes_rectangle_scaling
+
+# fast build rule for target.
+shapes_rectangle_scaling/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shapes_rectangle_scaling.dir/build.make examples/CMakeFiles/shapes_rectangle_scaling.dir/build
+.PHONY : shapes_rectangle_scaling/fast
+
+#=============================================================================
+# Target rules for targets named shapes_recursive_tree
+
+# Build rule for target.
+shapes_recursive_tree: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shapes_recursive_tree
+.PHONY : shapes_recursive_tree
+
+# fast build rule for target.
+shapes_recursive_tree/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shapes_recursive_tree.dir/build.make examples/CMakeFiles/shapes_recursive_tree.dir/build
+.PHONY : shapes_recursive_tree/fast
+
+#=============================================================================
+# Target rules for targets named shapes_ring_drawing
+
+# Build rule for target.
+shapes_ring_drawing: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shapes_ring_drawing
+.PHONY : shapes_ring_drawing
+
+# fast build rule for target.
+shapes_ring_drawing/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shapes_ring_drawing.dir/build.make examples/CMakeFiles/shapes_ring_drawing.dir/build
+.PHONY : shapes_ring_drawing/fast
+
+#=============================================================================
+# Target rules for targets named shapes_rounded_rectangle_drawing
+
+# Build rule for target.
+shapes_rounded_rectangle_drawing: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shapes_rounded_rectangle_drawing
+.PHONY : shapes_rounded_rectangle_drawing
+
+# fast build rule for target.
+shapes_rounded_rectangle_drawing/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shapes_rounded_rectangle_drawing.dir/build.make examples/CMakeFiles/shapes_rounded_rectangle_drawing.dir/build
+.PHONY : shapes_rounded_rectangle_drawing/fast
+
+#=============================================================================
+# Target rules for targets named shapes_simple_particles
+
+# Build rule for target.
+shapes_simple_particles: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shapes_simple_particles
+.PHONY : shapes_simple_particles
+
+# fast build rule for target.
+shapes_simple_particles/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shapes_simple_particles.dir/build.make examples/CMakeFiles/shapes_simple_particles.dir/build
+.PHONY : shapes_simple_particles/fast
+
+#=============================================================================
+# Target rules for targets named shapes_splines_drawing
+
+# Build rule for target.
+shapes_splines_drawing: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shapes_splines_drawing
+.PHONY : shapes_splines_drawing
+
+# fast build rule for target.
+shapes_splines_drawing/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shapes_splines_drawing.dir/build.make examples/CMakeFiles/shapes_splines_drawing.dir/build
+.PHONY : shapes_splines_drawing/fast
+
+#=============================================================================
+# Target rules for targets named shapes_starfield_effect
+
+# Build rule for target.
+shapes_starfield_effect: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shapes_starfield_effect
+.PHONY : shapes_starfield_effect
+
+# fast build rule for target.
+shapes_starfield_effect/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shapes_starfield_effect.dir/build.make examples/CMakeFiles/shapes_starfield_effect.dir/build
+.PHONY : shapes_starfield_effect/fast
+
+#=============================================================================
+# Target rules for targets named shapes_top_down_lights
+
+# Build rule for target.
+shapes_top_down_lights: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shapes_top_down_lights
+.PHONY : shapes_top_down_lights
+
+# fast build rule for target.
+shapes_top_down_lights/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shapes_top_down_lights.dir/build.make examples/CMakeFiles/shapes_top_down_lights.dir/build
+.PHONY : shapes_top_down_lights/fast
+
+#=============================================================================
+# Target rules for targets named shapes_triangle_strip
+
+# Build rule for target.
+shapes_triangle_strip: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shapes_triangle_strip
+.PHONY : shapes_triangle_strip
+
+# fast build rule for target.
+shapes_triangle_strip/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shapes_triangle_strip.dir/build.make examples/CMakeFiles/shapes_triangle_strip.dir/build
+.PHONY : shapes_triangle_strip/fast
+
+#=============================================================================
+# Target rules for targets named shapes_vector_angle
+
+# Build rule for target.
+shapes_vector_angle: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 shapes_vector_angle
+.PHONY : shapes_vector_angle
+
+# fast build rule for target.
+shapes_vector_angle/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/shapes_vector_angle.dir/build.make examples/CMakeFiles/shapes_vector_angle.dir/build
+.PHONY : shapes_vector_angle/fast
+
+#=============================================================================
+# Target rules for targets named text_3d_drawing
+
+# Build rule for target.
+text_3d_drawing: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 text_3d_drawing
+.PHONY : text_3d_drawing
+
+# fast build rule for target.
+text_3d_drawing/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/text_3d_drawing.dir/build.make examples/CMakeFiles/text_3d_drawing.dir/build
+.PHONY : text_3d_drawing/fast
+
+#=============================================================================
+# Target rules for targets named text_codepoints_loading
+
+# Build rule for target.
+text_codepoints_loading: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 text_codepoints_loading
+.PHONY : text_codepoints_loading
+
+# fast build rule for target.
+text_codepoints_loading/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/text_codepoints_loading.dir/build.make examples/CMakeFiles/text_codepoints_loading.dir/build
+.PHONY : text_codepoints_loading/fast
+
+#=============================================================================
+# Target rules for targets named text_font_filters
+
+# Build rule for target.
+text_font_filters: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 text_font_filters
+.PHONY : text_font_filters
+
+# fast build rule for target.
+text_font_filters/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/text_font_filters.dir/build.make examples/CMakeFiles/text_font_filters.dir/build
+.PHONY : text_font_filters/fast
+
+#=============================================================================
+# Target rules for targets named text_font_loading
+
+# Build rule for target.
+text_font_loading: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 text_font_loading
+.PHONY : text_font_loading
+
+# fast build rule for target.
+text_font_loading/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/text_font_loading.dir/build.make examples/CMakeFiles/text_font_loading.dir/build
+.PHONY : text_font_loading/fast
+
+#=============================================================================
+# Target rules for targets named text_font_sdf
+
+# Build rule for target.
+text_font_sdf: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 text_font_sdf
+.PHONY : text_font_sdf
+
+# fast build rule for target.
+text_font_sdf/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/text_font_sdf.dir/build.make examples/CMakeFiles/text_font_sdf.dir/build
+.PHONY : text_font_sdf/fast
+
+#=============================================================================
+# Target rules for targets named text_font_spritefont
+
+# Build rule for target.
+text_font_spritefont: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 text_font_spritefont
+.PHONY : text_font_spritefont
+
+# fast build rule for target.
+text_font_spritefont/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/text_font_spritefont.dir/build.make examples/CMakeFiles/text_font_spritefont.dir/build
+.PHONY : text_font_spritefont/fast
+
+#=============================================================================
+# Target rules for targets named text_format_text
+
+# Build rule for target.
+text_format_text: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 text_format_text
+.PHONY : text_format_text
+
+# fast build rule for target.
+text_format_text/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/text_format_text.dir/build.make examples/CMakeFiles/text_format_text.dir/build
+.PHONY : text_format_text/fast
+
+#=============================================================================
+# Target rules for targets named text_inline_styling
+
+# Build rule for target.
+text_inline_styling: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 text_inline_styling
+.PHONY : text_inline_styling
+
+# fast build rule for target.
+text_inline_styling/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/text_inline_styling.dir/build.make examples/CMakeFiles/text_inline_styling.dir/build
+.PHONY : text_inline_styling/fast
+
+#=============================================================================
+# Target rules for targets named text_input_box
+
+# Build rule for target.
+text_input_box: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 text_input_box
+.PHONY : text_input_box
+
+# fast build rule for target.
+text_input_box/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/text_input_box.dir/build.make examples/CMakeFiles/text_input_box.dir/build
+.PHONY : text_input_box/fast
+
+#=============================================================================
+# Target rules for targets named text_rectangle_bounds
+
+# Build rule for target.
+text_rectangle_bounds: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 text_rectangle_bounds
+.PHONY : text_rectangle_bounds
+
+# fast build rule for target.
+text_rectangle_bounds/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/text_rectangle_bounds.dir/build.make examples/CMakeFiles/text_rectangle_bounds.dir/build
+.PHONY : text_rectangle_bounds/fast
+
+#=============================================================================
+# Target rules for targets named text_sprite_fonts
+
+# Build rule for target.
+text_sprite_fonts: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 text_sprite_fonts
+.PHONY : text_sprite_fonts
+
+# fast build rule for target.
+text_sprite_fonts/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/text_sprite_fonts.dir/build.make examples/CMakeFiles/text_sprite_fonts.dir/build
+.PHONY : text_sprite_fonts/fast
+
+#=============================================================================
+# Target rules for targets named text_unicode_emojis
+
+# Build rule for target.
+text_unicode_emojis: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 text_unicode_emojis
+.PHONY : text_unicode_emojis
+
+# fast build rule for target.
+text_unicode_emojis/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/text_unicode_emojis.dir/build.make examples/CMakeFiles/text_unicode_emojis.dir/build
+.PHONY : text_unicode_emojis/fast
+
+#=============================================================================
+# Target rules for targets named text_unicode_ranges
+
+# Build rule for target.
+text_unicode_ranges: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 text_unicode_ranges
+.PHONY : text_unicode_ranges
+
+# fast build rule for target.
+text_unicode_ranges/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/text_unicode_ranges.dir/build.make examples/CMakeFiles/text_unicode_ranges.dir/build
+.PHONY : text_unicode_ranges/fast
+
+#=============================================================================
+# Target rules for targets named text_words_alignment
+
+# Build rule for target.
+text_words_alignment: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 text_words_alignment
+.PHONY : text_words_alignment
+
+# fast build rule for target.
+text_words_alignment/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/text_words_alignment.dir/build.make examples/CMakeFiles/text_words_alignment.dir/build
+.PHONY : text_words_alignment/fast
+
+#=============================================================================
+# Target rules for targets named text_writing_anim
+
+# Build rule for target.
+text_writing_anim: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 text_writing_anim
+.PHONY : text_writing_anim
+
+# fast build rule for target.
+text_writing_anim/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/text_writing_anim.dir/build.make examples/CMakeFiles/text_writing_anim.dir/build
+.PHONY : text_writing_anim/fast
+
+#=============================================================================
+# Target rules for targets named textures_background_scrolling
+
+# Build rule for target.
+textures_background_scrolling: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 textures_background_scrolling
+.PHONY : textures_background_scrolling
+
+# fast build rule for target.
+textures_background_scrolling/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/textures_background_scrolling.dir/build.make examples/CMakeFiles/textures_background_scrolling.dir/build
+.PHONY : textures_background_scrolling/fast
+
+#=============================================================================
+# Target rules for targets named textures_blend_modes
+
+# Build rule for target.
+textures_blend_modes: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 textures_blend_modes
+.PHONY : textures_blend_modes
+
+# fast build rule for target.
+textures_blend_modes/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/textures_blend_modes.dir/build.make examples/CMakeFiles/textures_blend_modes.dir/build
+.PHONY : textures_blend_modes/fast
+
+#=============================================================================
+# Target rules for targets named textures_bunnymark
+
+# Build rule for target.
+textures_bunnymark: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 textures_bunnymark
+.PHONY : textures_bunnymark
+
+# fast build rule for target.
+textures_bunnymark/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/textures_bunnymark.dir/build.make examples/CMakeFiles/textures_bunnymark.dir/build
+.PHONY : textures_bunnymark/fast
+
+#=============================================================================
+# Target rules for targets named textures_fog_of_war
+
+# Build rule for target.
+textures_fog_of_war: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 textures_fog_of_war
+.PHONY : textures_fog_of_war
+
+# fast build rule for target.
+textures_fog_of_war/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/textures_fog_of_war.dir/build.make examples/CMakeFiles/textures_fog_of_war.dir/build
+.PHONY : textures_fog_of_war/fast
+
+#=============================================================================
+# Target rules for targets named textures_gif_player
+
+# Build rule for target.
+textures_gif_player: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 textures_gif_player
+.PHONY : textures_gif_player
+
+# fast build rule for target.
+textures_gif_player/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/textures_gif_player.dir/build.make examples/CMakeFiles/textures_gif_player.dir/build
+.PHONY : textures_gif_player/fast
+
+#=============================================================================
+# Target rules for targets named textures_image_channel
+
+# Build rule for target.
+textures_image_channel: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 textures_image_channel
+.PHONY : textures_image_channel
+
+# fast build rule for target.
+textures_image_channel/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/textures_image_channel.dir/build.make examples/CMakeFiles/textures_image_channel.dir/build
+.PHONY : textures_image_channel/fast
+
+#=============================================================================
+# Target rules for targets named textures_image_drawing
+
+# Build rule for target.
+textures_image_drawing: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 textures_image_drawing
+.PHONY : textures_image_drawing
+
+# fast build rule for target.
+textures_image_drawing/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/textures_image_drawing.dir/build.make examples/CMakeFiles/textures_image_drawing.dir/build
+.PHONY : textures_image_drawing/fast
+
+#=============================================================================
+# Target rules for targets named textures_image_generation
+
+# Build rule for target.
+textures_image_generation: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 textures_image_generation
+.PHONY : textures_image_generation
+
+# fast build rule for target.
+textures_image_generation/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/textures_image_generation.dir/build.make examples/CMakeFiles/textures_image_generation.dir/build
+.PHONY : textures_image_generation/fast
+
+#=============================================================================
+# Target rules for targets named textures_image_kernel
+
+# Build rule for target.
+textures_image_kernel: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 textures_image_kernel
+.PHONY : textures_image_kernel
+
+# fast build rule for target.
+textures_image_kernel/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/textures_image_kernel.dir/build.make examples/CMakeFiles/textures_image_kernel.dir/build
+.PHONY : textures_image_kernel/fast
+
+#=============================================================================
+# Target rules for targets named textures_image_loading
+
+# Build rule for target.
+textures_image_loading: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 textures_image_loading
+.PHONY : textures_image_loading
+
+# fast build rule for target.
+textures_image_loading/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/textures_image_loading.dir/build.make examples/CMakeFiles/textures_image_loading.dir/build
+.PHONY : textures_image_loading/fast
+
+#=============================================================================
+# Target rules for targets named textures_image_processing
+
+# Build rule for target.
+textures_image_processing: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 textures_image_processing
+.PHONY : textures_image_processing
+
+# fast build rule for target.
+textures_image_processing/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/textures_image_processing.dir/build.make examples/CMakeFiles/textures_image_processing.dir/build
+.PHONY : textures_image_processing/fast
+
+#=============================================================================
+# Target rules for targets named textures_image_rotate
+
+# Build rule for target.
+textures_image_rotate: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 textures_image_rotate
+.PHONY : textures_image_rotate
+
+# fast build rule for target.
+textures_image_rotate/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/textures_image_rotate.dir/build.make examples/CMakeFiles/textures_image_rotate.dir/build
+.PHONY : textures_image_rotate/fast
+
+#=============================================================================
+# Target rules for targets named textures_image_text
+
+# Build rule for target.
+textures_image_text: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 textures_image_text
+.PHONY : textures_image_text
+
+# fast build rule for target.
+textures_image_text/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/textures_image_text.dir/build.make examples/CMakeFiles/textures_image_text.dir/build
+.PHONY : textures_image_text/fast
+
+#=============================================================================
+# Target rules for targets named textures_logo_raylib
+
+# Build rule for target.
+textures_logo_raylib: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 textures_logo_raylib
+.PHONY : textures_logo_raylib
+
+# fast build rule for target.
+textures_logo_raylib/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/textures_logo_raylib.dir/build.make examples/CMakeFiles/textures_logo_raylib.dir/build
+.PHONY : textures_logo_raylib/fast
+
+#=============================================================================
+# Target rules for targets named textures_mouse_painting
+
+# Build rule for target.
+textures_mouse_painting: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 textures_mouse_painting
+.PHONY : textures_mouse_painting
+
+# fast build rule for target.
+textures_mouse_painting/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/textures_mouse_painting.dir/build.make examples/CMakeFiles/textures_mouse_painting.dir/build
+.PHONY : textures_mouse_painting/fast
+
+#=============================================================================
+# Target rules for targets named textures_npatch_drawing
+
+# Build rule for target.
+textures_npatch_drawing: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 textures_npatch_drawing
+.PHONY : textures_npatch_drawing
+
+# fast build rule for target.
+textures_npatch_drawing/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/textures_npatch_drawing.dir/build.make examples/CMakeFiles/textures_npatch_drawing.dir/build
+.PHONY : textures_npatch_drawing/fast
+
+#=============================================================================
+# Target rules for targets named textures_particles_blending
+
+# Build rule for target.
+textures_particles_blending: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 textures_particles_blending
+.PHONY : textures_particles_blending
+
+# fast build rule for target.
+textures_particles_blending/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/textures_particles_blending.dir/build.make examples/CMakeFiles/textures_particles_blending.dir/build
+.PHONY : textures_particles_blending/fast
+
+#=============================================================================
+# Target rules for targets named textures_polygon_drawing
+
+# Build rule for target.
+textures_polygon_drawing: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 textures_polygon_drawing
+.PHONY : textures_polygon_drawing
+
+# fast build rule for target.
+textures_polygon_drawing/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/textures_polygon_drawing.dir/build.make examples/CMakeFiles/textures_polygon_drawing.dir/build
+.PHONY : textures_polygon_drawing/fast
+
+#=============================================================================
+# Target rules for targets named textures_raw_data
+
+# Build rule for target.
+textures_raw_data: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 textures_raw_data
+.PHONY : textures_raw_data
+
+# fast build rule for target.
+textures_raw_data/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/textures_raw_data.dir/build.make examples/CMakeFiles/textures_raw_data.dir/build
+.PHONY : textures_raw_data/fast
+
+#=============================================================================
+# Target rules for targets named textures_sprite_animation
+
+# Build rule for target.
+textures_sprite_animation: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 textures_sprite_animation
+.PHONY : textures_sprite_animation
+
+# fast build rule for target.
+textures_sprite_animation/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/textures_sprite_animation.dir/build.make examples/CMakeFiles/textures_sprite_animation.dir/build
+.PHONY : textures_sprite_animation/fast
+
+#=============================================================================
+# Target rules for targets named textures_sprite_button
+
+# Build rule for target.
+textures_sprite_button: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 textures_sprite_button
+.PHONY : textures_sprite_button
+
+# fast build rule for target.
+textures_sprite_button/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/textures_sprite_button.dir/build.make examples/CMakeFiles/textures_sprite_button.dir/build
+.PHONY : textures_sprite_button/fast
+
+#=============================================================================
+# Target rules for targets named textures_sprite_explosion
+
+# Build rule for target.
+textures_sprite_explosion: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 textures_sprite_explosion
+.PHONY : textures_sprite_explosion
+
+# fast build rule for target.
+textures_sprite_explosion/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/textures_sprite_explosion.dir/build.make examples/CMakeFiles/textures_sprite_explosion.dir/build
+.PHONY : textures_sprite_explosion/fast
+
+#=============================================================================
+# Target rules for targets named textures_srcrec_dstrec
+
+# Build rule for target.
+textures_srcrec_dstrec: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 textures_srcrec_dstrec
+.PHONY : textures_srcrec_dstrec
+
+# fast build rule for target.
+textures_srcrec_dstrec/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/textures_srcrec_dstrec.dir/build.make examples/CMakeFiles/textures_srcrec_dstrec.dir/build
+.PHONY : textures_srcrec_dstrec/fast
+
+#=============================================================================
+# Target rules for targets named textures_textured_curve
+
+# Build rule for target.
+textures_textured_curve: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 textures_textured_curve
+.PHONY : textures_textured_curve
+
+# fast build rule for target.
+textures_textured_curve/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/textures_textured_curve.dir/build.make examples/CMakeFiles/textures_textured_curve.dir/build
+.PHONY : textures_textured_curve/fast
+
+#=============================================================================
+# Target rules for targets named textures_tiled_drawing
+
+# Build rule for target.
+textures_tiled_drawing: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 textures_tiled_drawing
+.PHONY : textures_tiled_drawing
+
+# fast build rule for target.
+textures_tiled_drawing/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/textures_tiled_drawing.dir/build.make examples/CMakeFiles/textures_tiled_drawing.dir/build
+.PHONY : textures_tiled_drawing/fast
+
+#=============================================================================
+# Target rules for targets named textures_to_image
+
+# Build rule for target.
+textures_to_image: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 textures_to_image
+.PHONY : textures_to_image
+
+# fast build rule for target.
+textures_to_image/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/textures_to_image.dir/build.make examples/CMakeFiles/textures_to_image.dir/build
+.PHONY : textures_to_image/fast
+
+# Help Target
+help:
+	@echo "The following are some of the valid targets for this Makefile:"
+	@echo "... all (the default if no target is provided)"
+	@echo "... clean"
+	@echo "... depend"
+	@echo "... edit_cache"
+	@echo "... install"
+	@echo "... install/local"
+	@echo "... install/strip"
+	@echo "... list_install_components"
+	@echo "... package"
+	@echo "... package_source"
+	@echo "... rebuild_cache"
+	@echo "... test"
+	@echo "... uninstall"
+	@echo "... audio_mixed_processor"
+	@echo "... audio_module_playing"
+	@echo "... audio_music_stream"
+	@echo "... audio_raw_stream"
+	@echo "... audio_sound_loading"
+	@echo "... audio_sound_multi"
+	@echo "... audio_sound_positioning"
+	@echo "... audio_stream_effects"
+	@echo "... core_2d_camera"
+	@echo "... core_2d_camera_mouse_zoom"
+	@echo "... core_2d_camera_platformer"
+	@echo "... core_2d_camera_split_screen"
+	@echo "... core_3d_camera_first_person"
+	@echo "... core_3d_camera_fps"
+	@echo "... core_3d_camera_free"
+	@echo "... core_3d_camera_mode"
+	@echo "... core_3d_camera_split_screen"
+	@echo "... core_3d_picking"
+	@echo "... core_automation_events"
+	@echo "... core_basic_screen_manager"
+	@echo "... core_basic_window"
+	@echo "... core_clipboard_text"
+	@echo "... core_custom_frame_control"
+	@echo "... core_custom_logging"
+	@echo "... core_delta_time"
+	@echo "... core_directory_files"
+	@echo "... core_drop_files"
+	@echo "... core_high_dpi"
+	@echo "... core_highdpi_testbed"
+	@echo "... core_input_actions"
+	@echo "... core_input_gamepad"
+	@echo "... core_input_gestures"
+	@echo "... core_input_gestures_testbed"
+	@echo "... core_input_keys"
+	@echo "... core_input_mouse"
+	@echo "... core_input_mouse_wheel"
+	@echo "... core_input_multitouch"
+	@echo "... core_input_virtual_controls"
+	@echo "... core_monitor_detector"
+	@echo "... core_random_sequence"
+	@echo "... core_random_values"
+	@echo "... core_render_texture"
+	@echo "... core_scissor_test"
+	@echo "... core_screen_recording"
+	@echo "... core_smooth_pixelperfect"
+	@echo "... core_storage_values"
+	@echo "... core_text_file_loading"
+	@echo "... core_undo_redo"
+	@echo "... core_vr_simulator"
+	@echo "... core_window_flags"
+	@echo "... core_window_letterbox"
+	@echo "... core_window_should_close"
+	@echo "... core_world_screen"
+	@echo "... easings_testbed"
+	@echo "... embedded_files_loading"
+	@echo "... models_animation_gpu_skinning"
+	@echo "... models_animation_playing"
+	@echo "... models_basic_voxel"
+	@echo "... models_billboard_rendering"
+	@echo "... models_bone_socket"
+	@echo "... models_box_collisions"
+	@echo "... models_cubicmap_rendering"
+	@echo "... models_decals"
+	@echo "... models_first_person_maze"
+	@echo "... models_geometric_shapes"
+	@echo "... models_heightmap_rendering"
+	@echo "... models_loading"
+	@echo "... models_loading_gltf"
+	@echo "... models_loading_m3d"
+	@echo "... models_loading_vox"
+	@echo "... models_mesh_generation"
+	@echo "... models_mesh_picking"
+	@echo "... models_orthographic_projection"
+	@echo "... models_point_rendering"
+	@echo "... models_rlgl_solar_system"
+	@echo "... models_rotating_cube"
+	@echo "... models_skybox_rendering"
+	@echo "... models_tesseract_view"
+	@echo "... models_textured_cube"
+	@echo "... models_waving_cubes"
+	@echo "... models_yaw_pitch_roll"
+	@echo "... raylib"
+	@echo "... raylib_opengl_interop"
+	@echo "... rlgl_compute_shader"
+	@echo "... rlgl_standalone"
+	@echo "... shaders_ascii_rendering"
+	@echo "... shaders_basic_lighting"
+	@echo "... shaders_basic_pbr"
+	@echo "... shaders_color_correction"
+	@echo "... shaders_custom_uniform"
+	@echo "... shaders_deferred_rendering"
+	@echo "... shaders_depth_rendering"
+	@echo "... shaders_depth_writing"
+	@echo "... shaders_eratosthenes_sieve"
+	@echo "... shaders_fog_rendering"
+	@echo "... shaders_hot_reloading"
+	@echo "... shaders_hybrid_rendering"
+	@echo "... shaders_julia_set"
+	@echo "... shaders_lightmap_rendering"
+	@echo "... shaders_mandelbrot_set"
+	@echo "... shaders_mesh_instancing"
+	@echo "... shaders_model_shader"
+	@echo "... shaders_multi_sample2d"
+	@echo "... shaders_normalmap_rendering"
+	@echo "... shaders_palette_switch"
+	@echo "... shaders_postprocessing"
+	@echo "... shaders_raymarching_rendering"
+	@echo "... shaders_rounded_rectangle"
+	@echo "... shaders_shadowmap_rendering"
+	@echo "... shaders_shapes_textures"
+	@echo "... shaders_simple_mask"
+	@echo "... shaders_spotlight_rendering"
+	@echo "... shaders_texture_outline"
+	@echo "... shaders_texture_rendering"
+	@echo "... shaders_texture_tiling"
+	@echo "... shaders_texture_waves"
+	@echo "... shaders_vertex_displacement"
+	@echo "... shapes_basic_shapes"
+	@echo "... shapes_bouncing_ball"
+	@echo "... shapes_bullet_hell"
+	@echo "... shapes_circle_sector_drawing"
+	@echo "... shapes_clock_of_clocks"
+	@echo "... shapes_collision_area"
+	@echo "... shapes_colors_palette"
+	@echo "... shapes_dashed_line"
+	@echo "... shapes_digital_clock"
+	@echo "... shapes_double_pendulum"
+	@echo "... shapes_easings_ball"
+	@echo "... shapes_easings_box"
+	@echo "... shapes_easings_rectangles"
+	@echo "... shapes_following_eyes"
+	@echo "... shapes_kaleidoscope"
+	@echo "... shapes_lines_bezier"
+	@echo "... shapes_lines_drawing"
+	@echo "... shapes_logo_raylib"
+	@echo "... shapes_logo_raylib_anim"
+	@echo "... shapes_math_angle_rotation"
+	@echo "... shapes_math_sine_cosine"
+	@echo "... shapes_mouse_trail"
+	@echo "... shapes_pie_chart"
+	@echo "... shapes_rectangle_advanced"
+	@echo "... shapes_rectangle_scaling"
+	@echo "... shapes_recursive_tree"
+	@echo "... shapes_ring_drawing"
+	@echo "... shapes_rounded_rectangle_drawing"
+	@echo "... shapes_simple_particles"
+	@echo "... shapes_splines_drawing"
+	@echo "... shapes_starfield_effect"
+	@echo "... shapes_top_down_lights"
+	@echo "... shapes_triangle_strip"
+	@echo "... shapes_vector_angle"
+	@echo "... text_3d_drawing"
+	@echo "... text_codepoints_loading"
+	@echo "... text_font_filters"
+	@echo "... text_font_loading"
+	@echo "... text_font_sdf"
+	@echo "... text_font_spritefont"
+	@echo "... text_format_text"
+	@echo "... text_inline_styling"
+	@echo "... text_input_box"
+	@echo "... text_rectangle_bounds"
+	@echo "... text_sprite_fonts"
+	@echo "... text_unicode_emojis"
+	@echo "... text_unicode_ranges"
+	@echo "... text_words_alignment"
+	@echo "... text_writing_anim"
+	@echo "... textures_background_scrolling"
+	@echo "... textures_blend_modes"
+	@echo "... textures_bunnymark"
+	@echo "... textures_fog_of_war"
+	@echo "... textures_gif_player"
+	@echo "... textures_image_channel"
+	@echo "... textures_image_drawing"
+	@echo "... textures_image_generation"
+	@echo "... textures_image_kernel"
+	@echo "... textures_image_loading"
+	@echo "... textures_image_processing"
+	@echo "... textures_image_rotate"
+	@echo "... textures_image_text"
+	@echo "... textures_logo_raylib"
+	@echo "... textures_mouse_painting"
+	@echo "... textures_npatch_drawing"
+	@echo "... textures_particles_blending"
+	@echo "... textures_polygon_drawing"
+	@echo "... textures_raw_data"
+	@echo "... textures_sprite_animation"
+	@echo "... textures_sprite_button"
+	@echo "... textures_sprite_explosion"
+	@echo "... textures_srcrec_dstrec"
+	@echo "... textures_textured_curve"
+	@echo "... textures_tiled_drawing"
+	@echo "... textures_to_image"
+	@echo "... web_basic_window"
+.PHONY : help
+
+
+
+#=============================================================================
+# Special targets to cleanup operation of make.
+
+# Special rule to run CMake to check the build system integrity.
+# No rule that depends on this can have commands that come from listfiles
+# because they might be regenerated.
+cmake_check_build_system:
+	$(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
+.PHONY : cmake_check_build_system
+
