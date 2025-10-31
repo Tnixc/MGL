@@ -3,16 +3,14 @@
 layout(location = 0) in vec2 fragTexCoord;
 layout(location = 0) out vec4 fragColor;
 
-layout(binding = 0) uniform Uniforms {
-    float x_min;
-    float x_max;
-    float y_min;
-    float y_max;
-    vec2 z0;
-    int mandelbrot;
-    int max_iter;
-    vec3 colors[5];
-};
+layout(location = 0) uniform float x_min;
+layout(location = 1) uniform float x_max;
+layout(location = 2) uniform float y_min;
+layout(location = 3) uniform float y_max;
+layout(location = 4) uniform vec2 z0;
+layout(location = 5) uniform int mandelbrot;
+layout(location = 6) uniform int max_iter;
+layout(location = 7) uniform vec3 colors[5];
 
 void main() {
     vec2 c = vec2(

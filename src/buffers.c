@@ -488,6 +488,17 @@ void mglBindBuffer(GLMContext ctx, GLenum target, GLuint buffer)
         STATE(buffers[index]) = ptr;
         STATE(dirty_bits) |= DIRTY_BUFFER;
     }
+
+    // GL_ELEMENT_ARRAY_BUFFER bindings are VAO-specific
+    if (target == GL_ELEMENT_ARRAY_BUFFER && ctx->state.vao != NULL)
+    {
+        VAO_STATE(element_array.buffer) = ptr;
+        if (ptr)
+        {
+            ptr->data.dirty_bits |= DIRTY_BUFFER;
+        }
+        VAO_STATE(dirty_bits) |= DIRTY_FBO_BINDING;
+    }
 }
 
 void mglBindBufferBase(GLMContext ctx, GLenum target, GLuint index, GLuint buffer)

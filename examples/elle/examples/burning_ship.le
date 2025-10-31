@@ -37,10 +37,6 @@ fn main() {
     rl::set_shader_value(shader, rl::get_shader_location(shader, "colors[3]"), &colors[3].x, ShaderUniformDataType::SHADER_UNIFORM_VEC3);
     rl::set_shader_value(shader, rl::get_shader_location(shader, "colors[4]"), &colors[4].x, ShaderUniformDataType::SHADER_UNIFORM_VEC3);
 
-    tex := rl::get_default_texture();
-    tex.width = SCREEN_WIDTH;
-    tex.height = SCREEN_HEIGHT;
-
     rl::set_shader_value(shader, locs["max_iter"], &300, ShaderUniformDataType::SHADER_UNIFORM_INT);
     rl::set_shader_value(shader, locs["z0"], &Vector2::from(0).x, ShaderUniformDataType::SHADER_UNIFORM_VEC2);
 
@@ -93,13 +89,7 @@ fn main() {
             rl::clear_background(RAYWHITE);
             rl::begin_shader_mode(shader);
 
-            rl::draw_texture_pro(
-                tex,
-                Rectangle { x = 0, y = 0, width = tex.width, height = tex.height },
-                Rectangle { x = 0, y = 0, width = tex.width, height = tex.height },
-                Vector2 { x = 0, y = 0 },
-                0, WHITE
-            );
+            rl::draw_rectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, WHITE);
 
             rl::end_shader_mode();
             // rl::draw_fps(4, 4);  // Commented out due to Elle string formatting bug
