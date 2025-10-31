@@ -174,7 +174,10 @@ enum
     _SEPARATE_SAMPLERS_RES,
     _ACCEL_STRUCT_RES,
     _RAY_QUERY,
-    _MAX_SPIRV_RES
+    _SHADER_RECORD_BUFFER_RES,
+    _GL_PLAIN_UNIFORM_RES,
+    _TENSOR_RES,
+    _MAX_SPIRV_RES  // Now 17, large enough for all SPIRV-Cross resource types
 };
 
 #define SHADER_MASK_BIT(_TYPE_) (0x1 << _TYPE_)

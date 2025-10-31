@@ -456,14 +456,16 @@ char *parseSPIRVShaderToMetal(GLMContext ctx, Program *ptr, int stage)
 
     // Do some basic reflection.
     spvc_compiler_create_shader_resources(compiler_msl, &resources);
-    for (int res_type = SPVC_RESOURCE_TYPE_UNIFORM_BUFFER; res_type < SPVC_RESOURCE_TYPE_ACCELERATION_STRUCTURE;
+    // Loop through all resource types including GL_PLAIN_UNIFORM (15)
+    for (int res_type = SPVC_RESOURCE_TYPE_UNIFORM_BUFFER; res_type <= SPVC_RESOURCE_TYPE_GL_PLAIN_UNIFORM;
          res_type++)
     {
 #if DEBUG
         const char *res_name[] = {
-            "NONE",          "UNIFORM_BUFFER", "UNIFORM_CONSTANT",  "STORAGE_BUFFER",         "STAGE_INPUT",
-            "STAGE_OUTPUT",  "SUBPASS_INPUT",  "STORAGE_INPUT",     "SAMPLED_IMAGE",          "ATOMIC_COUNTER",
-            "PUSH_CONSTANT", "SEPARATE_IMAGE", "SEPARATE_SAMPLERS", "ACCELERATION_STRUCTURE", "RAY_QUERY"};
+            "NONE",          "UNIFORM_BUFFER",    "UNIFORM_CONSTANT",  "STORAGE_BUFFER",         "STAGE_INPUT",
+            "STAGE_OUTPUT",  "SUBPASS_INPUT",     "STORAGE_INPUT",     "SAMPLED_IMAGE",          "ATOMIC_COUNTER",
+            "PUSH_CONSTANT", "SEPARATE_IMAGE",    "SEPARATE_SAMPLERS", "ACCELERATION_STRUCTURE", "RAY_QUERY",
+            "SHADER_RECORD", "GL_PLAIN_UNIFORM"};
 #endif
 
         spvc_resources_get_resource_list_for_type(resources, res_type, &list, &count);

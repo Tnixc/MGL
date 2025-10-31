@@ -107,6 +107,22 @@ GLint mglGetUniformLocation(GLMContext ctx, GLuint program, const GLchar *name)
             }
         }
 
+        // Search in GL plain uniforms (individual uniforms not in blocks)
+        int plain_count = ptr->spirv_resources_list[stage][SPVC_RESOURCE_TYPE_GL_PLAIN_UNIFORM].count;
+        DEBUG_PRINT("  Stage %d: %d plain uniforms\n", stage, plain_count);
+        for (int i = 0; i < plain_count; i++)
+        {
+            const char *str = ptr->spirv_resources_list[stage][SPVC_RESOURCE_TYPE_GL_PLAIN_UNIFORM].list[i].name;
+            DEBUG_PRINT("    Plain uniform[%d]: %s\n", i, str);
+
+            if (!strcmp(str, name) || !strcmp(str, base_name))
+            {
+                GLuint binding = ptr->spirv_resources_list[stage][SPVC_RESOURCE_TYPE_GL_PLAIN_UNIFORM].list[i].binding;
+                DEBUG_PRINT("      FOUND! Plain uniform binding=%u\n", binding);
+                return binding;
+            }
+        }
+
         // Search in uniform buffer blocks
         int ub_count = ptr->spirv_resources_list[stage][SPVC_RESOURCE_TYPE_UNIFORM_BUFFER].count;
         DEBUG_PRINT("  Stage %d: %d uniform buffers\n", stage, ub_count);
