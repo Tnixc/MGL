@@ -85,7 +85,8 @@ GLint mglGetUniformLocation(GLMContext ctx, GLuint program, const GLchar *name)
     strncpy(base_name, name, sizeof(base_name) - 1);
     base_name[sizeof(base_name) - 1] = '\0';
     char *bracket = strchr(base_name, '[');
-    if (bracket) {
+    if (bracket)
+    {
         *bracket = '\0';
     }
 
@@ -129,8 +130,8 @@ GLint mglGetUniformLocation(GLMContext ctx, GLuint program, const GLchar *name)
         for (int i = 0; i < ub_count; i++)
         {
             SpirvResource *resource = &ptr->spirv_resources_list[stage][SPVC_RESOURCE_TYPE_UNIFORM_BUFFER].list[i];
-            DEBUG_PRINT("    UB[%d]: %s, binding=%u, has_members=%d\n",
-                       i, resource->name, resource->binding, resource->uniform_block != NULL);
+            DEBUG_PRINT("    UB[%d]: %s, binding=%u, has_members=%d\n", i, resource->name, resource->binding,
+                        resource->uniform_block != NULL);
 
             // Check if this uniform buffer has member info
             if (resource->uniform_block != NULL)
@@ -266,19 +267,22 @@ bool checkUniformParams(GLMContext ctx, GLint location)
     ERROR_CHECK_RETURN_VALUE(ptr, GL_INVALID_OPERATION, false)
 
     // According to OpenGL spec, location == -1 is silently ignored (not an error)
-    if (location < 0) {
+    if (location < 0)
+    {
         DEBUG_PRINT("  location < 0, silently ignoring\n");
         return false;
     }
 
     // If this is an encoded UBO member location, extract the binding for validation
     GLuint binding_to_check = location;
-    if (isUBOMemberLocation(location)) {
+    if (isUBOMemberLocation(location))
+    {
         binding_to_check = getUBOBinding(location);
         DEBUG_PRINT("  UBO member location, binding=%u\n", binding_to_check);
     }
-    
-    if (binding_to_check >= MAX_BINDABLE_BUFFERS) {
+
+    if (binding_to_check >= MAX_BINDABLE_BUFFERS)
+    {
         DEBUG_PRINT("  ERROR: binding >= MAX_BINDABLE_BUFFERS (%d >= %d)\n", binding_to_check, MAX_BINDABLE_BUFFERS);
     }
     ERROR_CHECK_RETURN_VALUE(binding_to_check < MAX_BINDABLE_BUFFERS, GL_INVALID_OPERATION, false)
@@ -297,24 +301,24 @@ void mglUniform(GLMContext ctx, GLint location, void *ptr, GLsizei size)
     {
         GLuint binding = getUBOBinding(location);
         GLuint offset = getMemberOffset(location);
-        
+
         DEBUG_PRINT("mglUniform: UBO member at binding=%u, offset=%u, size=%d\n", binding, offset, size);
-        
+
         // Get or create the UBO buffer
         Buffer *buf = ctx->state.buffer_base[_UNIFORM_BUFFER].buffers[binding].buf;
-        
+
         if (buf == NULL)
         {
             // Create a UBO buffer - start with a reasonable size that will grow as needed
             ctx->state.buffer_base[_UNIFORM_BUFFER].buffers[binding].buf = newBuffer(ctx, GL_UNIFORM_BUFFER, binding);
             buf = ctx->state.buffer_base[_UNIFORM_BUFFER].buffers[binding].buf;
-            
+
             // Initialize with a larger buffer to hold all members
             // Start with 256 bytes, will grow if needed
             size_t initial_size = 256;
             initBufferData(ctx, buf, initial_size, NULL, true);
         }
-        
+
         // Ensure buffer is large enough for this member
         if (buf->data.buffer_size < offset + size)
         {
@@ -322,7 +326,7 @@ void mglUniform(GLMContext ctx, GLint location, void *ptr, GLsizei size)
             size_t new_size = offset + size;
             // Round up to nearest 256 bytes
             new_size = ((new_size + 255) / 256) * 256;
-            
+
             // Allocate new buffer and copy old data
             void *new_data = calloc(1, new_size);
             if (buf->data.buffer_data != 0)
@@ -335,7 +339,7 @@ void mglUniform(GLMContext ctx, GLint location, void *ptr, GLsizei size)
             buf->size = new_size;
             buf->data.dirty_bits |= DIRTY_BUFFER;
         }
-        
+
         // Update the specific member at its offset
         memcpy((char *)buf->data.buffer_data + offset, ptr, size);
         buf->data.dirty_bits |= DIRTY_BUFFER;

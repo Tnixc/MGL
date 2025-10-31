@@ -4,7 +4,8 @@
 #define KIND_GLASS 1
 #define KIND_EMISSIVE 2
 
-struct Sphere {
+struct Sphere
+{
     vec3 center;
     vec4 color;
     float radius;
@@ -14,13 +15,15 @@ struct Sphere {
     int kind;
 };
 
-struct Triangle {
+struct Triangle
+{
     vec3 v0, v1, v2;
     vec3 n0, n1, n2;
     int objIndex;
 };
 
-struct Object {
+struct Object
+{
     vec4 color;
     float intensity;
     float ior;
@@ -28,7 +31,8 @@ struct Object {
     int kind;
 };
 
-struct BVHNode {
+struct BVHNode
+{
     vec3 min;
     vec3 max;
     int left;
@@ -37,7 +41,8 @@ struct BVHNode {
     int end;
 };
 
-struct Camera {
+struct Camera
+{
     vec3 position;
     vec3 forward;
     vec3 right;
@@ -46,18 +51,21 @@ struct Camera {
     float ar;
 };
 
-struct Ray {
+struct Ray
+{
     vec3 position;
     vec3 direction;
 };
 
-struct Plane {
+struct Plane
+{
     vec3 point;
     vec3 normal;
     vec4 color;
 };
 
-struct Hit {
+struct Hit
+{
     bool did_hit;
     float t;
     int kind;
@@ -97,22 +105,26 @@ uniform int frameIndex;
 
 uniform sampler2D history;
 
-float rand(vec2 co) {
+float rand(vec2 co)
+{
     return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
 }
 
-vec3 rand_dir(vec2 seed) {
+vec3 rand_dir(vec2 seed)
+{
     float a = rand(seed * 12.34) * 2 * PI;
     float z = rand(seed * 56.78) * 2.0 - 1.0;
     float r = sqrt(max(0.0, 1.0 - z * z));
     return vec3(r * cos(a), r * sin(a), z);
 }
 
-vec4 get_vertex(int i, int offset) {
+vec4 get_vertex(int i, int offset)
+{
     return texelFetch(triangles, i * 6 + offset);
 }
 
-Triangle get_triangle(int i) {
+Triangle get_triangle(int i)
+{
     vec4 v0 = get_vertex(i, 0);
     vec4 v1 = get_vertex(i, 1);
     vec4 v2 = get_vertex(i, 2);
@@ -124,31 +136,34 @@ Triangle get_triangle(int i) {
     return Triangle(v0.rgb, v1.rgb, v2.rgb, n0.rgb, n1.rgb, n2.rgb, int(v0.w));
 }
 
-BVHNode get_bvh_node(int i) {
+BVHNode get_bvh_node(int i)
+{
     vec4 a = texelFetch(triangles, i * 3 + 0 + bvh_start_index);
     vec4 b = texelFetch(triangles, i * 3 + 1 + bvh_start_index);
     vec4 c = texelFetch(triangles, i * 3 + 2 + bvh_start_index);
 
     vec3 min = a.xyz;
     vec3 max = b.xyz;
-    int left  = int(c.x);
+    int left = int(c.x);
     int right = int(c.y);
 
     int start = int(c.z);
-    int end   = int(c.w);
+    int end = int(c.w);
 
     // return BVHNode(vec3(0), vec3(0), 0, 0, 0, 0);
     return BVHNode(min, max, left, right, start, end);
 }
 
-vec3 checkerboard_color(vec3 point) {
+vec3 checkerboard_color(vec3 point)
+{
     int checkX = int(floor(point.x * 2));
     int checkZ = int(floor(point.z * 2));
 
     return plane.color.rgb * ((checkX + checkZ) % 2 == 0 ? 1 : 0.25);
 }
 
-Ray get_ray(Camera camera, vec2 uv, vec2 jitter) {
+Ray get_ray(Camera camera, vec2 uv, vec2 jitter)
+{
     uv += (jitter - 0.5) * (vec2(1.0) / vec2(textureSize(history, 0)));
     uv = uv * 2.0 - 1.0;
     uv.x *= camera.ar;
@@ -159,59 +174,72 @@ Ray get_ray(Camera camera, vec2 uv, vec2 jitter) {
     return Ray(camera.position, normalize(camera.forward + px * camera.right + py * camera.up));
 }
 
-float intersect_sphere(Ray ray, Sphere sphere) {
+float intersect_sphere(Ray ray, Sphere sphere)
+{
     vec3 oc = ray.position - sphere.center;
     float a = dot(ray.direction, ray.direction);
     float b = 2.0 * dot(oc, ray.direction);
     float c = dot(oc, oc) - sphere.radius * sphere.radius;
     float discriminant = b * b - 4.0 * a * c;
 
-    if (discriminant < 0.0) return -1.0;
+    if (discriminant < 0.0)
+        return -1.0;
 
     float sqrtDisc = sqrt(discriminant);
     float t0 = (-b - sqrtDisc) / (2.0 * a);
     float t1 = (-b + sqrtDisc) / (2.0 * a);
 
-    if (t0 > 1.0e-3) return t0;
-    if (t1 > 1.0e-3) return t1;
+    if (t0 > 1.0e-3)
+        return t0;
+    if (t1 > 1.0e-3)
+        return t1;
 
     return -1.0;
 }
 
-float intersect_plane(Ray ray) {
+float intersect_plane(Ray ray)
+{
     float denom = dot(plane.normal, ray.direction);
-    if (abs(denom) < 1e-6) return -1.0;
+    if (abs(denom) < 1e-6)
+        return -1.0;
 
     float t = dot(plane.point - ray.position, plane.normal) / denom;
-    if (t > 1e-3) return t;
+    if (t > 1e-3)
+        return t;
     return -1.0;
 }
 
-vec3 intersect_triangle(Ray ray, Triangle triangle) {
+vec3 intersect_triangle(Ray ray, Triangle triangle)
+{
     vec3 edge1 = triangle.v1 - triangle.v0;
     vec3 edge2 = triangle.v2 - triangle.v0;
     vec3 pvec = cross(ray.direction, edge2);
 
     float det = dot(edge1, pvec);
-    if (abs(det) < 1e-6) return vec3(-1.0, 0, 0);
+    if (abs(det) < 1e-6)
+        return vec3(-1.0, 0, 0);
 
     float invDet = 1.0 / det;
     vec3 tvec = ray.position - triangle.v0;
 
     float u = dot(tvec, pvec) * invDet;
-    if (u < 0.0 || u > 1.0) return vec3(-1.0, u, 0);
+    if (u < 0.0 || u > 1.0)
+        return vec3(-1.0, u, 0);
 
     vec3 qvec = cross(tvec, edge1);
     float v = dot(ray.direction, qvec) * invDet;
-    if (v < 0.0 || (u + v) > 1.0) return vec3(-1.0, u, v);
+    if (v < 0.0 || (u + v) > 1.0)
+        return vec3(-1.0, u, v);
 
     float t = dot(edge2, qvec) * invDet;
-    if (t > 1.0e-3) return vec3(t, u, v);
+    if (t > 1.0e-3)
+        return vec3(t, u, v);
 
     return vec3(-1.0, u, v);
 }
 
-bool intersect_aabb(Ray ray, vec3 _min, vec3 _max) {
+bool intersect_aabb(Ray ray, vec3 _min, vec3 _max)
+{
     vec3 inv = 1.0 / (ray.direction + 1.0e-4);
     vec3 t0 = (_min - ray.position) * inv;
     vec3 t1 = (_max - ray.position) * inv;
@@ -227,35 +255,43 @@ bool intersect_aabb(Ray ray, vec3 _min, vec3 _max) {
 
 // The schlick approxmiation and glass scattering was adapted from:
 // https://raytracing.github.io/books/RayTracingInOneWeekend.html
-float schlick(float cos_theta, float ior) {
+float schlick(float cos_theta, float ior)
+{
     float r0 = (1.0 - ior) / (1.0 + ior);
     r0 *= r0;
     return r0 + (1.0 - r0) * pow(1.0 - cos_theta, 5.0);
 }
 
-vec3 glass_scatter(vec3 ray_dir, vec3 hit_point, vec3 normal, float eta, vec2 seed) {
+vec3 glass_scatter(vec3 ray_dir, vec3 hit_point, vec3 normal, float eta, vec2 seed)
+{
     vec3 unit_dir = normalize(ray_dir);
     float cos_theta = min(dot(-unit_dir, normal), 1.0);
     float sin_theta = sqrt(1.0 - cos_theta * cos_theta);
 
     bool cannot_refract = eta * sin_theta > 1.0;
 
-    if (cannot_refract || schlick(cos_theta, eta) > rand(seed)) {
+    if (cannot_refract || schlick(cos_theta, eta) > rand(seed))
+    {
         return reflect(unit_dir, normal);
-    } else {
+    }
+    else
+    {
         return refract(unit_dir, normal, eta);
     }
 }
 
-Hit find_hit(Ray ray) {
+Hit find_hit(Ray ray)
+{
     Hit hit;
     hit.did_hit = false;
     float t = 1e20;
 
-    for (int i = 0; i < spheres_size; ++i) {
+    for (int i = 0; i < spheres_size; ++i)
+    {
         float ts = intersect_sphere(ray, spheres[i]);
 
-        if (ts > 0.0 && ts < t) {
+        if (ts > 0.0 && ts < t)
+        {
             vec3 point = ray.position + ray.direction * (t = ts);
 
             hit.did_hit = true;
@@ -293,16 +329,22 @@ Hit find_hit(Ray ray) {
     int sp = 0;
     stack[sp++] = 0;
 
-    while (sp > 0) {
+    while (sp > 0)
+    {
         int node_index = stack[--sp];
-        if (node_index < 0 || node_index >= bvh_size) continue;
+        if (node_index < 0 || node_index >= bvh_size)
+            continue;
         BVHNode node = get_bvh_node(node_index);
 
-        if (!intersect_aabb(ray, node.min, node.max)) continue;
+        if (!intersect_aabb(ray, node.min, node.max))
+            continue;
 
-        if (node.left < 0 && node.right < 0) {
-            for (int ti = node.start; ti < node.end; ++ti) {
-                if (ti < 0 || ti > triangles_size) continue;
+        if (node.left < 0 && node.right < 0)
+        {
+            for (int ti = node.start; ti < node.end; ++ti)
+            {
+                if (ti < 0 || ti > triangles_size)
+                    continue;
                 Triangle tri = get_triangle(ti);
                 Object obj = objects[tri.objIndex];
 
@@ -311,7 +353,8 @@ Hit find_hit(Ray ray) {
                 float u = ints.y;
                 float v = ints.z;
 
-                if (ts > 0.0 && ts < t) {
+                if (ts > 0.0 && ts < t)
+                {
                     vec3 point = ray.position + ray.direction * (t = ts);
 
                     float w = 1.0 - u - v;
@@ -330,19 +373,24 @@ Hit find_hit(Ray ray) {
                     hit.kind = obj.kind;
                 }
             }
-        } else {
-            if (node.left >= 0 && sp < MAX_STACK) {
+        }
+        else
+        {
+            if (node.left >= 0 && sp < MAX_STACK)
+            {
                 stack[sp++] = node.left;
             }
 
-            if (node.right >= 0 && sp < MAX_STACK) {
+            if (node.right >= 0 && sp < MAX_STACK)
+            {
                 stack[sp++] = node.right;
             }
         }
     }
 
     float tp = intersect_plane(ray);
-    if (tp > 0.0 && tp < t) {
+    if (tp > 0.0 && tp < t)
+    {
         vec3 point = ray.position + ray.direction * (t = tp);
 
         hit.did_hit = true;
@@ -358,28 +406,35 @@ Hit find_hit(Ray ray) {
     return hit;
 }
 
-vec4 sky_color(vec3 dir) {
+vec4 sky_color(vec3 dir)
+{
     float t = 0.5 * (dir.y + 1.0);
     return vec4(mix(vec3(1.0), vec3(0.5, 0.7, 1.0), t), 1.0);
 }
 
-vec4 trace_ray(Ray ray, vec2 seed) {
+vec4 trace_ray(Ray ray, vec2 seed)
+{
     vec4 color = vec4(1.0);
     Ray current = ray;
 
-    for (int bounce = 0; bounce < depth; ++bounce) {
+    for (int bounce = 0; bounce < depth; ++bounce)
+    {
         Hit hit = find_hit(current);
 
         // return vec4(0);
 
-        if (!hit.did_hit) return color * sky_color(ray.direction);
-        if (hit.kind == KIND_GLASS) hit.color = mix(vec4(1.0), hit.color, 0.3);
-        if (hit.kind == KIND_EMISSIVE) {
+        if (!hit.did_hit)
+            return color * sky_color(ray.direction);
+        if (hit.kind == KIND_GLASS)
+            hit.color = mix(vec4(1.0), hit.color, 0.3);
+        if (hit.kind == KIND_EMISSIVE)
+        {
             vec3 radiance = color.rgb * hit.color.rgb * hit.intensity;
 
             float max_lum = 10.0;
             float lum = dot(radiance, vec3(0.2126, 0.7152, 0.0722));
-            if (lum > max_lum) radiance *= max_lum / lum;
+            if (lum > max_lum)
+                radiance *= max_lum / lum;
 
             // radiance = (radiance * (2.51 * radiance + 0.03)) /
             //            (radiance * (2.43 * radiance + 0.59) + 0.14);
@@ -391,13 +446,17 @@ vec4 trace_ray(Ray ray, vec2 seed) {
 
         vec3 n = hit.normal;
         float eta = 1.0 / hit.ior;
-        if (dot(current.direction, n) > 0.0) n = -n, eta = 1.0 / eta;
+        if (dot(current.direction, n) > 0.0)
+            n = -n, eta = 1.0 / eta;
 
         vec3 new_dir;
 
-        if (hit.kind == KIND_GLASS) {
+        if (hit.kind == KIND_GLASS)
+        {
             new_dir = glass_scatter(current.direction, hit.point, n, eta, seed);
-        } else {
+        }
+        else
+        {
             new_dir = reflect(current.direction, n);
         }
 
@@ -409,18 +468,18 @@ vec4 trace_ray(Ray ray, vec2 seed) {
     return color;
 }
 
-void main() {
+void main()
+{
     // BVHNode node = get_bvh_node(0);
     // vec4 x = texelFetch(triangles, 0);
     // return;
     vec4 sum = vec4(0, 0, 0, 1);
     vec4 prev = texture(history, fragTexCoord);
 
-    for (int i = 0; i < samples; ++i) {
-        vec2 seed = vec2(
-            fract(sin(dot(fragTexCoord + float(frameIndex), vec2(12.9898, 78.233))) * 43758.5453),
-            fract(sin(dot(fragTexCoord + float(i), vec2(93.9898, 67.345))) * 12345.6789)
-        );
+    for (int i = 0; i < samples; ++i)
+    {
+        vec2 seed = vec2(fract(sin(dot(fragTexCoord + float(frameIndex), vec2(12.9898, 78.233))) * 43758.5453),
+                         fract(sin(dot(fragTexCoord + float(i), vec2(93.9898, 67.345))) * 12345.6789));
 
         float n1 = rand(seed);
         float n2 = rand(seed + 78.233);
@@ -431,9 +490,12 @@ void main() {
 
     vec4 current = sum / float(samples);
 
-    if (frameIndex == 1) {
+    if (frameIndex == 1)
+    {
         finalColor = current;
-    } else {
+    }
+    else
+    {
         finalColor = mix(prev, current, 1.0 / float(frameIndex));
     }
 }

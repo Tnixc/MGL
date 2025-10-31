@@ -1815,7 +1815,8 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
                 assert(library);
 
                 // Entry point is set during parseSPIRVShaderToMetal
-                DEBUG_PRINT("Binding stage %d, entry_point = %s\n", i, ptr->mtl_data[i].entry_point ? ptr->mtl_data[i].entry_point : "NULL");
+                DEBUG_PRINT("Binding stage %d, entry_point = %s\n", i,
+                            ptr->mtl_data[i].entry_point ? ptr->mtl_data[i].entry_point : "NULL");
                 assert(ptr->mtl_data[i].entry_point);
 
                 function = [library newFunctionWithName:[NSString stringWithUTF8String:ptr->mtl_data[i].entry_point]];

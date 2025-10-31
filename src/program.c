@@ -457,14 +457,13 @@ char *parseSPIRVShaderToMetal(GLMContext ctx, Program *ptr, int stage)
     // Do some basic reflection.
     spvc_compiler_create_shader_resources(compiler_msl, &resources);
     // Loop through all resource types including GL_PLAIN_UNIFORM (15)
-    for (int res_type = SPVC_RESOURCE_TYPE_UNIFORM_BUFFER; res_type <= SPVC_RESOURCE_TYPE_GL_PLAIN_UNIFORM;
-         res_type++)
+    for (int res_type = SPVC_RESOURCE_TYPE_UNIFORM_BUFFER; res_type <= SPVC_RESOURCE_TYPE_GL_PLAIN_UNIFORM; res_type++)
     {
 #if DEBUG
         const char *res_name[] = {
-            "NONE",          "UNIFORM_BUFFER",    "UNIFORM_CONSTANT",  "STORAGE_BUFFER",         "STAGE_INPUT",
-            "STAGE_OUTPUT",  "SUBPASS_INPUT",     "STORAGE_INPUT",     "SAMPLED_IMAGE",          "ATOMIC_COUNTER",
-            "PUSH_CONSTANT", "SEPARATE_IMAGE",    "SEPARATE_SAMPLERS", "ACCELERATION_STRUCTURE", "RAY_QUERY",
+            "NONE",          "UNIFORM_BUFFER",  "UNIFORM_CONSTANT",  "STORAGE_BUFFER",         "STAGE_INPUT",
+            "STAGE_OUTPUT",  "SUBPASS_INPUT",   "STORAGE_INPUT",     "SAMPLED_IMAGE",          "ATOMIC_COUNTER",
+            "PUSH_CONSTANT", "SEPARATE_IMAGE",  "SEPARATE_SAMPLERS", "ACCELERATION_STRUCTURE", "RAY_QUERY",
             "SHADER_RECORD", "GL_PLAIN_UNIFORM"};
 #endif
 
@@ -562,8 +561,8 @@ char *parseSPIRVShaderToMetal(GLMContext ctx, Program *ptr, int stage)
                         block_info->members[m].size = (GLuint)member_size;
                         block_info->members[m].type_id = member_type_id;
 
-                        DEBUG_PRINT("     [%u] %s: offset=%u, size=%zu\n",
-                                    m, member_name ? member_name : "(unnamed)", member_offset, member_size);
+                        DEBUG_PRINT("     [%u] %s: offset=%u, size=%zu\n", m, member_name ? member_name : "(unnamed)",
+                                    member_offset, member_size);
                     }
 
                     ptr->spirv_resources_list[stage][res_type].list[i].uniform_block = block_info;
