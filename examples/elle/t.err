@@ -1,0 +1,217 @@
+createGLMContext: creating context at 0x62d00001e400
+  Context zeroed, viewport is now [0, 0, 0, 0]
+createGLMContext: creating context at 0x62d0000c8400
+  Context zeroed, viewport is now [0, 0, 0, 0]
+DEBUG: mglCompileShader:316: Creating glslang shader for type 35633
+DEBUG: mglCompileShader:324: Successfully created glslang shader 0x6060000a6040 for type 35633
+DEBUG: mglCompileShader:369: Parsing glslang shader 0x6060000a6040 for type 35633
+DEBUG: mglCompileShader:371: Parse result for type 35633: err=1
+DEBUG: mglCompileShader:412: Successfully compiled glslang shader 0x6060000a6040 for type 35633
+DEBUG: mglCompileShader:316: Creating glslang shader for type 35632
+DEBUG: mglCompileShader:324: Successfully created glslang shader 0x6060000a8ce0 for type 35632
+DEBUG: mglCompileShader:369: Parsing glslang shader 0x6060000a8ce0 for type 35632
+DEBUG: mglCompileShader:371: Parse result for type 35632: err=1
+DEBUG: mglCompileShader:412: Successfully compiled glslang shader 0x6060000a8ce0 for type 35632
+DEBUG: addShadersToProgram:295: Adding shader stage 0 (type 35633) to program, glsl_shader=0x6060000a6040
+DEBUG: addShadersToProgram:305: Successfully added shader stage 0 to program
+DEBUG: addShadersToProgram:295: Adding shader stage 4 (type 35632) to program, glsl_shader=0x6060000a8ce0
+DEBUG: addShadersToProgram:305: Successfully added shader stage 4 to program
+DEBUG: parseSPIRVShaderToMetal:471: res_type: STORAGE_BUFFER ID: 11, BaseTypeID: 7, TypeID: 10, Name: vertexTexCoord DEBUG: parseSPIRVShaderToMetal:493: Set: 0, Location: 1 Index: 0, offset: 0
+DEBUG: parseSPIRVShaderToMetal:471: res_type: STORAGE_BUFFER ID: 17, BaseTypeID: 13, TypeID: 16, Name: vertexColor DEBUG: parseSPIRVShaderToMetal:493: Set: 0, Location: 2 Index: 0, offset: 0
+DEBUG: parseSPIRVShaderToMetal:471: res_type: STORAGE_BUFFER ID: 33, BaseTypeID: 31, TypeID: 32, Name: vertexPosition DEBUG: parseSPIRVShaderToMetal:493: Set: 0, Location: 0 Index: 0, offset: 0
+DEBUG: parseSPIRVShaderToMetal:471: res_type: STAGE_INPUT ID: 9, BaseTypeID: 7, TypeID: 8, Name: fragTexCoord DEBUG: parseSPIRVShaderToMetal:493: Set: 0, Location: 0 Index: 0, offset: 0
+DEBUG: parseSPIRVShaderToMetal:471: res_type: STAGE_INPUT ID: 15, BaseTypeID: 13, TypeID: 14, Name: fragColor DEBUG: parseSPIRVShaderToMetal:493: Set: 0, Location: 1 Index: 0, offset: 0
+DEBUG: parseSPIRVShaderToMetal:568: 
+#include <metal_stdlib>
+#include <simd/simd.h>
+
+using namespace metal;
+
+struct vertex_1_main_out
+{
+    float2 fragTexCoord [[user(locn0)]];
+    float4 fragColor [[user(locn1)]];
+    float4 gl_Position [[position]];
+};
+
+struct vertex_1_main_in
+{
+    float3 vertexPosition [[attribute(0)]];
+    float2 vertexTexCoord [[attribute(1)]];
+    float4 vertexColor [[attribute(2)]];
+};
+
+vertex vertex_1_main_out vertex_1_main(vertex_1_main_in in [[stage_in]], constant float4x4& mvp [[buffer(0)]])
+{
+    vertex_1_main_out out = {};
+    out.fragTexCoord = in.vertexTexCoord;
+    out.fragColor = in.vertexColor;
+    out.gl_Position = mvp * float4(in.vertexPosition, 1.0);
+    return out;
+}
+
+
+DEBUG: parseSPIRVShaderToMetal:471: res_type: STORAGE_BUFFER ID: 17, BaseTypeID: 15, TypeID: 16, Name: fragTexCoord DEBUG: parseSPIRVShaderToMetal:493: Set: 0, Location: 0 Index: 0, offset: 0
+DEBUG: parseSPIRVShaderToMetal:471: res_type: STORAGE_BUFFER ID: 28, BaseTypeID: 7, TypeID: 27, Name: fragColor DEBUG: parseSPIRVShaderToMetal:493: Set: 0, Location: 1 Index: 0, offset: 0
+DEBUG: parseSPIRVShaderToMetal:471: res_type: STAGE_INPUT ID: 21, BaseTypeID: 7, TypeID: 20, Name: finalColor DEBUG: parseSPIRVShaderToMetal:493: Set: 0, Location: 0 Index: 0, offset: 0
+DEBUG: parseSPIRVShaderToMetal:471: res_type: STORAGE_INPUT ID: 13, BaseTypeID: 11, TypeID: 12, Name: texture0 DEBUG: parseSPIRVShaderToMetal:500: Set: 0, Location: 0
+DEBUG: parseSPIRVShaderToMetal:568: 
+#include <metal_stdlib>
+#include <simd/simd.h>
+
+using namespace metal;
+
+struct fragment_2_out
+{
+    float4 finalColor [[color(0)]];
+};
+
+struct fragment_2_in
+{
+    float2 fragTexCoord [[user(locn0)]];
+    float4 fragColor [[user(locn1)]];
+};
+
+fragment fragment_2_out fragment_2(fragment_2_in in [[stage_in]], constant float4& colDiffuse [[buffer(0)]], texture2d<float> texture0 [[texture(0)]], sampler texture0Smplr [[sampler(0)]])
+{
+    fragment_2_out out = {};
+    float4 texelColor = texture0.sample(texture0Smplr, in.fragTexCoord);
+    out.finalColor = (texelColor * colDiffuse) * in.fragColor;
+    return out;
+}
+
+
+mglViewport called: ctx=0x62d00001e400, x=0, y=0, width=1280, height=1280
+  Viewport set successfully on ctx=0x62d00001e400: [0, 0, 1280, 1280]
+DEBUG: mglCompileShader:316: Creating glslang shader for type 35632
+DEBUG: mglCompileShader:324: Successfully created glslang shader 0x6060000b2160 for type 35632
+DEBUG: mglCompileShader:369: Parsing glslang shader 0x6060000b2160 for type 35632
+DEBUG: mglCompileShader:371: Parse result for type 35632: err=1
+DEBUG: mglCompileShader:412: Successfully compiled glslang shader 0x6060000b2160 for type 35632
+DEBUG: addShadersToProgram:295: Adding shader stage 0 (type 35633) to program, glsl_shader=0x6060000a6040
+DEBUG: addShadersToProgram:305: Successfully added shader stage 0 to program
+DEBUG: addShadersToProgram:295: Adding shader stage 4 (type 35632) to program, glsl_shader=0x6060000b2160
+DEBUG: addShadersToProgram:305: Successfully added shader stage 4 to program
+DEBUG: parseSPIRVShaderToMetal:471: res_type: STORAGE_BUFFER ID: 11, BaseTypeID: 7, TypeID: 10, Name: vertexTexCoord DEBUG: parseSPIRVShaderToMetal:493: Set: 0, Location: 1 Index: 0, offset: 0
+DEBUG: parseSPIRVShaderToMetal:471: res_type: STORAGE_BUFFER ID: 17, BaseTypeID: 13, TypeID: 16, Name: vertexColor DEBUG: parseSPIRVShaderToMetal:493: Set: 0, Location: 2 Index: 0, offset: 0
+DEBUG: parseSPIRVShaderToMetal:471: res_type: STORAGE_BUFFER ID: 33, BaseTypeID: 31, TypeID: 32, Name: vertexPosition DEBUG: parseSPIRVShaderToMetal:493: Set: 0, Location: 0 Index: 0, offset: 0
+DEBUG: parseSPIRVShaderToMetal:471: res_type: STAGE_INPUT ID: 9, BaseTypeID: 7, TypeID: 8, Name: fragTexCoord DEBUG: parseSPIRVShaderToMetal:493: Set: 0, Location: 0 Index: 0, offset: 0
+DEBUG: parseSPIRVShaderToMetal:471: res_type: STAGE_INPUT ID: 15, BaseTypeID: 13, TypeID: 14, Name: fragColor DEBUG: parseSPIRVShaderToMetal:493: Set: 0, Location: 1 Index: 0, offset: 0
+DEBUG: parseSPIRVShaderToMetal:568: 
+#include <metal_stdlib>
+#include <simd/simd.h>
+
+using namespace metal;
+
+struct vertex_1_main_out
+{
+    float2 fragTexCoord [[user(locn0)]];
+    float4 fragColor [[user(locn1)]];
+    float4 gl_Position [[position]];
+};
+
+struct vertex_1_main_in
+{
+    float3 vertexPosition [[attribute(0)]];
+    float2 vertexTexCoord [[attribute(1)]];
+    float4 vertexColor [[attribute(2)]];
+};
+
+vertex vertex_1_main_out vertex_1_main(vertex_1_main_in in [[stage_in]], constant float4x4& mvp [[buffer(0)]])
+{
+    vertex_1_main_out out = {};
+    out.fragTexCoord = in.vertexTexCoord;
+    out.fragColor = in.vertexColor;
+    out.gl_Position = mvp * float4(in.vertexPosition, 1.0);
+    return out;
+}
+
+
+DEBUG: parseSPIRVShaderToMetal:471: res_type: UNIFORM_BUFFER ID: 17, BaseTypeID: 15, TypeID: 16, Name: Uniforms DEBUG: parseSPIRVShaderToMetal:483: Set: 0, Binding: 0 Uniform: 0 offset: 0
+DEBUG: parseSPIRVShaderToMetal:533:   -> Uniform block 'Uniforms' has 8 members:
+DEBUG: parseSPIRVShaderToMetal:558:      [0] : offset=0, size=4
+DEBUG: parseSPIRVShaderToMetal:558:      [1] : offset=4, size=4
+DEBUG: parseSPIRVShaderToMetal:558:      [2] : offset=8, size=4
+DEBUG: parseSPIRVShaderToMetal:558:      [3] : offset=12, size=4
+DEBUG: parseSPIRVShaderToMetal:558:      [4] : offset=16, size=8
+DEBUG: parseSPIRVShaderToMetal:558:      [5] : offset=24, size=4
+DEBUG: parseSPIRVShaderToMetal:558:      [6] : offset=28, size=4
+DEBUG: parseSPIRVShaderToMetal:558:      [7] : offset=32, size=80
+DEBUG: parseSPIRVShaderToMetal:471: res_type: STORAGE_BUFFER ID: 23, BaseTypeID: 7, TypeID: 22, Name: fragTexCoord DEBUG: parseSPIRVShaderToMetal:493: Set: 0, Location: 0 Index: 0, offset: 0
+DEBUG: parseSPIRVShaderToMetal:471: res_type: STAGE_INPUT ID: 166, BaseTypeID: 164, TypeID: 165, Name: fragColor DEBUG: parseSPIRVShaderToMetal:493: Set: 0, Location: 0 Index: 0, offset: 0
+DEBUG: parseSPIRVShaderToMetal:568: 
+#include <metal_stdlib>
+#include <simd/simd.h>
+
+using namespace metal;
+
+struct Uniforms
+{
+    float x_min;
+    float x_max;
+    float y_min;
+    float y_max;
+    float2 z0;
+    int mandelbrot;
+    int max_iter;
+    float3 colors[5];
+};
+
+struct fragment_3_out
+{
+    float4 fragColor [[color(0)]];
+};
+
+struct fragment_3_in
+{
+    float2 fragTexCoord [[user(locn0)]];
+};
+
+fragment fragment_3_out fragment_3(fragment_3_in in [[stage_in]], constant Uniforms& _17 [[buffer(0)]])
+{
+    fragment_3_out out = {};
+    float2 c = float2(_17.x_min + (in.fragTexCoord.x * (_17.x_max - _17.x_min)), _17.y_min + (in.fragTexCoord.y * (_17.y_max - _17.y_min)));
+    float2 z = _17.z0;
+    int iter = 0;
+    for (int i = 0; i < _17.max_iter; i++)
+    {
+        if (_17.mandelbrot != 0)
+        {
+            float x_new = ((z.x * z.x) - (z.y * z.y)) + c.x;
+            float y_new = ((2.0 * z.x) * z.y) + c.y;
+            z = float2(x_new, y_new);
+        }
+        else
+        {
+            float x_new_1 = ((z.x * z.x) - (z.y * z.y)) + c.x;
+            float y_new_1 = ((2.0 * abs(z.x)) * abs(z.y)) + c.y;
+            z = float2(x_new_1, y_new_1);
+        }
+        if (dot(z, z) > 4.0)
+        {
+            iter = i;
+            break;
+        }
+        if (i == (_17.max_iter - 1))
+        {
+            iter = _17.max_iter;
+        }
+    }
+    if (iter == _17.max_iter)
+    {
+        out.fragColor = float4(_17.colors[0], 1.0);
+    }
+    else
+    {
+        float t = float(iter) / float(_17.max_iter);
+        int colorIndex = int(t * 4.0);
+        float localT = fract(t * 4.0);
+        float3 color1 = _17.colors[min(colorIndex, 3)];
+        float3 color2 = _17.colors[min((colorIndex + 1), 4)];
+        out.fragColor = float4(mix(color1, color2, float3(localT)), 1.0);
+    }
+    return out;
+}
+
+
+Assertion failed: (0), function error_func, file error.c, line 48.
