@@ -27,6 +27,7 @@
 #include <mach/mach_vm.h>
 #include <mach/mach_init.h>
 #include <mach/vm_map.h>
+#include <execinfo.h>
 
 // Header shared between C code here, which executes Metal API commands, and .metal files, which
 // uses these types as inputs to the shaders.
@@ -34,6 +35,7 @@
 
 #import "MGLRenderer.h"
 #import "glm_context.h"
+#import "buffers.h"
 
 #define TRACE_FUNCTION() DEBUG_PRINT("%s\n", __FUNCTION__);
 
@@ -521,6 +523,40 @@ void logDirtyBits(GLMContext ctx)
         }
     }
 
+    // Add plain uniforms (standalone uniforms not in a UBO) to the buffer map
+    int plain_uniform_count = [self getProgramBindingCount:stage type:SPVC_RESOURCE_TYPE_GL_PLAIN_UNIFORM];
+    fprintf(stderr, "DEBUG: Plain uniform count for stage %d: %d\n", stage, plain_uniform_count);
+
+    for (int i = 0; i < plain_uniform_count; i++)
+    {
+        GLuint binding = [self getProgramBinding:stage type:SPVC_RESOURCE_TYPE_GL_PLAIN_UNIFORM index:i];
+        GLuint location = [self getProgramLocation:stage type:SPVC_RESOURCE_TYPE_GL_PLAIN_UNIFORM index:i];
+        Buffer *buf = ctx->state.buffer_base[_UNIFORM_BUFFER].buffers[location].buf;
+
+        fprintf(stderr, "DEBUG:   Plain uniform[%d]: location=%d, binding=%d, buf=%p\n", i, location, binding, buf);
+
+        // If buffer doesn't exist, create it with default white color (1,1,1,1)
+        // This is important for fragment shader color uniforms that default to white if not set
+        if (buf == NULL)
+        {
+            fprintf(stderr, "DEBUG:     Creating default buffer for plain uniform at location %d\n", location);
+            buf = newBuffer(ctx, GL_UNIFORM_BUFFER, location);
+            ctx->state.buffer_base[_UNIFORM_BUFFER].buffers[location].buf = buf;
+
+            // Initialize with white color (16 bytes for float4)
+            GLfloat default_color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+            initBufferData(ctx, buf, sizeof(default_color), default_color, true);
+            fprintf(stderr, "DEBUG:     Initialized with default white color\n");
+        }
+
+        buffer_map->buffers[buffer_map->count].attribute_mask = 0;
+        buffer_map->buffers[buffer_map->count].buffer_base_index = binding;
+        buffer_map->buffers[buffer_map->count].buf = buf;
+        buffer_map->buffers[buffer_map->count].offset = ctx->state.buffer_base[_UNIFORM_BUFFER].buffers[location].offset;
+        buffer_map->count++;
+        fprintf(stderr, "DEBUG:     Added to buffer_map at index %d, Metal buffer index=%d\n", buffer_map->count - 1, binding);
+    }
+
     // bind vao attribs to buffers (attribs can share the same buffer)
     if (stage == _VERTEX_SHADER)
     {
@@ -614,6 +650,14 @@ void logDirtyBits(GLMContext ctx)
 {
     if ([self mapGLBuffersToMTLBufferMap:&ctx->state.vertex_buffer_map_list stage:_VERTEX_SHADER] == false)
         return false;
+
+    fprintf(stderr, "DEBUG: Vertex buffer map after mapping: count=%d\n", ctx->state.vertex_buffer_map_list.count);
+    for (int i = 0; i < ctx->state.vertex_buffer_map_list.count; i++) {
+        fprintf(stderr, "  [%d] buf=%p, attribute_mask=0x%x, buffer_base_index=%d\n",
+                i, ctx->state.vertex_buffer_map_list.buffers[i].buf,
+                ctx->state.vertex_buffer_map_list.buffers[i].attribute_mask,
+                ctx->state.vertex_buffer_map_list.buffers[i].buffer_base_index);
+    }
 
     if ([self mapGLBuffersToMTLBufferMap:&ctx->state.fragment_buffer_map_list stage:_FRAGMENT_SHADER] == false)
         return false;
@@ -733,7 +777,7 @@ void logDirtyBits(GLMContext ctx)
 
     assert(_currentRenderEncoder);
 
-    // fprintf(stderr, "bindVertexBuffersToCurrentRenderEncoder: count=%d\n", ctx->state.vertex_buffer_map_list.count);
+    fprintf(stderr, "DEBUG: bindVertexBuffersToCurrentRenderEncoder: count=%d\n", ctx->state.vertex_buffer_map_list.count);
 
     for (int i = 0; i < ctx->state.vertex_buffer_map_list.count; i++)
     {
@@ -744,7 +788,7 @@ void logDirtyBits(GLMContext ctx)
 
         assert(ptr);
 
-        // fprintf(stderr, "  Buffer %d: size=%lu, offset=%lld\n", i, ptr->size, (long long)offset);
+        fprintf(stderr, "  Buffer %d: size=%lu, offset=%lld\n", i, ptr->size, (long long)offset);
 
         // for buffers less than 4k we should use this call
         if (ptr->size < 4096)
@@ -755,8 +799,8 @@ void logDirtyBits(GLMContext ctx)
             if (ptr->data.buffer_data && ptr->size >= sizeof(float) * 3)
             {
                 float *verts = (float *)ptr->data.buffer_data;
-                // fprintf(stderr, "    Vertex data (first 9 floats): %.2f %.2f %.2f, %.2f %.2f %.2f, %.2f %.2f %.2f\n",
-                //         verts[0], verts[1], verts[2], verts[3], verts[4], verts[5], verts[6], verts[7], verts[8]);
+                fprintf(stderr, "    Vertex data (first 9 floats): %.2f %.2f %.2f, %.2f %.2f %.2f, %.2f %.2f %.2f\n",
+                        verts[0], verts[1], verts[2], verts[3], verts[4], verts[5], verts[6], verts[7], verts[8]);
             }
 
             [_currentRenderEncoder setVertexBytes:(const void *)ptr->data.buffer_data length:ptr->size atIndex:i];
@@ -1693,6 +1737,7 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
     case SPVC_RESOURCE_TYPE_STAGE_INPUT:
     case SPVC_RESOURCE_TYPE_SAMPLED_IMAGE:
     case SPVC_RESOURCE_TYPE_STORAGE_IMAGE:
+    case SPVC_RESOURCE_TYPE_GL_PLAIN_UNIFORM:
         break;
 
     default:
@@ -1720,6 +1765,7 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
     case SPVC_RESOURCE_TYPE_STAGE_INPUT:
     case SPVC_RESOURCE_TYPE_SAMPLED_IMAGE:
     case SPVC_RESOURCE_TYPE_STORAGE_IMAGE:
+    case SPVC_RESOURCE_TYPE_GL_PLAIN_UNIFORM:
         break;
 
     default:
@@ -1746,6 +1792,7 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
     case SPVC_RESOURCE_TYPE_STORAGE_BUFFER:
     case SPVC_RESOURCE_TYPE_ATOMIC_COUNTER:
     case SPVC_RESOURCE_TYPE_STAGE_INPUT:
+    case SPVC_RESOURCE_TYPE_GL_PLAIN_UNIFORM:
     case SPVC_RESOURCE_TYPE_SAMPLED_IMAGE:
     case SPVC_RESOURCE_TYPE_STORAGE_IMAGE:
         break;
@@ -1938,8 +1985,8 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
 
 - (void)updateCurrentRenderEncoder
 {
-    // fprintf(stderr, "updateCurrentRenderEncoder START: viewport = [%u, %u, %u, %u]\n",
-    //         ctx->state.viewport[0], ctx->state.viewport[1], ctx->state.viewport[2], ctx->state.viewport[3]);
+    fprintf(stderr, "DEBUG: updateCurrentRenderEncoder: depth_test=%d, stencil_test=%d, blend=%d\n",
+            ctx->state.caps.depth_test, ctx->state.caps.stencil_test, ctx->state.caps.blend);
 
     if (ctx->state.caps.depth_test || ctx->state.caps.stencil_test)
     {
@@ -2008,11 +2055,22 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
         [_currentRenderEncoder setScissorRect:rect];
     }
 
-    // fprintf(stderr, "Setting viewport from ctx=%p: x=%u, y=%u, width=%u, height=%u\n",
-    //         ctx, ctx->state.viewport[0], ctx->state.viewport[1], ctx->state.viewport[2], ctx->state.viewport[3]);
+    // If viewport is uninitialized (0x0), use the render target size as default
+    GLuint viewport_width = ctx->state.viewport[2];
+    GLuint viewport_height = ctx->state.viewport[3];
+
+    if (viewport_width == 0 || viewport_height == 0)
+    {
+        viewport_width = _renderPassDescriptor.renderTargetWidth;
+        viewport_height = _renderPassDescriptor.renderTargetHeight;
+        fprintf(stderr, "DEBUG: Viewport was 0x0, using render target size: %ux%u\n", viewport_width, viewport_height);
+    }
+
+    fprintf(stderr, "DEBUG: Setting viewport from ctx=%p: x=%u, y=%u, width=%u, height=%u\n",
+            ctx, ctx->state.viewport[0], ctx->state.viewport[1], viewport_width, viewport_height);
 
     [_currentRenderEncoder setViewport:(MTLViewport){ctx->state.viewport[0], ctx->state.viewport[1],
-                                                     ctx->state.viewport[2], ctx->state.viewport[3],
+                                                     viewport_width, viewport_height,
                                                      ctx->state.var.depth_range[0], ctx->state.var.depth_range[1]}];
 
     if (ctx->state.caps.cull_face)
@@ -2053,6 +2111,15 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
 
 - (bool)newRenderEncoder
 {
+    fprintf(stderr, "DEBUG: newRenderEncoder called from:\n");
+    void* callstack[128];
+    int frames = backtrace(callstack, 128);
+    char** strs = backtrace_symbols(callstack, frames);
+    for (int i = 0; i < 5 && i < frames; i++) {
+        fprintf(stderr, "  %s\n", strs[i]);
+    }
+    free(strs);
+
     // I can't remember why this is here...
     @autoreleasepool
     {
@@ -2240,10 +2307,14 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
                                       STATE(color_clear_value[2]), STATE(color_clear_value[3]));
 
                 _renderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
+                fprintf(stderr, "DEBUG: Setting loadAction=Clear, clearColor=(%.2f,%.2f,%.2f,%.2f)\n",
+                        STATE(color_clear_value[0]), STATE(color_clear_value[1]),
+                        STATE(color_clear_value[2]), STATE(color_clear_value[3]));
             }
             else
             {
                 _renderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionLoad;
+                fprintf(stderr, "DEBUG: Setting loadAction=Load (no color clear)\n");
             }
 
             if (ctx->state.framebuffer)
@@ -2299,6 +2370,10 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
         }
 
         _renderPassDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
+
+        fprintf(stderr, "DEBUG: Creating render encoder, loadAction=%lu, texture=%p\n",
+                (unsigned long)_renderPassDescriptor.colorAttachments[0].loadAction,
+                _renderPassDescriptor.colorAttachments[0].texture);
 
         // create a render encoder from the renderpass descriptor
         _currentRenderEncoder = [_currentCommandBuffer renderCommandEncoderWithDescriptor:_renderPassDescriptor];
@@ -2508,7 +2583,7 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
 
     [vertexDescriptor reset]; // ??? debug
 
-    // fprintf(stderr, "generateVertexDescriptor: enabled_attribs=0x%x\n", VAO_STATE(enabled_attribs));
+    fprintf(stderr, "DEBUG: generateVertexDescriptor: enabled_attribs=0x%x\n", VAO_STATE(enabled_attribs));
 
     // we can bind a new vertex descriptor without creating a new renderbuffer
     for (int i = 0; i < ctx->state.max_vertex_attribs; i++)
@@ -2540,9 +2615,9 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
             vertexDescriptor.attributes[i].offset = ctx->state.vao->attrib[i].relativeoffset;
             vertexDescriptor.attributes[i].format = format;
 
-            // fprintf(stderr, "  Attribute %d: bufferIndex=%d, offset=%lu, format=%lu, stride=%u\n",
-            //         i, mapped_buffer_index, (unsigned long)ctx->state.vao->attrib[i].relativeoffset,
-            //         (unsigned long)format, VAO_ATTRIB_STATE(i).stride);
+            fprintf(stderr, "  Attribute %d: bufferIndex=%d, offset=%lu, format=%lu, stride=%u\n",
+                    i, mapped_buffer_index, (unsigned long)ctx->state.vao->attrib[i].relativeoffset,
+                    (unsigned long)format, VAO_ATTRIB_STATE(i).stride);
 
             vertexDescriptor.layouts[mapped_buffer_index].stride = VAO_ATTRIB_STATE(i).stride;
 
@@ -2709,6 +2784,11 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
             pipelineStateDescriptor.colorAttachments[i].alphaBlendOperation = _alpha_blend_operation[i];
 
             pipelineStateDescriptor.colorAttachments[i].writeMask = _color_mask[i];
+
+            fprintf(stderr, "DEBUG: Blend[%d]: srcRGB=%lu, dstRGB=%lu, srcA=%lu, dstA=%lu, writeMask=0x%lx\n",
+                    i, (unsigned long)_src_blend_rgb_factor[i], (unsigned long)_dst_blend_rgb_factor[i],
+                    (unsigned long)_src_blend_alpha_factor[i], (unsigned long)_dst_blend_alpha_factor[i],
+                    (unsigned long)_color_mask[i]);
         }
     }
 }
@@ -2794,10 +2874,19 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
         // for a clear flush sequence...
         if (ctx->state.dirty_bits & DIRTY_STATE)
         {
-            // end encoding on current render encoder
-            [self endRenderEncoding];
+            // Don't create a new encoder if one already exists
+            // The clear will be picked up on the next frame
+            if (_currentRenderEncoder == NULL)
+            {
+                // end encoding on current render encoder
+                [self endRenderEncoding];
 
-            RETURN_FALSE_ON_FAILURE([self newRenderEncoder]);
+                RETURN_FALSE_ON_FAILURE([self newRenderEncoder]);
+            }
+            else
+            {
+                fprintf(stderr, "DEBUG: Skipping newRenderEncoder because encoder already exists\n");
+            }
         }
 
         return true;
@@ -2868,16 +2957,26 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
             // we have a dirty VAO, all the renderbuffer bindings are invalid so we need a new renderbuffer
             // with new renderbuffer bindings
 
-            // always end encoding and start a new encoder and bind new vertex buffers
-            // end encoding on current render encoder
-            [self endRenderEncoding];
-
             // updateDirtyBaseBufferList binds new mtl buffers or updates old ones
             RETURN_FALSE_ON_FAILURE([self updateDirtyBaseBufferList:&ctx->state.vertex_buffer_map_list]);
             RETURN_FALSE_ON_FAILURE([self updateDirtyBaseBufferList:&ctx->state.fragment_buffer_map_list]);
 
-            // get a new renderer encoder
-            RETURN_FALSE_ON_FAILURE([self newRenderEncoder]);
+            // Only create a new encoder if one doesn't exist yet
+            if (_currentRenderEncoder == NULL)
+            {
+                // end encoding on current render encoder (should be NULL anyway)
+                [self endRenderEncoding];
+
+                // get a new renderer encoder
+                RETURN_FALSE_ON_FAILURE([self newRenderEncoder]);
+            }
+            else
+            {
+                fprintf(stderr, "DEBUG: DIRTY_VAO but encoder exists, rebinding buffers on existing encoder\n");
+                // Encoder exists, just rebind the buffers to it
+                RETURN_FALSE_ON_FAILURE([self bindVertexBuffersToCurrentRenderEncoder]);
+                RETURN_FALSE_ON_FAILURE([self bindFragmentBuffersToCurrentRenderEncoder]);
+            }
 
             // clear dirty render state
             ctx->state.dirty_bits &= ~DIRTY_RENDER_STATE;
@@ -2981,6 +3080,11 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
     }
 
     // Create a render command encoder.
+    fprintf(stderr, "DEBUG: Setting pipeline state: %p\n", _pipelineState);
+    if (_pipelineState == NULL) {
+        fprintf(stderr, "ERROR: Pipeline state is NULL!\n");
+        return false;
+    }
     [_currentRenderEncoder setRenderPipelineState:_pipelineState];
 
     return true;
@@ -3514,7 +3618,9 @@ void mtlFlush(GLMContext glm_ctx, bool finish)
         _drawable = [_layer nextDrawable];
         assert(_drawable);
 
-        [self newCommandBufferAndRenderEncoder];
+        // Don't create render encoder yet - let it be created lazily on first draw/clear
+        // so it can see the clear_bitmask properly
+        [self newCommandBuffer];
     }
     else
     {
@@ -4099,12 +4205,14 @@ void mtlDrawArrays(GLMContext glm_ctx, GLenum mode, GLint first, GLsizei count)
     }
     assert(indexBuffer);
 
-    fprintf(stderr, "DEBUG: mtlDrawElements calling Metal drawIndexedPrimitives, count=%d\n", count);
+    // indices parameter is a byte offset into the index buffer (when using VBO)
+    size_t offset = (size_t)indices;
+    fprintf(stderr, "DEBUG: mtlDrawElements calling Metal drawIndexedPrimitives, count=%d, offset=%zu\n", count, offset);
     [_currentRenderEncoder drawIndexedPrimitives:primitiveType
                                       indexCount:count
                                        indexType:indexType
                                      indexBuffer:indexBuffer
-                               indexBufferOffset:0
+                               indexBufferOffset:offset
                                    instanceCount:1];
     fprintf(stderr, "DEBUG: mtlDrawElements Metal draw complete\n");
 }

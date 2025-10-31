@@ -461,13 +461,22 @@ char *parseSPIRVShaderToMetal(GLMContext ctx, Program *ptr, int stage)
     {
 #if DEBUG
         const char *res_name[] = {
-            "NONE",          "UNIFORM_BUFFER",  "UNIFORM_CONSTANT",  "STORAGE_BUFFER",         "STAGE_INPUT",
-            "STAGE_OUTPUT",  "SUBPASS_INPUT",   "STORAGE_INPUT",     "SAMPLED_IMAGE",          "ATOMIC_COUNTER",
-            "PUSH_CONSTANT", "SEPARATE_IMAGE",  "SEPARATE_SAMPLERS", "ACCELERATION_STRUCTURE", "RAY_QUERY",
-            "SHADER_RECORD", "GL_PLAIN_UNIFORM"};
+            "UNKNOWN",       "UNIFORM_BUFFER",  "STORAGE_BUFFER",    "STAGE_INPUT",            "STAGE_OUTPUT",
+            "SUBPASS_INPUT", "STORAGE_IMAGE",   "SAMPLED_IMAGE",     "ATOMIC_COUNTER",         "PUSH_CONSTANT",
+            "SEPARATE_IMAGE","SEPARATE_SAMPLERS","ACCELERATION_STRUCTURE","RAY_QUERY",         "SHADER_RECORD_BUFFER",
+            "GL_PLAIN_UNIFORM", "TENSOR"};
 #endif
 
-        spvc_resources_get_resource_list_for_type(resources, res_type, &list, &count);
+        spvc_result res = spvc_resources_get_resource_list_for_type(resources, res_type, &list, &count);
+
+        // Skip resource types that are not supported by the backend (e.g., GL_PLAIN_UNIFORM for MSL)
+        if (res != SPVC_SUCCESS)
+        {
+            DEBUG_PRINT("Skipping unsupported resource type %s for MSL backend\n", res_name[res_type]);
+            ptr->spirv_resources_list[stage][res_type].count = 0;
+            ptr->spirv_resources_list[stage][res_type].list = NULL;
+            continue;
+        }
 
         ptr->spirv_resources_list[stage][res_type].count = (GLuint)count;
         ptr->spirv_resources_list[stage][res_type].list = (SpirvResource *)malloc(count * sizeof(SpirvResource));

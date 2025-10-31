@@ -30,12 +30,14 @@
 
 void mglClear(GLMContext ctx, GLbitfield mask)
 {
+    fprintf(stderr, "DEBUG: *** mglClear called with mask=0x%x ***\n", mask);
     if (mask & ~(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT))
     {
         assert(0);
     }
 
     ctx->state.clear_bitmask = mask;
+    fprintf(stderr, "DEBUG: *** clear_bitmask set to 0x%x ***\n", ctx->state.clear_bitmask);
 }
 
 void mglClearColor(GLMContext ctx, GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)

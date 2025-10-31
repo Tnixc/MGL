@@ -118,9 +118,10 @@ GLint mglGetUniformLocation(GLMContext ctx, GLuint program, const GLchar *name)
 
             if (!strcmp(str, name) || !strcmp(str, base_name))
             {
+                GLuint location = ptr->spirv_resources_list[stage][SPVC_RESOURCE_TYPE_GL_PLAIN_UNIFORM].list[i].location;
                 GLuint binding = ptr->spirv_resources_list[stage][SPVC_RESOURCE_TYPE_GL_PLAIN_UNIFORM].list[i].binding;
-                DEBUG_PRINT("      FOUND! Plain uniform binding=%u\n", binding);
-                return binding;
+                DEBUG_PRINT("      FOUND! Plain uniform location=%u, binding=%u\n", location, binding);
+                return location;
             }
         }
 
@@ -758,6 +759,14 @@ DEFINE_TRANSPOSE_FUNC(GLfloat, 4, 4, Mat4x4fv, Mat4x4fvTrans)
 
 void mglUniformMatrix4fv(GLMContext ctx, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
+    DEBUG_PRINT("mglUniformMatrix4fv: location=%d, count=%d, transpose=%d\n", location, count, transpose);
+    if (value && count > 0) {
+        DEBUG_PRINT("  Matrix[0]: [%.3f %.3f %.3f %.3f] [%.3f %.3f %.3f %.3f] [%.3f %.3f %.3f %.3f] [%.3f %.3f %.3f %.3f]\n",
+                   value[0], value[1], value[2], value[3],
+                   value[4], value[5], value[6], value[7],
+                   value[8], value[9], value[10], value[11],
+                   value[12], value[13], value[14], value[15]);
+    }
     HANDLE_MATRIX_TRANSPOSE(GLfloat,          // Element type
                             Mat4x4fv,         // Source matrix type
                             Mat4x4fvTrans,    // Destination matrix type

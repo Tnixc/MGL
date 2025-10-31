@@ -145,6 +145,7 @@ void mglBindVertexArray(GLMContext ctx, GLuint array)
 
     if (STATE(vao) != ptr)
     {
+        fprintf(stderr, "DEBUG: mglBindVertexArray: array=%u, ptr=%p, old_vao=%p\n", array, ptr, STATE(vao));
         STATE(vao) = ptr;
         STATE(dirty_bits) |= DIRTY_VAO;
     }

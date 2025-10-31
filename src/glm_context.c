@@ -285,6 +285,7 @@ void MGLget(GLMContext ctx, GLenum param, GLuint *data)
 
 void MGLswapBuffers(GLMContext ctx)
 {
+    fprintf(stderr, "\n===== MGLswapBuffers called from application =====\n");
     if (ctx == NULL)
         ctx = _ctx;
 
@@ -292,4 +293,5 @@ void MGLswapBuffers(GLMContext ctx)
         return;
 
     ctx->mtl_funcs.mtlSwapBuffers(ctx);
+    fprintf(stderr, "===== MGLswapBuffers finished =====\n\n");
 }
