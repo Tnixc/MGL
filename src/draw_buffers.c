@@ -187,6 +187,12 @@ void mglDrawArrays(GLMContext ctx, GLenum mode, GLint first, GLsizei count)
 void mglDrawElements(GLMContext ctx, GLenum mode, GLsizei count, GLenum type, const void *indices)
 {
     DEBUG_PRINT("mglDrawElements: mode=%d, count=%d, type=%d, indices=%p\n", mode, count, type, indices);
+    
+    // Skip if Metal renderer not initialized
+    if (!ctx->mtl_funcs.mtlDrawElements) {
+        DEBUG_PRINT("  Metal renderer not initialized, skipping draw\n");
+        return;
+    }
 
     ERROR_CHECK_RETURN(check_draw_modes(mode), GL_INVALID_ENUM);
 

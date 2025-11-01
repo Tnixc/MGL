@@ -927,6 +927,7 @@ void BeginDrawing(void)
 // End canvas drawing and swap buffers (double buffering)
 void EndDrawing(void)
 {
+    fprintf(stderr, "DEBUG: ===== EndDrawing CALLED =====\n");
     rlDrawRenderBatchActive();      // Update and draw internal render batch
 
 #if defined(SUPPORT_GIF_RECORDING)
@@ -975,7 +976,9 @@ void EndDrawing(void)
 #endif
 
 #if !defined(SUPPORT_CUSTOM_FRAME_CONTROL)
+    fprintf(stderr, "DEBUG: About to call SwapScreenBuffer from EndDrawing\n");
     SwapScreenBuffer();                  // Copy back buffer to front buffer (screen)
+    fprintf(stderr, "DEBUG: SwapScreenBuffer returned to EndDrawing\n");
 
     // Frame time control system
     CORE.Time.current = GetTime();

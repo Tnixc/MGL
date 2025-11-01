@@ -1089,7 +1089,9 @@ void DisableCursor(void)
 // Swap back buffer with front buffer (screen drawing)
 void SwapScreenBuffer(void)
 {
+    fprintf(stderr, "DEBUG: SwapScreenBuffer called (raylib)\n");
     glfwSwapBuffers(platform.handle);
+    fprintf(stderr, "DEBUG: glfwSwapBuffers returned\n");
 }
 
 //----------------------------------------------------------------------------------

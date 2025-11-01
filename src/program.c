@@ -159,6 +159,15 @@ void mglDeleteProgram(GLMContext ctx, GLuint program)
             free(shader);
         }
     }
+    
+    // Free attribute binding names
+    for (GLuint i = 0; i < ptr->num_attrib_bindings; i++)
+    {
+        if (ptr->attrib_bindings[i].name)
+        {
+            free(ptr->attrib_bindings[i].name);
+        }
+    }
 
     free(ptr);
 }
@@ -738,7 +747,15 @@ void mglLinkProgram(GLMContext ctx, GLuint program)
     fprintf(stderr, "DEBUG: mglLinkProgram setting DIRTY_PROGRAM on program %u\n", pptr->name);
     pptr->dirty_bits |= DIRTY_PROGRAM;
 
-    ctx->mtl_funcs.mtlBindProgram(ctx, pptr);
+    // Only call mtlBindProgram if Metal renderer is initialized
+    if (ctx->mtl_funcs.mtlBindProgram)
+    {
+        ctx->mtl_funcs.mtlBindProgram(ctx, pptr);
+    }
+    else
+    {
+        fprintf(stderr, "WARNING: mglLinkProgram - Metal renderer not initialized yet, deferring program binding\n");
+    }
 
     // ERROR_CHECK_RETURN(pptr->mtl_data, GL_INVALID_OPERATION);
 }
@@ -776,8 +793,38 @@ void mglUseProgram(GLMContext ctx, GLuint program)
 
 void mglBindAttribLocation(GLMContext ctx, GLuint program, GLuint index, const GLchar *name)
 {
-    // Unimplemented function
-    assert(0);
+    Program *pptr;
+    
+    // Validate parameters
+    ERROR_CHECK_RETURN(name != NULL, GL_INVALID_VALUE);
+    ERROR_CHECK_RETURN(index < STATE(max_vertex_attribs), GL_INVALID_VALUE);
+    ERROR_CHECK_RETURN(strncmp(name, "gl_", 3) != 0, GL_INVALID_OPERATION);
+    
+    pptr = (Program *)searchHashTable(&STATE(program_table), program);
+    ERROR_CHECK_RETURN(pptr, GL_INVALID_VALUE);
+    
+    // Check if this name is already bound
+    for (GLuint i = 0; i < pptr->num_attrib_bindings; i++)
+    {
+        if (strcmp(pptr->attrib_bindings[i].name, name) == 0)
+        {
+            // Update existing binding
+            pptr->attrib_bindings[i].index = index;
+            return;
+        }
+    }
+    
+    // Add new binding
+    if (pptr->num_attrib_bindings < MAX_ATTRIBS)
+    {
+        pptr->attrib_bindings[pptr->num_attrib_bindings].name = strdup(name);
+        pptr->attrib_bindings[pptr->num_attrib_bindings].index = index;
+        pptr->num_attrib_bindings++;
+    }
+    else
+    {
+        ERROR_CHECK_RETURN(false, GL_OUT_OF_MEMORY);
+    }
 }
 
 void mglGetActiveAttrib(GLMContext ctx, GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLint *size,

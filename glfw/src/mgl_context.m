@@ -119,15 +119,10 @@ GLFWbool _glfwCreateContextMGL(_GLFWwindow *window, const _GLFWctxconfig *ctxcon
         return GLFW_FALSE;
     }
 
-    if (ctxconfig->major < 4)
+    // MGL supports OpenGL 3.3+ compatibility
+    if (ctxconfig->major < 3 || (ctxconfig->major == 3 && ctxconfig->minor < 3))
     {
-        _glfwInputError(GLFW_VERSION_UNAVAILABLE, "MGL: OpenGL 4.6 and above supported on MGL");
-        return GLFW_FALSE;
-    }
-
-    if (ctxconfig->minor < 6)
-    {
-        _glfwInputError(GLFW_VERSION_UNAVAILABLE, "MGL: OpenGL 4.6 and above supported on MGL");
+        _glfwInputError(GLFW_VERSION_UNAVAILABLE, "MGL: OpenGL 3.3 and above supported on MGL");
         return GLFW_FALSE;
     }
 

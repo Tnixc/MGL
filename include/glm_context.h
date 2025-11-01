@@ -503,6 +503,13 @@ typedef struct Program_t
         void *library;
         const char *entry_point;
     } mtl_data[_MAX_SHADER_TYPES];
+    
+    // Attribute bindings set by glBindAttribLocation
+    struct {
+        char *name;
+        GLuint index;
+    } attrib_bindings[MAX_ATTRIBS];
+    GLuint num_attrib_bindings;
 } Program;
 
 typedef struct Renderbuffer_t

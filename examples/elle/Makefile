@@ -1,6 +1,6 @@
 MGL_PATH = /Users/tnixc/Developer/MGL/build
-# Raylib includes its own GLFW, so we don't link MGL's GLFW separately to avoid duplication
-ELLE_LIBS ?= ./raylib/src/libraylib.a $(MGL_PATH)/libmgl.dylib -Wl,-rpath,$(MGL_PATH) -framework Cocoa -framework IOKit -framework CoreVideo -framework Metal
+# Link against MGL's GLFW and MGL library (raylib now uses external GLFW)
+ELLE_LIBS ?= ./raylib/src/libraylib.a $(MGL_PATH)/libglfw.dylib $(MGL_PATH)/libmgl.dylib -Wl,-rpath,$(MGL_PATH) -framework Cocoa -framework IOKit -framework CoreVideo -framework Metal
 ELLE_FLAGS ?= -o raytracer
 
 default: raytracer

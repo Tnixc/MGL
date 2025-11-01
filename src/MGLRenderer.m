@@ -3664,36 +3664,28 @@ void mtlFlush(GLMContext glm_ctx, bool finish)
 #pragma mark C interface to mtlSwapBuffers
 - (void)mtlSwapBuffers:(GLMContext)glm_ctx
 {
-    fprintf(stderr, "DEBUG: mtlSwapBuffers called, draw_buffer=%d, VAO=%p\n", ctx->state.draw_buffer, ctx->state.vao);
-    
     if (ctx->state.draw_buffer == GL_FRONT || ctx->state.draw_buffer == GL_COLOR_ATTACHMENT0)
     {
-        fprintf(stderr, "DEBUG: Will present drawable\n");
         // clear commands rely on processGLState
         // glClear / glSwap / repeat..
         bool processResult = [self processGLState:false];
-        fprintf(stderr, "DEBUG: processGLState returned %d\n", processResult);
         if (!processResult)
         {
-            fprintf(stderr, "DEBUG: processGLState FAILED, returning early\n");
             return;
         }
 
         [self endRenderEncoding];
-        fprintf(stderr, "DEBUG: endRenderEncoding done\n");
 
         if (_drawable == NULL)
         {
             _drawable = [_layer nextDrawable];
-            fprintf(stderr, "DEBUG: Got new drawable: %p\n", _drawable);
         }
 
         assert(_currentCommandBuffer);
         [_currentCommandBuffer presentDrawable:_drawable];
-        fprintf(stderr, "DEBUG: Presented drawable\n");
 
         [_currentCommandBuffer commit];
-        
+
         // Reset the frame clear flag for the next frame AFTER presenting
         _frameWasCleared = NO;
 
@@ -3703,10 +3695,6 @@ void mtlFlush(GLMContext glm_ctx, bool finish)
         // Don't create render encoder yet - let it be created lazily on first draw/clear
         // so it can see the clear_bitmask properly
         [self newCommandBuffer];
-    }
-    else
-    {
-        fprintf(stderr, "DEBUG: Skipping present, draw_buffer=%d\n", ctx->state.draw_buffer);
     }
 }
 
@@ -5457,3 +5445,51 @@ void *CppCreateMGLRendererFromContextAndBindToWindow(void *glm_ctx, void *window
 }
 
 @end
+
+// Forward declaration
+void *createMGLRendererFromGLFWWindow(GLMContext ctx, void *glfwWindow);
+
+// Try to initialize Metal renderer with any available window
+void tryInitMetalRenderer(void *ctx)
+{
+    @autoreleasepool {
+        // Check if there's already an NSWindow we can use
+        NSArray *windows = [NSApp windows];
+        if ([windows count] > 0) {
+            NSWindow *window = [windows firstObject];
+            fprintf(stderr, "INFO: Using existing window for Metal renderer initialization\n");
+            void *renderer = createMGLRendererFromGLFWWindow(ctx, (__bridge void *)window);
+            if (!renderer) {
+                fprintf(stderr, "WARNING: Failed to initialize Metal renderer\n");
+            }
+        } else {
+            fprintf(stderr, "WARNING: No window available yet - Metal renderer will be initialized later\n");
+        }
+    }
+}
+
+// C function to create renderer from GLFW window
+void *createMGLRendererFromGLFWWindow(GLMContext ctx, void *glfwWindow)
+{
+    // GLFW on macOS uses NSWindow internally
+    // We need to get the NSWindow from the GLFW window
+    NSWindow *nsWindow = nil;
+    
+    // On macOS, GLFW 3.x uses glfwGetCocoaWindow
+    // But we don't want to link against GLFW here, so we'll use a different approach
+    // The window pointer passed in should already be the NSWindow
+    if (glfwWindow)
+    {
+        nsWindow = (__bridge NSWindow *)glfwWindow;
+    }
+    
+    if (!nsWindow)
+    {
+        fprintf(stderr, "ERROR: createMGLRendererFromGLFWWindow - invalid window\n");
+        return NULL;
+    }
+    
+    MGLRenderer *renderer = [[MGLRenderer alloc] initMGLRendererFromContext:ctx andBindToWindow:nsWindow];
+    MGLsetCurrentContext(ctx);
+    return (__bridge_retained void *)renderer;
+}

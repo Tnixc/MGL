@@ -99,7 +99,9 @@ void initGLSLInput(GLMContext ctx, GLuint type, const char *src, glslang_input_t
     input->messages = GLSLANG_MSG_DEFAULT_BIT | GLSLANG_MSG_DEBUG_INFO_BIT | GLSLANG_MSG_RELAXED_ERRORS_BIT;
     input->resource = glslang_default_resource();
 
-    input->force_default_version_and_profile = 1;
+    // Don't force version - respect what's in the shader source
+    // This allows GLSL 330 shaders to work without location qualifiers
+    input->force_default_version_and_profile = 0;
 }
 
 Shader *newShader(GLMContext ctx, GLenum type, GLuint shader)

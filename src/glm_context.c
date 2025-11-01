@@ -38,6 +38,10 @@ GLMContext ensureContext(void) {
     if (_ctx == NULL) {
         fprintf(stderr, "Auto-creating MGL context on first GL call\n");
         _ctx = createGLMContext(GL_RGBA, GL_UNSIGNED_BYTE, GL_DEPTH_COMPONENT32F, GL_FLOAT, 0, 0);
+        
+        // Try to initialize Metal renderer
+        extern void tryInitMetalRenderer(void *ctx);
+        tryInitMetalRenderer(_ctx);
     }
     return _ctx;
 }
