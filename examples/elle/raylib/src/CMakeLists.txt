@@ -108,6 +108,8 @@ target_include_directories(raylib
                            ${CMAKE_CURRENT_SOURCE_DIR}
                            ${OPENGL_INCLUDE_DIR}
                            ${OPENAL_INCLUDE_DIR}
+                           # MGL FIX: Add MGL include directory for GL headers
+                           ${CMAKE_CURRENT_SOURCE_DIR}/../../../../include
                            )
 
 # Copy the header files to the build directory for convenience

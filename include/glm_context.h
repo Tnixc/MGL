@@ -794,6 +794,7 @@ typedef struct GLMContextRec_t
 
 GLMContext createGLMContext(GLenum format, GLenum type, GLenum depth_format, GLenum depth_type, GLenum stencil_format,
                             GLenum stencil_type);
+GLMContext ensureContext(void);
 
 void MGLsetCurrentContext(GLMContext ctx);
 

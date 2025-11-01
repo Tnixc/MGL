@@ -33,6 +33,15 @@ extern void init_dispatch(GLMContext ctx);
 
 GLMContext _ctx = NULL;
 
+// Lazy initialization - create context on first use
+GLMContext ensureContext(void) {
+    if (_ctx == NULL) {
+        fprintf(stderr, "Auto-creating MGL context on first GL call\n");
+        _ctx = createGLMContext(GL_RGBA, GL_UNSIGNED_BYTE, GL_DEPTH_COMPONENT32F, GL_FLOAT, 0, 0);
+    }
+    return _ctx;
+}
+
 GLMContext createGLMContext(GLenum format, GLenum type, GLenum depth_format, GLenum depth_type, GLenum stencil_format,
                             GLenum stencil_type)
 {

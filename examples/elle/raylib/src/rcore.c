@@ -1177,7 +1177,19 @@ void BeginShaderMode(Shader shader)
 // End custom shader mode (returns to default shader)
 void EndShaderMode(void)
 {
-    rlSetShader(rlGetShaderIdDefault(), rlGetShaderLocsDefault());
+    unsigned int defaultId = rlGetShaderIdDefault();
+    int *defaultLocs = rlGetShaderLocsDefault();
+    
+    // Only switch back to default if it's valid (non-zero)
+    if (defaultId > 0)
+    {
+        rlSetShader(defaultId, defaultLocs);
+    }
+    else
+    {
+        // If default shader isn't loaded, just flush the batch without changing shader
+        rlDrawRenderBatch(RLGL.currentBatch);
+    }
 }
 
 // Begin blending mode (alpha, additive, multiplied, subtract, custom)

@@ -1,0 +1,20 @@
+use std/raylib;
+use std/prelude;
+
+const SCREEN_WIDTH = 640;
+const SCREEN_HEIGHT = 640;
+
+fn main() {
+    rl::init_window(SCREEN_WIDTH, SCREEN_HEIGHT, "Basic Test");
+    defer rl::close_window();
+    rl::set_target_fps(60);
+
+    while !rl::window_should_close() {
+        rl::begin_drawing();
+            rl::clear_background(RAYWHITE);
+            rl::draw_rectangle(100, 100, 200, 200, RED);
+            rl::draw_circle(400, 400, 50, BLUE);
+            rl::draw_fps(4, 4);
+        rl::end_drawing();
+    }
+}

@@ -13,11 +13,19 @@
 #include "glm_context.h"
 
 extern GLMContext _ctx;
+extern GLMContext ensureContext(void);
 
-#define GET_CONTEXT() _ctx
+#define GET_CONTEXT() ensureContext()
+#define CHECK_CONTEXT() if (!_ctx) return
+#define CHECK_CONTEXT_RET(val) if (!_ctx) return (val)
 
 void glCullFace(GLenum mode)
 {
+    CHECK_CONTEXT();
+    CHECK_CONTEXT();
+
+    CHECK_CONTEXT();
+
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.cull_face(ctx, mode);
@@ -25,6 +33,11 @@ void glCullFace(GLenum mode)
 
 void glFrontFace(GLenum mode)
 {
+    CHECK_CONTEXT();
+    CHECK_CONTEXT();
+
+    CHECK_CONTEXT();
+
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.front_face(ctx, mode);
@@ -32,6 +45,7 @@ void glFrontFace(GLenum mode)
 
 void glHint(GLenum target, GLenum mode)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.hint(ctx, target, mode);
@@ -39,6 +53,7 @@ void glHint(GLenum target, GLenum mode)
 
 void glLineWidth(GLfloat width)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.line_width(ctx, width);
@@ -46,6 +61,7 @@ void glLineWidth(GLfloat width)
 
 void glPointSize(GLfloat size)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.point_size(ctx, size);
@@ -53,6 +69,7 @@ void glPointSize(GLfloat size)
 
 void glPolygonMode(GLenum face, GLenum mode)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.polygon_mode(ctx, face, mode);
@@ -60,6 +77,7 @@ void glPolygonMode(GLenum face, GLenum mode)
 
 void glScissor(GLint x, GLint y, GLsizei width, GLsizei height)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.scissor(ctx, x, y, width, height);
@@ -67,6 +85,9 @@ void glScissor(GLint x, GLint y, GLsizei width, GLsizei height)
 
 void glTexParameterf(GLenum target, GLenum pname, GLfloat param)
 {
+    CHECK_CONTEXT();
+    CHECK_CONTEXT();
+
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_parameterf(ctx, target, pname, param);
@@ -74,6 +95,7 @@ void glTexParameterf(GLenum target, GLenum pname, GLfloat param)
 
 void glTexParameterfv(GLenum target, GLenum pname, const GLfloat *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_parameterfv(ctx, target, pname, params);
@@ -81,6 +103,9 @@ void glTexParameterfv(GLenum target, GLenum pname, const GLfloat *params)
 
 void glTexParameteri(GLenum target, GLenum pname, GLint param)
 {
+    CHECK_CONTEXT();
+    CHECK_CONTEXT();
+
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_parameteri(ctx, target, pname, param);
@@ -88,6 +113,7 @@ void glTexParameteri(GLenum target, GLenum pname, GLint param)
 
 void glTexParameteriv(GLenum target, GLenum pname, const GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_parameteriv(ctx, target, pname, params);
@@ -96,6 +122,9 @@ void glTexParameteriv(GLenum target, GLenum pname, const GLint *params)
 void glTexImage1D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLint border, GLenum format,
                   GLenum type, const void *pixels)
 {
+    CHECK_CONTEXT();
+    CHECK_CONTEXT();
+
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_image1D(ctx, target, level, internalformat, width, border, format, type, pixels);
@@ -104,6 +133,9 @@ void glTexImage1D(GLenum target, GLint level, GLint internalformat, GLsizei widt
 void glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border,
                   GLenum format, GLenum type, const void *pixels)
 {
+    CHECK_CONTEXT();
+    CHECK_CONTEXT();
+
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_image2D(ctx, target, level, internalformat, width, height, border, format, type, pixels);
@@ -111,6 +143,7 @@ void glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei widt
 
 void glDrawBuffer(GLenum buf)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.draw_buffer(ctx, buf);
@@ -118,6 +151,11 @@ void glDrawBuffer(GLenum buf)
 
 void glClear(GLbitfield mask)
 {
+    CHECK_CONTEXT();
+    CHECK_CONTEXT();
+
+    CHECK_CONTEXT();
+
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.clear(ctx, mask);
@@ -125,6 +163,11 @@ void glClear(GLbitfield mask)
 
 void glClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
+    CHECK_CONTEXT();
+    CHECK_CONTEXT();
+
+    CHECK_CONTEXT();
+
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.clear_color(ctx, red, green, blue, alpha);
@@ -132,6 +175,7 @@ void glClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 
 void glClearStencil(GLint s)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.clear_stencil(ctx, s);
@@ -139,6 +183,7 @@ void glClearStencil(GLint s)
 
 void glClearDepth(GLdouble depth)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.clear_depth(ctx, depth);
@@ -146,6 +191,7 @@ void glClearDepth(GLdouble depth)
 
 void glStencilMask(GLuint mask)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.stencil_mask(ctx, mask);
@@ -153,6 +199,7 @@ void glStencilMask(GLuint mask)
 
 void glColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color_mask(ctx, red, green, blue, alpha);
@@ -160,6 +207,11 @@ void glColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha
 
 void glDepthMask(GLboolean flag)
 {
+    CHECK_CONTEXT();
+    CHECK_CONTEXT();
+
+    CHECK_CONTEXT();
+
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.depth_mask(ctx, flag);
@@ -167,6 +219,11 @@ void glDepthMask(GLboolean flag)
 
 void glDisable(GLenum cap)
 {
+    CHECK_CONTEXT();
+    CHECK_CONTEXT();
+
+    CHECK_CONTEXT();
+
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.disable(ctx, cap);
@@ -174,6 +231,11 @@ void glDisable(GLenum cap)
 
 void glEnable(GLenum cap)
 {
+    CHECK_CONTEXT();
+    CHECK_CONTEXT();
+
+    CHECK_CONTEXT();
+
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.enable(ctx, cap);
@@ -181,6 +243,7 @@ void glEnable(GLenum cap)
 
 void glFinish()
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.finish(ctx);
@@ -188,6 +251,7 @@ void glFinish()
 
 void glFlush()
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.flush(ctx);
@@ -195,6 +259,11 @@ void glFlush()
 
 void glBlendFunc(GLenum sfactor, GLenum dfactor)
 {
+    CHECK_CONTEXT();
+    CHECK_CONTEXT();
+
+    CHECK_CONTEXT();
+
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.blend_func(ctx, sfactor, dfactor);
@@ -202,6 +271,7 @@ void glBlendFunc(GLenum sfactor, GLenum dfactor)
 
 void glLogicOp(GLenum opcode)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.logic_op(ctx, opcode);
@@ -209,6 +279,7 @@ void glLogicOp(GLenum opcode)
 
 void glStencilFunc(GLenum func, GLint ref, GLuint mask)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.stencil_func(ctx, func, ref, mask);
@@ -216,6 +287,7 @@ void glStencilFunc(GLenum func, GLint ref, GLuint mask)
 
 void glStencilOp(GLenum fail, GLenum zfail, GLenum zpass)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.stencil_op(ctx, fail, zfail, zpass);
@@ -223,6 +295,11 @@ void glStencilOp(GLenum fail, GLenum zfail, GLenum zpass)
 
 void glDepthFunc(GLenum func)
 {
+    CHECK_CONTEXT();
+    CHECK_CONTEXT();
+
+    CHECK_CONTEXT();
+
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.depth_func(ctx, func);
@@ -230,6 +307,7 @@ void glDepthFunc(GLenum func)
 
 void glPixelStoref(GLenum pname, GLfloat param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.pixel_storef(ctx, pname, param);
@@ -237,6 +315,11 @@ void glPixelStoref(GLenum pname, GLfloat param)
 
 void glPixelStorei(GLenum pname, GLint param)
 {
+    CHECK_CONTEXT();
+    CHECK_CONTEXT();
+
+    CHECK_CONTEXT();
+
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.pixel_storei(ctx, pname, param);
@@ -244,6 +327,7 @@ void glPixelStorei(GLenum pname, GLint param)
 
 void glReadBuffer(GLenum src)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.read_buffer(ctx, src);
@@ -251,6 +335,7 @@ void glReadBuffer(GLenum src)
 
 void glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, void *pixels)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.read_pixels(ctx, x, y, width, height, format, type, pixels);
@@ -258,6 +343,7 @@ void glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format
 
 void glGetBooleanv(GLenum pname, GLboolean *data)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_booleanv(ctx, pname, data);
@@ -265,6 +351,7 @@ void glGetBooleanv(GLenum pname, GLboolean *data)
 
 void glGetDoublev(GLenum pname, GLdouble *data)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_doublev(ctx, pname, data);
@@ -272,6 +359,7 @@ void glGetDoublev(GLenum pname, GLdouble *data)
 
 GLenum glGetError()
 {
+    CHECK_CONTEXT_RET(GL_NO_ERROR);
     GLMContext ctx = GET_CONTEXT();
 
     return ctx->dispatch.get_error(ctx);
@@ -279,14 +367,27 @@ GLenum glGetError()
 
 void glGetFloatv(GLenum pname, GLfloat *data)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
+    
+    if (!ctx) {
+        if (data) *data = 0.0f;
+        return;
+    }
 
     ctx->dispatch.get_floatv(ctx, pname, data);
 }
 
 void glGetIntegerv(GLenum pname, GLint *data)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
+    
+    if (!ctx) {
+        // No context yet - return safe defaults
+        if (data) *data = 0;
+        return;
+    }
 
     ctx->dispatch.get_integerv(ctx, pname, data);
 }
@@ -294,12 +395,31 @@ void glGetIntegerv(GLenum pname, GLint *data)
 GLubyte const *glGetString(GLenum name)
 {
     GLMContext ctx = GET_CONTEXT();
+    
+    if (!ctx) {
+        // No context yet - return safe defaults
+        static const GLubyte *vendor = (const GLubyte *)"Mike Larson";
+        static const GLubyte *renderer = (const GLubyte *)"MGL";
+        static const GLubyte *version = (const GLubyte *)"4.6.0";
+        static const GLubyte *glsl_version = (const GLubyte *)"4.6";
+        static const GLubyte *extensions = (const GLubyte *)"";
+        
+        switch (name) {
+            case GL_VENDOR: return vendor;
+            case GL_RENDERER: return renderer;
+            case GL_VERSION: return version;
+            case GL_SHADING_LANGUAGE_VERSION: return glsl_version;
+            case GL_EXTENSIONS: return extensions;
+            default: return (const GLubyte *)"";
+        }
+    }
 
     return ctx->dispatch.get_string(ctx, name);
 }
 
 void glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type, void *pixels)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_tex_image(ctx, target, level, format, type, pixels);
@@ -307,6 +427,7 @@ void glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type, void 
 
 void glGetTexParameterfv(GLenum target, GLenum pname, GLfloat *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_tex_parameterfv(ctx, target, pname, params);
@@ -314,6 +435,7 @@ void glGetTexParameterfv(GLenum target, GLenum pname, GLfloat *params)
 
 void glGetTexParameteriv(GLenum target, GLenum pname, GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_tex_parameteriv(ctx, target, pname, params);
@@ -321,6 +443,7 @@ void glGetTexParameteriv(GLenum target, GLenum pname, GLint *params)
 
 void glGetTexLevelParameterfv(GLenum target, GLint level, GLenum pname, GLfloat *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_tex_level_parameterfv(ctx, target, level, pname, params);
@@ -328,6 +451,7 @@ void glGetTexLevelParameterfv(GLenum target, GLint level, GLenum pname, GLfloat 
 
 void glGetTexLevelParameteriv(GLenum target, GLint level, GLenum pname, GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_tex_level_parameteriv(ctx, target, level, pname, params);
@@ -342,6 +466,7 @@ GLboolean glIsEnabled(GLenum cap)
 
 void glDepthRange(GLdouble n, GLdouble f)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.depth_range(ctx, n, f);
@@ -349,6 +474,11 @@ void glDepthRange(GLdouble n, GLdouble f)
 
 void glViewport(GLint x, GLint y, GLsizei width, GLsizei height)
 {
+    CHECK_CONTEXT();
+    CHECK_CONTEXT();
+
+    CHECK_CONTEXT();
+
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.viewport(ctx, x, y, width, height);
@@ -356,6 +486,7 @@ void glViewport(GLint x, GLint y, GLsizei width, GLsizei height)
 
 void glNewList(GLuint list, GLenum mode)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.new_list(ctx, list, mode);
@@ -363,6 +494,7 @@ void glNewList(GLuint list, GLenum mode)
 
 void glEndList()
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.end_list(ctx);
@@ -370,6 +502,7 @@ void glEndList()
 
 void glCallList(GLuint list)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.call_list(ctx, list);
@@ -377,6 +510,7 @@ void glCallList(GLuint list)
 
 void glCallLists(GLsizei n, GLenum type, const void *lists)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.call_lists(ctx, n, type, lists);
@@ -384,6 +518,7 @@ void glCallLists(GLsizei n, GLenum type, const void *lists)
 
 void glDeleteLists(GLuint list, GLsizei range)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.delete_lists(ctx, list, range);
@@ -398,6 +533,7 @@ GLuint glGenLists(GLsizei range)
 
 void glListBase(GLuint base)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.list_base(ctx, base);
@@ -405,6 +541,7 @@ void glListBase(GLuint base)
 
 void glBegin(GLenum mode)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.begin(ctx, mode);
@@ -413,6 +550,7 @@ void glBegin(GLenum mode)
 void glBitmap(GLsizei width, GLsizei height, GLfloat xorig, GLfloat yorig, GLfloat xmove, GLfloat ymove,
               const GLubyte *bitmap)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.bitmap(ctx, width, height, xorig, yorig, xmove, ymove, bitmap);
@@ -420,6 +558,7 @@ void glBitmap(GLsizei width, GLsizei height, GLfloat xorig, GLfloat yorig, GLflo
 
 void glColor3b(GLbyte red, GLbyte green, GLbyte blue)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color3b(ctx, red, green, blue);
@@ -427,6 +566,7 @@ void glColor3b(GLbyte red, GLbyte green, GLbyte blue)
 
 void glColor3bv(const GLbyte *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color3bv(ctx, v);
@@ -434,6 +574,7 @@ void glColor3bv(const GLbyte *v)
 
 void glColor3d(GLdouble red, GLdouble green, GLdouble blue)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color3d(ctx, red, green, blue);
@@ -441,6 +582,7 @@ void glColor3d(GLdouble red, GLdouble green, GLdouble blue)
 
 void glColor3dv(const GLdouble *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color3dv(ctx, v);
@@ -448,6 +590,7 @@ void glColor3dv(const GLdouble *v)
 
 void glColor3f(GLfloat red, GLfloat green, GLfloat blue)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color3f(ctx, red, green, blue);
@@ -455,6 +598,7 @@ void glColor3f(GLfloat red, GLfloat green, GLfloat blue)
 
 void glColor3fv(const GLfloat *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color3fv(ctx, v);
@@ -462,6 +606,7 @@ void glColor3fv(const GLfloat *v)
 
 void glColor3i(GLint red, GLint green, GLint blue)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color3i(ctx, red, green, blue);
@@ -469,6 +614,7 @@ void glColor3i(GLint red, GLint green, GLint blue)
 
 void glColor3iv(const GLint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color3iv(ctx, v);
@@ -476,6 +622,7 @@ void glColor3iv(const GLint *v)
 
 void glColor3s(GLshort red, GLshort green, GLshort blue)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color3s(ctx, red, green, blue);
@@ -483,6 +630,7 @@ void glColor3s(GLshort red, GLshort green, GLshort blue)
 
 void glColor3sv(const GLshort *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color3sv(ctx, v);
@@ -490,6 +638,7 @@ void glColor3sv(const GLshort *v)
 
 void glColor3ub(GLubyte red, GLubyte green, GLubyte blue)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color3ub(ctx, red, green, blue);
@@ -497,6 +646,7 @@ void glColor3ub(GLubyte red, GLubyte green, GLubyte blue)
 
 void glColor3ubv(const GLubyte *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color3ubv(ctx, v);
@@ -504,6 +654,7 @@ void glColor3ubv(const GLubyte *v)
 
 void glColor3ui(GLuint red, GLuint green, GLuint blue)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color3ui(ctx, red, green, blue);
@@ -511,6 +662,7 @@ void glColor3ui(GLuint red, GLuint green, GLuint blue)
 
 void glColor3uiv(const GLuint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color3uiv(ctx, v);
@@ -518,6 +670,7 @@ void glColor3uiv(const GLuint *v)
 
 void glColor3us(GLushort red, GLushort green, GLushort blue)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color3us(ctx, red, green, blue);
@@ -525,6 +678,7 @@ void glColor3us(GLushort red, GLushort green, GLushort blue)
 
 void glColor3usv(const GLushort *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color3usv(ctx, v);
@@ -532,6 +686,7 @@ void glColor3usv(const GLushort *v)
 
 void glColor4b(GLbyte red, GLbyte green, GLbyte blue, GLbyte alpha)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color4b(ctx, red, green, blue, alpha);
@@ -539,6 +694,7 @@ void glColor4b(GLbyte red, GLbyte green, GLbyte blue, GLbyte alpha)
 
 void glColor4bv(const GLbyte *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color4bv(ctx, v);
@@ -546,6 +702,7 @@ void glColor4bv(const GLbyte *v)
 
 void glColor4d(GLdouble red, GLdouble green, GLdouble blue, GLdouble alpha)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color4d(ctx, red, green, blue, alpha);
@@ -553,6 +710,7 @@ void glColor4d(GLdouble red, GLdouble green, GLdouble blue, GLdouble alpha)
 
 void glColor4dv(const GLdouble *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color4dv(ctx, v);
@@ -560,6 +718,7 @@ void glColor4dv(const GLdouble *v)
 
 void glColor4f(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color4f(ctx, red, green, blue, alpha);
@@ -567,6 +726,7 @@ void glColor4f(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 
 void glColor4fv(const GLfloat *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color4fv(ctx, v);
@@ -574,6 +734,7 @@ void glColor4fv(const GLfloat *v)
 
 void glColor4i(GLint red, GLint green, GLint blue, GLint alpha)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color4i(ctx, red, green, blue, alpha);
@@ -581,6 +742,7 @@ void glColor4i(GLint red, GLint green, GLint blue, GLint alpha)
 
 void glColor4iv(const GLint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color4iv(ctx, v);
@@ -588,6 +750,7 @@ void glColor4iv(const GLint *v)
 
 void glColor4s(GLshort red, GLshort green, GLshort blue, GLshort alpha)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color4s(ctx, red, green, blue, alpha);
@@ -595,6 +758,7 @@ void glColor4s(GLshort red, GLshort green, GLshort blue, GLshort alpha)
 
 void glColor4sv(const GLshort *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color4sv(ctx, v);
@@ -602,6 +766,7 @@ void glColor4sv(const GLshort *v)
 
 void glColor4ub(GLubyte red, GLubyte green, GLubyte blue, GLubyte alpha)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color4ub(ctx, red, green, blue, alpha);
@@ -609,6 +774,7 @@ void glColor4ub(GLubyte red, GLubyte green, GLubyte blue, GLubyte alpha)
 
 void glColor4ubv(const GLubyte *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color4ubv(ctx, v);
@@ -616,6 +782,7 @@ void glColor4ubv(const GLubyte *v)
 
 void glColor4ui(GLuint red, GLuint green, GLuint blue, GLuint alpha)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color4ui(ctx, red, green, blue, alpha);
@@ -623,6 +790,7 @@ void glColor4ui(GLuint red, GLuint green, GLuint blue, GLuint alpha)
 
 void glColor4uiv(const GLuint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color4uiv(ctx, v);
@@ -630,6 +798,7 @@ void glColor4uiv(const GLuint *v)
 
 void glColor4us(GLushort red, GLushort green, GLushort blue, GLushort alpha)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color4us(ctx, red, green, blue, alpha);
@@ -637,6 +806,7 @@ void glColor4us(GLushort red, GLushort green, GLushort blue, GLushort alpha)
 
 void glColor4usv(const GLushort *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color4usv(ctx, v);
@@ -644,6 +814,7 @@ void glColor4usv(const GLushort *v)
 
 void glEdgeFlag(GLboolean flag)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.edge_flag(ctx, flag);
@@ -651,6 +822,7 @@ void glEdgeFlag(GLboolean flag)
 
 void glEdgeFlagv(const GLboolean *flag)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.edge_flagv(ctx, flag);
@@ -658,6 +830,7 @@ void glEdgeFlagv(const GLboolean *flag)
 
 void glEnd()
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.end(ctx);
@@ -665,6 +838,7 @@ void glEnd()
 
 void glIndexd(GLdouble c)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.indexd(ctx, c);
@@ -672,6 +846,7 @@ void glIndexd(GLdouble c)
 
 void glIndexdv(const GLdouble *c)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.indexdv(ctx, c);
@@ -679,6 +854,7 @@ void glIndexdv(const GLdouble *c)
 
 void glIndexf(GLfloat c)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.indexf(ctx, c);
@@ -686,6 +862,7 @@ void glIndexf(GLfloat c)
 
 void glIndexfv(const GLfloat *c)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.indexfv(ctx, c);
@@ -693,6 +870,7 @@ void glIndexfv(const GLfloat *c)
 
 void glIndexi(GLint c)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.indexi(ctx, c);
@@ -700,6 +878,7 @@ void glIndexi(GLint c)
 
 void glIndexiv(const GLint *c)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.indexiv(ctx, c);
@@ -707,6 +886,7 @@ void glIndexiv(const GLint *c)
 
 void glIndexs(GLshort c)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.indexs(ctx, c);
@@ -714,6 +894,7 @@ void glIndexs(GLshort c)
 
 void glIndexsv(const GLshort *c)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.indexsv(ctx, c);
@@ -721,6 +902,7 @@ void glIndexsv(const GLshort *c)
 
 void glNormal3b(GLbyte nx, GLbyte ny, GLbyte nz)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.normal3b(ctx, nx, ny, nz);
@@ -728,6 +910,7 @@ void glNormal3b(GLbyte nx, GLbyte ny, GLbyte nz)
 
 void glNormal3bv(const GLbyte *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.normal3bv(ctx, v);
@@ -735,6 +918,7 @@ void glNormal3bv(const GLbyte *v)
 
 void glNormal3d(GLdouble nx, GLdouble ny, GLdouble nz)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.normal3d(ctx, nx, ny, nz);
@@ -742,6 +926,7 @@ void glNormal3d(GLdouble nx, GLdouble ny, GLdouble nz)
 
 void glNormal3dv(const GLdouble *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.normal3dv(ctx, v);
@@ -749,6 +934,7 @@ void glNormal3dv(const GLdouble *v)
 
 void glNormal3f(GLfloat nx, GLfloat ny, GLfloat nz)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.normal3f(ctx, nx, ny, nz);
@@ -756,6 +942,7 @@ void glNormal3f(GLfloat nx, GLfloat ny, GLfloat nz)
 
 void glNormal3fv(const GLfloat *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.normal3fv(ctx, v);
@@ -763,6 +950,7 @@ void glNormal3fv(const GLfloat *v)
 
 void glNormal3i(GLint nx, GLint ny, GLint nz)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.normal3i(ctx, nx, ny, nz);
@@ -770,6 +958,7 @@ void glNormal3i(GLint nx, GLint ny, GLint nz)
 
 void glNormal3iv(const GLint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.normal3iv(ctx, v);
@@ -777,6 +966,7 @@ void glNormal3iv(const GLint *v)
 
 void glNormal3s(GLshort nx, GLshort ny, GLshort nz)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.normal3s(ctx, nx, ny, nz);
@@ -784,6 +974,7 @@ void glNormal3s(GLshort nx, GLshort ny, GLshort nz)
 
 void glNormal3sv(const GLshort *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.normal3sv(ctx, v);
@@ -791,6 +982,7 @@ void glNormal3sv(const GLshort *v)
 
 void glRasterPos2d(GLdouble x, GLdouble y)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.raster_pos2d(ctx, x, y);
@@ -798,6 +990,7 @@ void glRasterPos2d(GLdouble x, GLdouble y)
 
 void glRasterPos2dv(const GLdouble *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.raster_pos2dv(ctx, v);
@@ -805,6 +998,7 @@ void glRasterPos2dv(const GLdouble *v)
 
 void glRasterPos2f(GLfloat x, GLfloat y)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.raster_pos2f(ctx, x, y);
@@ -812,6 +1006,7 @@ void glRasterPos2f(GLfloat x, GLfloat y)
 
 void glRasterPos2fv(const GLfloat *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.raster_pos2fv(ctx, v);
@@ -819,6 +1014,7 @@ void glRasterPos2fv(const GLfloat *v)
 
 void glRasterPos2i(GLint x, GLint y)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.raster_pos2i(ctx, x, y);
@@ -826,6 +1022,7 @@ void glRasterPos2i(GLint x, GLint y)
 
 void glRasterPos2iv(const GLint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.raster_pos2iv(ctx, v);
@@ -833,6 +1030,7 @@ void glRasterPos2iv(const GLint *v)
 
 void glRasterPos2s(GLshort x, GLshort y)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.raster_pos2s(ctx, x, y);
@@ -840,6 +1038,7 @@ void glRasterPos2s(GLshort x, GLshort y)
 
 void glRasterPos2sv(const GLshort *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.raster_pos2sv(ctx, v);
@@ -847,6 +1046,7 @@ void glRasterPos2sv(const GLshort *v)
 
 void glRasterPos3d(GLdouble x, GLdouble y, GLdouble z)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.raster_pos3d(ctx, x, y, z);
@@ -854,6 +1054,7 @@ void glRasterPos3d(GLdouble x, GLdouble y, GLdouble z)
 
 void glRasterPos3dv(const GLdouble *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.raster_pos3dv(ctx, v);
@@ -861,6 +1062,7 @@ void glRasterPos3dv(const GLdouble *v)
 
 void glRasterPos3f(GLfloat x, GLfloat y, GLfloat z)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.raster_pos3f(ctx, x, y, z);
@@ -868,6 +1070,7 @@ void glRasterPos3f(GLfloat x, GLfloat y, GLfloat z)
 
 void glRasterPos3fv(const GLfloat *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.raster_pos3fv(ctx, v);
@@ -875,6 +1078,7 @@ void glRasterPos3fv(const GLfloat *v)
 
 void glRasterPos3i(GLint x, GLint y, GLint z)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.raster_pos3i(ctx, x, y, z);
@@ -882,6 +1086,7 @@ void glRasterPos3i(GLint x, GLint y, GLint z)
 
 void glRasterPos3iv(const GLint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.raster_pos3iv(ctx, v);
@@ -889,6 +1094,7 @@ void glRasterPos3iv(const GLint *v)
 
 void glRasterPos3s(GLshort x, GLshort y, GLshort z)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.raster_pos3s(ctx, x, y, z);
@@ -896,6 +1102,7 @@ void glRasterPos3s(GLshort x, GLshort y, GLshort z)
 
 void glRasterPos3sv(const GLshort *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.raster_pos3sv(ctx, v);
@@ -903,6 +1110,7 @@ void glRasterPos3sv(const GLshort *v)
 
 void glRasterPos4d(GLdouble x, GLdouble y, GLdouble z, GLdouble w)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.raster_pos4d(ctx, x, y, z, w);
@@ -910,6 +1118,7 @@ void glRasterPos4d(GLdouble x, GLdouble y, GLdouble z, GLdouble w)
 
 void glRasterPos4dv(const GLdouble *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.raster_pos4dv(ctx, v);
@@ -917,6 +1126,7 @@ void glRasterPos4dv(const GLdouble *v)
 
 void glRasterPos4f(GLfloat x, GLfloat y, GLfloat z, GLfloat w)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.raster_pos4f(ctx, x, y, z, w);
@@ -924,6 +1134,7 @@ void glRasterPos4f(GLfloat x, GLfloat y, GLfloat z, GLfloat w)
 
 void glRasterPos4fv(const GLfloat *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.raster_pos4fv(ctx, v);
@@ -931,6 +1142,7 @@ void glRasterPos4fv(const GLfloat *v)
 
 void glRasterPos4i(GLint x, GLint y, GLint z, GLint w)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.raster_pos4i(ctx, x, y, z, w);
@@ -938,6 +1150,7 @@ void glRasterPos4i(GLint x, GLint y, GLint z, GLint w)
 
 void glRasterPos4iv(const GLint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.raster_pos4iv(ctx, v);
@@ -945,6 +1158,7 @@ void glRasterPos4iv(const GLint *v)
 
 void glRasterPos4s(GLshort x, GLshort y, GLshort z, GLshort w)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.raster_pos4s(ctx, x, y, z, w);
@@ -952,6 +1166,7 @@ void glRasterPos4s(GLshort x, GLshort y, GLshort z, GLshort w)
 
 void glRasterPos4sv(const GLshort *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.raster_pos4sv(ctx, v);
@@ -959,6 +1174,7 @@ void glRasterPos4sv(const GLshort *v)
 
 void glRectd(GLdouble x1, GLdouble y1, GLdouble x2, GLdouble y2)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.rectd(ctx, x1, y1, x2, y2);
@@ -966,6 +1182,7 @@ void glRectd(GLdouble x1, GLdouble y1, GLdouble x2, GLdouble y2)
 
 void glRectdv(const GLdouble *v1, const GLdouble *v2)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.rectdv(ctx, v1, v2);
@@ -973,6 +1190,7 @@ void glRectdv(const GLdouble *v1, const GLdouble *v2)
 
 void glRectf(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.rectf(ctx, x1, y1, x2, y2);
@@ -980,6 +1198,7 @@ void glRectf(GLfloat x1, GLfloat y1, GLfloat x2, GLfloat y2)
 
 void glRectfv(const GLfloat *v1, const GLfloat *v2)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.rectfv(ctx, v1, v2);
@@ -987,6 +1206,7 @@ void glRectfv(const GLfloat *v1, const GLfloat *v2)
 
 void glRecti(GLint x1, GLint y1, GLint x2, GLint y2)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.recti(ctx, x1, y1, x2, y2);
@@ -994,6 +1214,7 @@ void glRecti(GLint x1, GLint y1, GLint x2, GLint y2)
 
 void glRectiv(const GLint *v1, const GLint *v2)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.rectiv(ctx, v1, v2);
@@ -1001,6 +1222,7 @@ void glRectiv(const GLint *v1, const GLint *v2)
 
 void glRects(GLshort x1, GLshort y1, GLshort x2, GLshort y2)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.rects(ctx, x1, y1, x2, y2);
@@ -1008,6 +1230,7 @@ void glRects(GLshort x1, GLshort y1, GLshort x2, GLshort y2)
 
 void glRectsv(const GLshort *v1, const GLshort *v2)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.rectsv(ctx, v1, v2);
@@ -1015,6 +1238,7 @@ void glRectsv(const GLshort *v1, const GLshort *v2)
 
 void glTexCoord1d(GLdouble s)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord1d(ctx, s);
@@ -1022,6 +1246,7 @@ void glTexCoord1d(GLdouble s)
 
 void glTexCoord1dv(const GLdouble *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord1dv(ctx, v);
@@ -1029,6 +1254,7 @@ void glTexCoord1dv(const GLdouble *v)
 
 void glTexCoord1f(GLfloat s)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord1f(ctx, s);
@@ -1036,6 +1262,7 @@ void glTexCoord1f(GLfloat s)
 
 void glTexCoord1fv(const GLfloat *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord1fv(ctx, v);
@@ -1043,6 +1270,7 @@ void glTexCoord1fv(const GLfloat *v)
 
 void glTexCoord1i(GLint s)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord1i(ctx, s);
@@ -1050,6 +1278,7 @@ void glTexCoord1i(GLint s)
 
 void glTexCoord1iv(const GLint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord1iv(ctx, v);
@@ -1057,6 +1286,7 @@ void glTexCoord1iv(const GLint *v)
 
 void glTexCoord1s(GLshort s)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord1s(ctx, s);
@@ -1064,6 +1294,7 @@ void glTexCoord1s(GLshort s)
 
 void glTexCoord1sv(const GLshort *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord1sv(ctx, v);
@@ -1071,6 +1302,7 @@ void glTexCoord1sv(const GLshort *v)
 
 void glTexCoord2d(GLdouble s, GLdouble t)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord2d(ctx, s, t);
@@ -1078,6 +1310,7 @@ void glTexCoord2d(GLdouble s, GLdouble t)
 
 void glTexCoord2dv(const GLdouble *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord2dv(ctx, v);
@@ -1085,6 +1318,7 @@ void glTexCoord2dv(const GLdouble *v)
 
 void glTexCoord2f(GLfloat s, GLfloat t)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord2f(ctx, s, t);
@@ -1092,6 +1326,7 @@ void glTexCoord2f(GLfloat s, GLfloat t)
 
 void glTexCoord2fv(const GLfloat *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord2fv(ctx, v);
@@ -1099,6 +1334,7 @@ void glTexCoord2fv(const GLfloat *v)
 
 void glTexCoord2i(GLint s, GLint t)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord2i(ctx, s, t);
@@ -1106,6 +1342,7 @@ void glTexCoord2i(GLint s, GLint t)
 
 void glTexCoord2iv(const GLint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord2iv(ctx, v);
@@ -1113,6 +1350,7 @@ void glTexCoord2iv(const GLint *v)
 
 void glTexCoord2s(GLshort s, GLshort t)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord2s(ctx, s, t);
@@ -1120,6 +1358,7 @@ void glTexCoord2s(GLshort s, GLshort t)
 
 void glTexCoord2sv(const GLshort *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord2sv(ctx, v);
@@ -1127,6 +1366,7 @@ void glTexCoord2sv(const GLshort *v)
 
 void glTexCoord3d(GLdouble s, GLdouble t, GLdouble r)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord3d(ctx, s, t, r);
@@ -1134,6 +1374,7 @@ void glTexCoord3d(GLdouble s, GLdouble t, GLdouble r)
 
 void glTexCoord3dv(const GLdouble *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord3dv(ctx, v);
@@ -1141,6 +1382,7 @@ void glTexCoord3dv(const GLdouble *v)
 
 void glTexCoord3f(GLfloat s, GLfloat t, GLfloat r)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord3f(ctx, s, t, r);
@@ -1148,6 +1390,7 @@ void glTexCoord3f(GLfloat s, GLfloat t, GLfloat r)
 
 void glTexCoord3fv(const GLfloat *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord3fv(ctx, v);
@@ -1155,6 +1398,7 @@ void glTexCoord3fv(const GLfloat *v)
 
 void glTexCoord3i(GLint s, GLint t, GLint r)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord3i(ctx, s, t, r);
@@ -1162,6 +1406,7 @@ void glTexCoord3i(GLint s, GLint t, GLint r)
 
 void glTexCoord3iv(const GLint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord3iv(ctx, v);
@@ -1169,6 +1414,7 @@ void glTexCoord3iv(const GLint *v)
 
 void glTexCoord3s(GLshort s, GLshort t, GLshort r)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord3s(ctx, s, t, r);
@@ -1176,6 +1422,7 @@ void glTexCoord3s(GLshort s, GLshort t, GLshort r)
 
 void glTexCoord3sv(const GLshort *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord3sv(ctx, v);
@@ -1183,6 +1430,7 @@ void glTexCoord3sv(const GLshort *v)
 
 void glTexCoord4d(GLdouble s, GLdouble t, GLdouble r, GLdouble q)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord4d(ctx, s, t, r, q);
@@ -1190,6 +1438,7 @@ void glTexCoord4d(GLdouble s, GLdouble t, GLdouble r, GLdouble q)
 
 void glTexCoord4dv(const GLdouble *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord4dv(ctx, v);
@@ -1197,6 +1446,7 @@ void glTexCoord4dv(const GLdouble *v)
 
 void glTexCoord4f(GLfloat s, GLfloat t, GLfloat r, GLfloat q)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord4f(ctx, s, t, r, q);
@@ -1204,6 +1454,7 @@ void glTexCoord4f(GLfloat s, GLfloat t, GLfloat r, GLfloat q)
 
 void glTexCoord4fv(const GLfloat *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord4fv(ctx, v);
@@ -1211,6 +1462,7 @@ void glTexCoord4fv(const GLfloat *v)
 
 void glTexCoord4i(GLint s, GLint t, GLint r, GLint q)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord4i(ctx, s, t, r, q);
@@ -1218,6 +1470,7 @@ void glTexCoord4i(GLint s, GLint t, GLint r, GLint q)
 
 void glTexCoord4iv(const GLint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord4iv(ctx, v);
@@ -1225,6 +1478,7 @@ void glTexCoord4iv(const GLint *v)
 
 void glTexCoord4s(GLshort s, GLshort t, GLshort r, GLshort q)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord4s(ctx, s, t, r, q);
@@ -1232,6 +1486,7 @@ void glTexCoord4s(GLshort s, GLshort t, GLshort r, GLshort q)
 
 void glTexCoord4sv(const GLshort *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord4sv(ctx, v);
@@ -1239,6 +1494,7 @@ void glTexCoord4sv(const GLshort *v)
 
 void glVertex2d(GLdouble x, GLdouble y)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex2d(ctx, x, y);
@@ -1246,6 +1502,7 @@ void glVertex2d(GLdouble x, GLdouble y)
 
 void glVertex2dv(const GLdouble *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex2dv(ctx, v);
@@ -1253,6 +1510,7 @@ void glVertex2dv(const GLdouble *v)
 
 void glVertex2f(GLfloat x, GLfloat y)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex2f(ctx, x, y);
@@ -1260,6 +1518,7 @@ void glVertex2f(GLfloat x, GLfloat y)
 
 void glVertex2fv(const GLfloat *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex2fv(ctx, v);
@@ -1267,6 +1526,7 @@ void glVertex2fv(const GLfloat *v)
 
 void glVertex2i(GLint x, GLint y)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex2i(ctx, x, y);
@@ -1274,6 +1534,7 @@ void glVertex2i(GLint x, GLint y)
 
 void glVertex2iv(const GLint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex2iv(ctx, v);
@@ -1281,6 +1542,7 @@ void glVertex2iv(const GLint *v)
 
 void glVertex2s(GLshort x, GLshort y)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex2s(ctx, x, y);
@@ -1288,6 +1550,7 @@ void glVertex2s(GLshort x, GLshort y)
 
 void glVertex2sv(const GLshort *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex2sv(ctx, v);
@@ -1295,6 +1558,7 @@ void glVertex2sv(const GLshort *v)
 
 void glVertex3d(GLdouble x, GLdouble y, GLdouble z)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex3d(ctx, x, y, z);
@@ -1302,6 +1566,7 @@ void glVertex3d(GLdouble x, GLdouble y, GLdouble z)
 
 void glVertex3dv(const GLdouble *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex3dv(ctx, v);
@@ -1309,6 +1574,7 @@ void glVertex3dv(const GLdouble *v)
 
 void glVertex3f(GLfloat x, GLfloat y, GLfloat z)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex3f(ctx, x, y, z);
@@ -1316,6 +1582,7 @@ void glVertex3f(GLfloat x, GLfloat y, GLfloat z)
 
 void glVertex3fv(const GLfloat *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex3fv(ctx, v);
@@ -1323,6 +1590,7 @@ void glVertex3fv(const GLfloat *v)
 
 void glVertex3i(GLint x, GLint y, GLint z)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex3i(ctx, x, y, z);
@@ -1330,6 +1598,7 @@ void glVertex3i(GLint x, GLint y, GLint z)
 
 void glVertex3iv(const GLint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex3iv(ctx, v);
@@ -1337,6 +1606,7 @@ void glVertex3iv(const GLint *v)
 
 void glVertex3s(GLshort x, GLshort y, GLshort z)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex3s(ctx, x, y, z);
@@ -1344,6 +1614,7 @@ void glVertex3s(GLshort x, GLshort y, GLshort z)
 
 void glVertex3sv(const GLshort *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex3sv(ctx, v);
@@ -1351,6 +1622,7 @@ void glVertex3sv(const GLshort *v)
 
 void glVertex4d(GLdouble x, GLdouble y, GLdouble z, GLdouble w)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex4d(ctx, x, y, z, w);
@@ -1358,6 +1630,7 @@ void glVertex4d(GLdouble x, GLdouble y, GLdouble z, GLdouble w)
 
 void glVertex4dv(const GLdouble *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex4dv(ctx, v);
@@ -1365,6 +1638,7 @@ void glVertex4dv(const GLdouble *v)
 
 void glVertex4f(GLfloat x, GLfloat y, GLfloat z, GLfloat w)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex4f(ctx, x, y, z, w);
@@ -1372,6 +1646,7 @@ void glVertex4f(GLfloat x, GLfloat y, GLfloat z, GLfloat w)
 
 void glVertex4fv(const GLfloat *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex4fv(ctx, v);
@@ -1379,6 +1654,7 @@ void glVertex4fv(const GLfloat *v)
 
 void glVertex4i(GLint x, GLint y, GLint z, GLint w)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex4i(ctx, x, y, z, w);
@@ -1386,6 +1662,7 @@ void glVertex4i(GLint x, GLint y, GLint z, GLint w)
 
 void glVertex4iv(const GLint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex4iv(ctx, v);
@@ -1393,6 +1670,7 @@ void glVertex4iv(const GLint *v)
 
 void glVertex4s(GLshort x, GLshort y, GLshort z, GLshort w)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex4s(ctx, x, y, z, w);
@@ -1400,6 +1678,7 @@ void glVertex4s(GLshort x, GLshort y, GLshort z, GLshort w)
 
 void glVertex4sv(const GLshort *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex4sv(ctx, v);
@@ -1407,6 +1686,7 @@ void glVertex4sv(const GLshort *v)
 
 void glClipPlane(GLenum plane, const GLdouble *equation)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.clip_plane(ctx, plane, equation);
@@ -1414,6 +1694,7 @@ void glClipPlane(GLenum plane, const GLdouble *equation)
 
 void glColorMaterial(GLenum face, GLenum mode)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color_material(ctx, face, mode);
@@ -1421,6 +1702,7 @@ void glColorMaterial(GLenum face, GLenum mode)
 
 void glFogf(GLenum pname, GLfloat param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.fogf(ctx, pname, param);
@@ -1428,6 +1710,7 @@ void glFogf(GLenum pname, GLfloat param)
 
 void glFogfv(GLenum pname, const GLfloat *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.fogfv(ctx, pname, params);
@@ -1435,6 +1718,7 @@ void glFogfv(GLenum pname, const GLfloat *params)
 
 void glFogi(GLenum pname, GLint param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.fogi(ctx, pname, param);
@@ -1442,6 +1726,7 @@ void glFogi(GLenum pname, GLint param)
 
 void glFogiv(GLenum pname, const GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.fogiv(ctx, pname, params);
@@ -1449,6 +1734,7 @@ void glFogiv(GLenum pname, const GLint *params)
 
 void glLightf(GLenum light, GLenum pname, GLfloat param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.lightf(ctx, light, pname, param);
@@ -1456,6 +1742,7 @@ void glLightf(GLenum light, GLenum pname, GLfloat param)
 
 void glLightfv(GLenum light, GLenum pname, const GLfloat *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.lightfv(ctx, light, pname, params);
@@ -1463,6 +1750,7 @@ void glLightfv(GLenum light, GLenum pname, const GLfloat *params)
 
 void glLighti(GLenum light, GLenum pname, GLint param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.lighti(ctx, light, pname, param);
@@ -1470,6 +1758,7 @@ void glLighti(GLenum light, GLenum pname, GLint param)
 
 void glLightiv(GLenum light, GLenum pname, const GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.lightiv(ctx, light, pname, params);
@@ -1477,6 +1766,7 @@ void glLightiv(GLenum light, GLenum pname, const GLint *params)
 
 void glLightModelf(GLenum pname, GLfloat param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.light_modelf(ctx, pname, param);
@@ -1484,6 +1774,7 @@ void glLightModelf(GLenum pname, GLfloat param)
 
 void glLightModelfv(GLenum pname, const GLfloat *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.light_modelfv(ctx, pname, params);
@@ -1491,6 +1782,7 @@ void glLightModelfv(GLenum pname, const GLfloat *params)
 
 void glLightModeli(GLenum pname, GLint param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.light_modeli(ctx, pname, param);
@@ -1498,6 +1790,7 @@ void glLightModeli(GLenum pname, GLint param)
 
 void glLightModeliv(GLenum pname, const GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.light_modeliv(ctx, pname, params);
@@ -1505,6 +1798,7 @@ void glLightModeliv(GLenum pname, const GLint *params)
 
 void glLineStipple(GLint factor, GLushort pattern)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.line_stipple(ctx, factor, pattern);
@@ -1512,6 +1806,7 @@ void glLineStipple(GLint factor, GLushort pattern)
 
 void glMaterialf(GLenum face, GLenum pname, GLfloat param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.materialf(ctx, face, pname, param);
@@ -1519,6 +1814,7 @@ void glMaterialf(GLenum face, GLenum pname, GLfloat param)
 
 void glMaterialfv(GLenum face, GLenum pname, const GLfloat *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.materialfv(ctx, face, pname, params);
@@ -1526,6 +1822,7 @@ void glMaterialfv(GLenum face, GLenum pname, const GLfloat *params)
 
 void glMateriali(GLenum face, GLenum pname, GLint param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.materiali(ctx, face, pname, param);
@@ -1533,6 +1830,7 @@ void glMateriali(GLenum face, GLenum pname, GLint param)
 
 void glMaterialiv(GLenum face, GLenum pname, const GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.materialiv(ctx, face, pname, params);
@@ -1540,6 +1838,7 @@ void glMaterialiv(GLenum face, GLenum pname, const GLint *params)
 
 void glPolygonStipple(const GLubyte *mask)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.polygon_stipple(ctx, mask);
@@ -1547,6 +1846,7 @@ void glPolygonStipple(const GLubyte *mask)
 
 void glShadeModel(GLenum mode)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.shade_model(ctx, mode);
@@ -1554,6 +1854,7 @@ void glShadeModel(GLenum mode)
 
 void glTexEnvf(GLenum target, GLenum pname, GLfloat param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_envf(ctx, target, pname, param);
@@ -1561,6 +1862,7 @@ void glTexEnvf(GLenum target, GLenum pname, GLfloat param)
 
 void glTexEnvfv(GLenum target, GLenum pname, const GLfloat *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_envfv(ctx, target, pname, params);
@@ -1568,6 +1870,7 @@ void glTexEnvfv(GLenum target, GLenum pname, const GLfloat *params)
 
 void glTexEnvi(GLenum target, GLenum pname, GLint param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_envi(ctx, target, pname, param);
@@ -1575,6 +1878,7 @@ void glTexEnvi(GLenum target, GLenum pname, GLint param)
 
 void glTexEnviv(GLenum target, GLenum pname, const GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_enviv(ctx, target, pname, params);
@@ -1582,6 +1886,7 @@ void glTexEnviv(GLenum target, GLenum pname, const GLint *params)
 
 void glTexGend(GLenum coord, GLenum pname, GLdouble param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_gend(ctx, coord, pname, param);
@@ -1589,6 +1894,7 @@ void glTexGend(GLenum coord, GLenum pname, GLdouble param)
 
 void glTexGendv(GLenum coord, GLenum pname, const GLdouble *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_gendv(ctx, coord, pname, params);
@@ -1596,6 +1902,7 @@ void glTexGendv(GLenum coord, GLenum pname, const GLdouble *params)
 
 void glTexGenf(GLenum coord, GLenum pname, GLfloat param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_genf(ctx, coord, pname, param);
@@ -1603,6 +1910,7 @@ void glTexGenf(GLenum coord, GLenum pname, GLfloat param)
 
 void glTexGenfv(GLenum coord, GLenum pname, const GLfloat *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_genfv(ctx, coord, pname, params);
@@ -1610,6 +1918,7 @@ void glTexGenfv(GLenum coord, GLenum pname, const GLfloat *params)
 
 void glTexGeni(GLenum coord, GLenum pname, GLint param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_geni(ctx, coord, pname, param);
@@ -1617,6 +1926,7 @@ void glTexGeni(GLenum coord, GLenum pname, GLint param)
 
 void glTexGeniv(GLenum coord, GLenum pname, const GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_geniv(ctx, coord, pname, params);
@@ -1624,6 +1934,7 @@ void glTexGeniv(GLenum coord, GLenum pname, const GLint *params)
 
 void glFeedbackBuffer(GLsizei size, GLenum type, GLfloat *buffer)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.feedback_buffer(ctx, size, type, buffer);
@@ -1631,6 +1942,7 @@ void glFeedbackBuffer(GLsizei size, GLenum type, GLfloat *buffer)
 
 void glSelectBuffer(GLsizei size, GLuint *buffer)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.select_buffer(ctx, size, buffer);
@@ -1645,6 +1957,7 @@ GLint glRenderMode(GLenum mode)
 
 void glInitNames()
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.init_names(ctx);
@@ -1652,6 +1965,7 @@ void glInitNames()
 
 void glLoadName(GLuint name)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.load_name(ctx, name);
@@ -1659,6 +1973,7 @@ void glLoadName(GLuint name)
 
 void glPassThrough(GLfloat token)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.pass_through(ctx, token);
@@ -1666,6 +1981,7 @@ void glPassThrough(GLfloat token)
 
 void glPopName()
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.pop_name(ctx);
@@ -1673,6 +1989,7 @@ void glPopName()
 
 void glPushName(GLuint name)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.push_name(ctx, name);
@@ -1680,6 +1997,7 @@ void glPushName(GLuint name)
 
 void glClearAccum(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.clear_accum(ctx, red, green, blue, alpha);
@@ -1687,6 +2005,7 @@ void glClearAccum(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 
 void glClearIndex(GLfloat c)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.clear_index(ctx, c);
@@ -1694,6 +2013,7 @@ void glClearIndex(GLfloat c)
 
 void glIndexMask(GLuint mask)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.index_mask(ctx, mask);
@@ -1701,6 +2021,7 @@ void glIndexMask(GLuint mask)
 
 void glAccum(GLenum op, GLfloat value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.accum(ctx, op, value);
@@ -1708,6 +2029,7 @@ void glAccum(GLenum op, GLfloat value)
 
 void glPopAttrib()
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.pop_attrib(ctx);
@@ -1715,6 +2037,7 @@ void glPopAttrib()
 
 void glPushAttrib(GLbitfield mask)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.push_attrib(ctx, mask);
@@ -1722,6 +2045,7 @@ void glPushAttrib(GLbitfield mask)
 
 void glMap1d(GLenum target, GLdouble u1, GLdouble u2, GLint stride, GLint order, const GLdouble *points)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.map1d(ctx, target, u1, u2, stride, order, points);
@@ -1729,6 +2053,7 @@ void glMap1d(GLenum target, GLdouble u1, GLdouble u2, GLint stride, GLint order,
 
 void glMap1f(GLenum target, GLfloat u1, GLfloat u2, GLint stride, GLint order, const GLfloat *points)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.map1f(ctx, target, u1, u2, stride, order, points);
@@ -1737,6 +2062,7 @@ void glMap1f(GLenum target, GLfloat u1, GLfloat u2, GLint stride, GLint order, c
 void glMap2d(GLenum target, GLdouble u1, GLdouble u2, GLint ustride, GLint uorder, GLdouble v1, GLdouble v2,
              GLint vstride, GLint vorder, const GLdouble *points)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.map2d(ctx, target, u1, u2, ustride, uorder, v1, v2, vstride, vorder, points);
@@ -1745,6 +2071,7 @@ void glMap2d(GLenum target, GLdouble u1, GLdouble u2, GLint ustride, GLint uorde
 void glMap2f(GLenum target, GLfloat u1, GLfloat u2, GLint ustride, GLint uorder, GLfloat v1, GLfloat v2, GLint vstride,
              GLint vorder, const GLfloat *points)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.map2f(ctx, target, u1, u2, ustride, uorder, v1, v2, vstride, vorder, points);
@@ -1752,6 +2079,7 @@ void glMap2f(GLenum target, GLfloat u1, GLfloat u2, GLint ustride, GLint uorder,
 
 void glMapGrid1d(GLint un, GLdouble u1, GLdouble u2)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.map_grid1d(ctx, un, u1, u2);
@@ -1759,6 +2087,7 @@ void glMapGrid1d(GLint un, GLdouble u1, GLdouble u2)
 
 void glMapGrid1f(GLint un, GLfloat u1, GLfloat u2)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.map_grid1f(ctx, un, u1, u2);
@@ -1766,6 +2095,7 @@ void glMapGrid1f(GLint un, GLfloat u1, GLfloat u2)
 
 void glMapGrid2d(GLint un, GLdouble u1, GLdouble u2, GLint vn, GLdouble v1, GLdouble v2)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.map_grid2d(ctx, un, u1, u2, vn, v1, v2);
@@ -1773,6 +2103,7 @@ void glMapGrid2d(GLint un, GLdouble u1, GLdouble u2, GLint vn, GLdouble v1, GLdo
 
 void glMapGrid2f(GLint un, GLfloat u1, GLfloat u2, GLint vn, GLfloat v1, GLfloat v2)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.map_grid2f(ctx, un, u1, u2, vn, v1, v2);
@@ -1780,6 +2111,7 @@ void glMapGrid2f(GLint un, GLfloat u1, GLfloat u2, GLint vn, GLfloat v1, GLfloat
 
 void glEvalCoord1d(GLdouble u)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.eval_coord1d(ctx, u);
@@ -1787,6 +2119,7 @@ void glEvalCoord1d(GLdouble u)
 
 void glEvalCoord1dv(const GLdouble *u)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.eval_coord1dv(ctx, u);
@@ -1794,6 +2127,7 @@ void glEvalCoord1dv(const GLdouble *u)
 
 void glEvalCoord1f(GLfloat u)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.eval_coord1f(ctx, u);
@@ -1801,6 +2135,7 @@ void glEvalCoord1f(GLfloat u)
 
 void glEvalCoord1fv(const GLfloat *u)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.eval_coord1fv(ctx, u);
@@ -1808,6 +2143,7 @@ void glEvalCoord1fv(const GLfloat *u)
 
 void glEvalCoord2d(GLdouble u, GLdouble v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.eval_coord2d(ctx, u, v);
@@ -1815,6 +2151,7 @@ void glEvalCoord2d(GLdouble u, GLdouble v)
 
 void glEvalCoord2dv(const GLdouble *u)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.eval_coord2dv(ctx, u);
@@ -1822,6 +2159,7 @@ void glEvalCoord2dv(const GLdouble *u)
 
 void glEvalCoord2f(GLfloat u, GLfloat v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.eval_coord2f(ctx, u, v);
@@ -1829,6 +2167,7 @@ void glEvalCoord2f(GLfloat u, GLfloat v)
 
 void glEvalCoord2fv(const GLfloat *u)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.eval_coord2fv(ctx, u);
@@ -1836,6 +2175,7 @@ void glEvalCoord2fv(const GLfloat *u)
 
 void glEvalMesh1(GLenum mode, GLint i1, GLint i2)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.eval_mesh1(ctx, mode, i1, i2);
@@ -1843,6 +2183,7 @@ void glEvalMesh1(GLenum mode, GLint i1, GLint i2)
 
 void glEvalPoint1(GLint i)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.eval_point1(ctx, i);
@@ -1850,6 +2191,7 @@ void glEvalPoint1(GLint i)
 
 void glEvalMesh2(GLenum mode, GLint i1, GLint i2, GLint j1, GLint j2)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.eval_mesh2(ctx, mode, i1, i2, j1, j2);
@@ -1857,6 +2199,7 @@ void glEvalMesh2(GLenum mode, GLint i1, GLint i2, GLint j1, GLint j2)
 
 void glEvalPoint2(GLint i, GLint j)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.eval_point2(ctx, i, j);
@@ -1864,6 +2207,7 @@ void glEvalPoint2(GLint i, GLint j)
 
 void glAlphaFunc(GLenum func, GLfloat ref)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.alpha_func(ctx, func, ref);
@@ -1871,6 +2215,7 @@ void glAlphaFunc(GLenum func, GLfloat ref)
 
 void glPixelZoom(GLfloat xfactor, GLfloat yfactor)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.pixel_zoom(ctx, xfactor, yfactor);
@@ -1878,6 +2223,7 @@ void glPixelZoom(GLfloat xfactor, GLfloat yfactor)
 
 void glPixelTransferf(GLenum pname, GLfloat param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.pixel_transferf(ctx, pname, param);
@@ -1885,6 +2231,7 @@ void glPixelTransferf(GLenum pname, GLfloat param)
 
 void glPixelTransferi(GLenum pname, GLint param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.pixel_transferi(ctx, pname, param);
@@ -1892,6 +2239,7 @@ void glPixelTransferi(GLenum pname, GLint param)
 
 void glPixelMapfv(GLenum map, GLsizei mapsize, const GLfloat *values)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.pixel_mapfv(ctx, map, mapsize, values);
@@ -1899,6 +2247,7 @@ void glPixelMapfv(GLenum map, GLsizei mapsize, const GLfloat *values)
 
 void glPixelMapuiv(GLenum map, GLsizei mapsize, const GLuint *values)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.pixel_mapuiv(ctx, map, mapsize, values);
@@ -1906,6 +2255,7 @@ void glPixelMapuiv(GLenum map, GLsizei mapsize, const GLuint *values)
 
 void glPixelMapusv(GLenum map, GLsizei mapsize, const GLushort *values)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.pixel_mapusv(ctx, map, mapsize, values);
@@ -1913,6 +2263,7 @@ void glPixelMapusv(GLenum map, GLsizei mapsize, const GLushort *values)
 
 void glCopyPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum type)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.copy_pixels(ctx, x, y, width, height, type);
@@ -1920,6 +2271,7 @@ void glCopyPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum type)
 
 void glDrawPixels(GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.draw_pixels(ctx, width, height, format, type, pixels);
@@ -1927,6 +2279,7 @@ void glDrawPixels(GLsizei width, GLsizei height, GLenum format, GLenum type, con
 
 void glGetClipPlane(GLenum plane, GLdouble *equation)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_clip_plane(ctx, plane, equation);
@@ -1934,6 +2287,7 @@ void glGetClipPlane(GLenum plane, GLdouble *equation)
 
 void glGetLightfv(GLenum light, GLenum pname, GLfloat *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_lightfv(ctx, light, pname, params);
@@ -1941,6 +2295,7 @@ void glGetLightfv(GLenum light, GLenum pname, GLfloat *params)
 
 void glGetLightiv(GLenum light, GLenum pname, GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_lightiv(ctx, light, pname, params);
@@ -1948,6 +2303,7 @@ void glGetLightiv(GLenum light, GLenum pname, GLint *params)
 
 void glGetMapdv(GLenum target, GLenum query, GLdouble *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_mapdv(ctx, target, query, v);
@@ -1955,6 +2311,7 @@ void glGetMapdv(GLenum target, GLenum query, GLdouble *v)
 
 void glGetMapfv(GLenum target, GLenum query, GLfloat *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_mapfv(ctx, target, query, v);
@@ -1962,6 +2319,7 @@ void glGetMapfv(GLenum target, GLenum query, GLfloat *v)
 
 void glGetMapiv(GLenum target, GLenum query, GLint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_mapiv(ctx, target, query, v);
@@ -1969,6 +2327,7 @@ void glGetMapiv(GLenum target, GLenum query, GLint *v)
 
 void glGetMaterialfv(GLenum face, GLenum pname, GLfloat *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_materialfv(ctx, face, pname, params);
@@ -1976,6 +2335,7 @@ void glGetMaterialfv(GLenum face, GLenum pname, GLfloat *params)
 
 void glGetMaterialiv(GLenum face, GLenum pname, GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_materialiv(ctx, face, pname, params);
@@ -1983,6 +2343,7 @@ void glGetMaterialiv(GLenum face, GLenum pname, GLint *params)
 
 void glGetPixelMapfv(GLenum map, GLfloat *values)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_pixel_mapfv(ctx, map, values);
@@ -1990,6 +2351,7 @@ void glGetPixelMapfv(GLenum map, GLfloat *values)
 
 void glGetPixelMapuiv(GLenum map, GLuint *values)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_pixel_mapuiv(ctx, map, values);
@@ -1997,6 +2359,7 @@ void glGetPixelMapuiv(GLenum map, GLuint *values)
 
 void glGetPixelMapusv(GLenum map, GLushort *values)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_pixel_mapusv(ctx, map, values);
@@ -2004,6 +2367,7 @@ void glGetPixelMapusv(GLenum map, GLushort *values)
 
 void glGetPolygonStipple(GLubyte *mask)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_polygon_stipple(ctx, mask);
@@ -2011,6 +2375,7 @@ void glGetPolygonStipple(GLubyte *mask)
 
 void glGetTexEnvfv(GLenum target, GLenum pname, GLfloat *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_tex_envfv(ctx, target, pname, params);
@@ -2018,6 +2383,7 @@ void glGetTexEnvfv(GLenum target, GLenum pname, GLfloat *params)
 
 void glGetTexEnviv(GLenum target, GLenum pname, GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_tex_enviv(ctx, target, pname, params);
@@ -2025,6 +2391,7 @@ void glGetTexEnviv(GLenum target, GLenum pname, GLint *params)
 
 void glGetTexGendv(GLenum coord, GLenum pname, GLdouble *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_tex_gendv(ctx, coord, pname, params);
@@ -2032,6 +2399,7 @@ void glGetTexGendv(GLenum coord, GLenum pname, GLdouble *params)
 
 void glGetTexGenfv(GLenum coord, GLenum pname, GLfloat *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_tex_genfv(ctx, coord, pname, params);
@@ -2039,6 +2407,7 @@ void glGetTexGenfv(GLenum coord, GLenum pname, GLfloat *params)
 
 void glGetTexGeniv(GLenum coord, GLenum pname, GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_tex_geniv(ctx, coord, pname, params);
@@ -2053,6 +2422,7 @@ GLboolean glIsList(GLuint list)
 
 void glFrustum(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.frustum(ctx, left, right, bottom, top, zNear, zFar);
@@ -2060,6 +2430,7 @@ void glFrustum(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLd
 
 void glLoadIdentity()
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.load_identity(ctx);
@@ -2067,6 +2438,7 @@ void glLoadIdentity()
 
 void glLoadMatrixf(const GLfloat *m)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.load_matrixf(ctx, m);
@@ -2074,6 +2446,7 @@ void glLoadMatrixf(const GLfloat *m)
 
 void glLoadMatrixd(const GLdouble *m)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.load_matrixd(ctx, m);
@@ -2081,6 +2454,7 @@ void glLoadMatrixd(const GLdouble *m)
 
 void glMatrixMode(GLenum mode)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.matrix_mode(ctx, mode);
@@ -2088,6 +2462,7 @@ void glMatrixMode(GLenum mode)
 
 void glMultMatrixf(const GLfloat *m)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.mult_matrixf(ctx, m);
@@ -2095,6 +2470,7 @@ void glMultMatrixf(const GLfloat *m)
 
 void glMultMatrixd(const GLdouble *m)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.mult_matrixd(ctx, m);
@@ -2102,6 +2478,7 @@ void glMultMatrixd(const GLdouble *m)
 
 void glOrtho(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.ortho(ctx, left, right, bottom, top, zNear, zFar);
@@ -2109,6 +2486,7 @@ void glOrtho(GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdou
 
 void glPopMatrix()
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.pop_matrix(ctx);
@@ -2116,6 +2494,7 @@ void glPopMatrix()
 
 void glPushMatrix()
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.push_matrix(ctx);
@@ -2123,6 +2502,7 @@ void glPushMatrix()
 
 void glRotated(GLdouble angle, GLdouble x, GLdouble y, GLdouble z)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.rotated(ctx, angle, x, y, z);
@@ -2130,6 +2510,7 @@ void glRotated(GLdouble angle, GLdouble x, GLdouble y, GLdouble z)
 
 void glRotatef(GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.rotatef(ctx, angle, x, y, z);
@@ -2137,6 +2518,7 @@ void glRotatef(GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
 
 void glScaled(GLdouble x, GLdouble y, GLdouble z)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.scaled(ctx, x, y, z);
@@ -2144,6 +2526,7 @@ void glScaled(GLdouble x, GLdouble y, GLdouble z)
 
 void glScalef(GLfloat x, GLfloat y, GLfloat z)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.scalef(ctx, x, y, z);
@@ -2151,6 +2534,7 @@ void glScalef(GLfloat x, GLfloat y, GLfloat z)
 
 void glTranslated(GLdouble x, GLdouble y, GLdouble z)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.translated(ctx, x, y, z);
@@ -2158,6 +2542,7 @@ void glTranslated(GLdouble x, GLdouble y, GLdouble z)
 
 void glTranslatef(GLfloat x, GLfloat y, GLfloat z)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.translatef(ctx, x, y, z);
@@ -2165,6 +2550,11 @@ void glTranslatef(GLfloat x, GLfloat y, GLfloat z)
 
 void glDrawArrays(GLenum mode, GLint first, GLsizei count)
 {
+    CHECK_CONTEXT();
+    CHECK_CONTEXT();
+
+    CHECK_CONTEXT();
+
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.draw_arrays(ctx, mode, first, count);
@@ -2172,6 +2562,11 @@ void glDrawArrays(GLenum mode, GLint first, GLsizei count)
 
 void glDrawElements(GLenum mode, GLsizei count, GLenum type, const void *indices)
 {
+    CHECK_CONTEXT();
+    CHECK_CONTEXT();
+
+    CHECK_CONTEXT();
+
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.draw_elements(ctx, mode, count, type, indices);
@@ -2179,6 +2574,7 @@ void glDrawElements(GLenum mode, GLsizei count, GLenum type, const void *indices
 
 void glGetPointerv(GLenum pname, void **params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_pointerv(ctx, pname, params);
@@ -2186,6 +2582,7 @@ void glGetPointerv(GLenum pname, void **params)
 
 void glPolygonOffset(GLfloat factor, GLfloat units)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.polygon_offset(ctx, factor, units);
@@ -2193,6 +2590,7 @@ void glPolygonOffset(GLfloat factor, GLfloat units)
 
 void glCopyTexImage1D(GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLint border)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.copy_tex_image1D(ctx, target, level, internalformat, x, y, width, border);
@@ -2201,6 +2599,7 @@ void glCopyTexImage1D(GLenum target, GLint level, GLenum internalformat, GLint x
 void glCopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width,
                       GLsizei height, GLint border)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.copy_tex_image2D(ctx, target, level, internalformat, x, y, width, height, border);
@@ -2208,6 +2607,7 @@ void glCopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x
 
 void glCopyTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.copy_tex_sub_image1D(ctx, target, level, xoffset, x, y, width);
@@ -2216,6 +2616,7 @@ void glCopyTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLint x, GLi
 void glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width,
                          GLsizei height)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.copy_tex_sub_image2D(ctx, target, level, xoffset, yoffset, x, y, width, height);
@@ -2224,6 +2625,7 @@ void glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffse
 void glTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type,
                      const void *pixels)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_sub_image1D(ctx, target, level, xoffset, width, format, type, pixels);
@@ -2232,6 +2634,7 @@ void glTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei width, G
 void glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height,
                      GLenum format, GLenum type, const void *pixels)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_sub_image2D(ctx, target, level, xoffset, yoffset, width, height, format, type, pixels);
@@ -2239,13 +2642,20 @@ void glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, G
 
 void glBindTexture(GLenum target, GLuint texture)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
+    CHECK_CONTEXT();
 
     ctx->dispatch.bind_texture(ctx, target, texture);
 }
 
 void glDeleteTextures(GLsizei n, const GLuint *textures)
 {
+    CHECK_CONTEXT();
+    CHECK_CONTEXT();
+
+    CHECK_CONTEXT();
+
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.delete_textures(ctx, n, textures);
@@ -2253,6 +2663,11 @@ void glDeleteTextures(GLsizei n, const GLuint *textures)
 
 void glGenTextures(GLsizei n, GLuint *textures)
 {
+    CHECK_CONTEXT();
+    CHECK_CONTEXT();
+
+    CHECK_CONTEXT();
+
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.gen_textures(ctx, n, textures);
@@ -2267,6 +2682,7 @@ GLboolean glIsTexture(GLuint texture)
 
 void glArrayElement(GLint i)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.array_element(ctx, i);
@@ -2274,6 +2690,7 @@ void glArrayElement(GLint i)
 
 void glColorPointer(GLint size, GLenum type, GLsizei stride, const void *pointer)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color_pointer(ctx, size, type, stride, pointer);
@@ -2281,6 +2698,7 @@ void glColorPointer(GLint size, GLenum type, GLsizei stride, const void *pointer
 
 void glDisableClientState(GLenum array)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.disable_client_state(ctx, array);
@@ -2288,6 +2706,7 @@ void glDisableClientState(GLenum array)
 
 void glEdgeFlagPointer(GLsizei stride, const void *pointer)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.edge_flag_pointer(ctx, stride, pointer);
@@ -2295,6 +2714,7 @@ void glEdgeFlagPointer(GLsizei stride, const void *pointer)
 
 void glEnableClientState(GLenum array)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.enable_client_state(ctx, array);
@@ -2302,6 +2722,7 @@ void glEnableClientState(GLenum array)
 
 void glIndexPointer(GLenum type, GLsizei stride, const void *pointer)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.index_pointer(ctx, type, stride, pointer);
@@ -2309,6 +2730,7 @@ void glIndexPointer(GLenum type, GLsizei stride, const void *pointer)
 
 void glInterleavedArrays(GLenum format, GLsizei stride, const void *pointer)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.interleaved_arrays(ctx, format, stride, pointer);
@@ -2316,6 +2738,7 @@ void glInterleavedArrays(GLenum format, GLsizei stride, const void *pointer)
 
 void glNormalPointer(GLenum type, GLsizei stride, const void *pointer)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.normal_pointer(ctx, type, stride, pointer);
@@ -2323,6 +2746,7 @@ void glNormalPointer(GLenum type, GLsizei stride, const void *pointer)
 
 void glTexCoordPointer(GLint size, GLenum type, GLsizei stride, const void *pointer)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord_pointer(ctx, size, type, stride, pointer);
@@ -2330,6 +2754,7 @@ void glTexCoordPointer(GLint size, GLenum type, GLsizei stride, const void *poin
 
 void glVertexPointer(GLint size, GLenum type, GLsizei stride, const void *pointer)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_pointer(ctx, size, type, stride, pointer);
@@ -2344,6 +2769,7 @@ GLboolean glAreTexturesResident(GLsizei n, const GLuint *textures, GLboolean *re
 
 void glPrioritizeTextures(GLsizei n, const GLuint *textures, const GLfloat *priorities)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.prioritize_textures(ctx, n, textures, priorities);
@@ -2351,6 +2777,7 @@ void glPrioritizeTextures(GLsizei n, const GLuint *textures, const GLfloat *prio
 
 void glIndexub(GLubyte c)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.indexub(ctx, c);
@@ -2358,6 +2785,7 @@ void glIndexub(GLubyte c)
 
 void glIndexubv(const GLubyte *c)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.indexubv(ctx, c);
@@ -2365,6 +2793,7 @@ void glIndexubv(const GLubyte *c)
 
 void glPopClientAttrib()
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.pop_client_attrib(ctx);
@@ -2372,6 +2801,7 @@ void glPopClientAttrib()
 
 void glPushClientAttrib(GLbitfield mask)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.push_client_attrib(ctx, mask);
@@ -2379,6 +2809,7 @@ void glPushClientAttrib(GLbitfield mask)
 
 void glDrawRangeElements(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.draw_range_elements(ctx, mode, start, end, count, type, indices);
@@ -2387,6 +2818,7 @@ void glDrawRangeElements(GLenum mode, GLuint start, GLuint end, GLsizei count, G
 void glTexImage3D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth,
                   GLint border, GLenum format, GLenum type, const void *pixels)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_image3D(ctx, target, level, internalformat, width, height, depth, border, format, type, pixels);
@@ -2395,6 +2827,7 @@ void glTexImage3D(GLenum target, GLint level, GLint internalformat, GLsizei widt
 void glTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width,
                      GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_sub_image3D(ctx, target, level, xoffset, yoffset, zoffset, width, height, depth, format, type,
@@ -2404,6 +2837,7 @@ void glTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, G
 void glCopyTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y,
                          GLsizei width, GLsizei height)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.copy_tex_sub_image3D(ctx, target, level, xoffset, yoffset, zoffset, x, y, width, height);
@@ -2411,6 +2845,7 @@ void glCopyTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffse
 
 void glActiveTexture(GLenum texture)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.active_texture(ctx, texture);
@@ -2418,6 +2853,7 @@ void glActiveTexture(GLenum texture)
 
 void glSampleCoverage(GLfloat value, GLboolean invert)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.sample_coverage(ctx, value, invert);
@@ -2426,6 +2862,7 @@ void glSampleCoverage(GLfloat value, GLboolean invert)
 void glCompressedTexImage3D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height,
                             GLsizei depth, GLint border, GLsizei imageSize, const void *data)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.compressed_tex_image3D(ctx, target, level, internalformat, width, height, depth, border, imageSize,
@@ -2435,6 +2872,7 @@ void glCompressedTexImage3D(GLenum target, GLint level, GLenum internalformat, G
 void glCompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height,
                             GLint border, GLsizei imageSize, const void *data)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.compressed_tex_image2D(ctx, target, level, internalformat, width, height, border, imageSize, data);
@@ -2443,6 +2881,7 @@ void glCompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, G
 void glCompressedTexImage1D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLint border,
                             GLsizei imageSize, const void *data)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.compressed_tex_image1D(ctx, target, level, internalformat, width, border, imageSize, data);
@@ -2451,6 +2890,7 @@ void glCompressedTexImage1D(GLenum target, GLint level, GLenum internalformat, G
 void glCompressedTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width,
                                GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *data)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.compressed_tex_sub_image3D(ctx, target, level, xoffset, yoffset, zoffset, width, height, depth,
@@ -2460,6 +2900,7 @@ void glCompressedTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint 
 void glCompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height,
                                GLenum format, GLsizei imageSize, const void *data)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.compressed_tex_sub_image2D(ctx, target, level, xoffset, yoffset, width, height, format, imageSize,
@@ -2469,6 +2910,7 @@ void glCompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint 
 void glCompressedTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format,
                                GLsizei imageSize, const void *data)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.compressed_tex_sub_image1D(ctx, target, level, xoffset, width, format, imageSize, data);
@@ -2476,6 +2918,7 @@ void glCompressedTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsize
 
 void glGetCompressedTexImage(GLenum target, GLint level, void *img)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_compressed_tex_image(ctx, target, level, img);
@@ -2483,6 +2926,7 @@ void glGetCompressedTexImage(GLenum target, GLint level, void *img)
 
 void glClientActiveTexture(GLenum texture)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.client_active_texture(ctx, texture);
@@ -2490,6 +2934,7 @@ void glClientActiveTexture(GLenum texture)
 
 void glMultiTexCoord1d(GLenum target, GLdouble s)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord1d(ctx, target, s);
@@ -2497,6 +2942,7 @@ void glMultiTexCoord1d(GLenum target, GLdouble s)
 
 void glMultiTexCoord1dv(GLenum target, const GLdouble *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord1dv(ctx, target, v);
@@ -2504,6 +2950,7 @@ void glMultiTexCoord1dv(GLenum target, const GLdouble *v)
 
 void glMultiTexCoord1f(GLenum target, GLfloat s)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord1f(ctx, target, s);
@@ -2511,6 +2958,7 @@ void glMultiTexCoord1f(GLenum target, GLfloat s)
 
 void glMultiTexCoord1fv(GLenum target, const GLfloat *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord1fv(ctx, target, v);
@@ -2518,6 +2966,7 @@ void glMultiTexCoord1fv(GLenum target, const GLfloat *v)
 
 void glMultiTexCoord1i(GLenum target, GLint s)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord1i(ctx, target, s);
@@ -2525,6 +2974,7 @@ void glMultiTexCoord1i(GLenum target, GLint s)
 
 void glMultiTexCoord1iv(GLenum target, const GLint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord1iv(ctx, target, v);
@@ -2532,6 +2982,7 @@ void glMultiTexCoord1iv(GLenum target, const GLint *v)
 
 void glMultiTexCoord1s(GLenum target, GLshort s)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord1s(ctx, target, s);
@@ -2539,6 +2990,7 @@ void glMultiTexCoord1s(GLenum target, GLshort s)
 
 void glMultiTexCoord1sv(GLenum target, const GLshort *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord1sv(ctx, target, v);
@@ -2546,6 +2998,7 @@ void glMultiTexCoord1sv(GLenum target, const GLshort *v)
 
 void glMultiTexCoord2d(GLenum target, GLdouble s, GLdouble t)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord2d(ctx, target, s, t);
@@ -2553,6 +3006,7 @@ void glMultiTexCoord2d(GLenum target, GLdouble s, GLdouble t)
 
 void glMultiTexCoord2dv(GLenum target, const GLdouble *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord2dv(ctx, target, v);
@@ -2560,6 +3014,7 @@ void glMultiTexCoord2dv(GLenum target, const GLdouble *v)
 
 void glMultiTexCoord2f(GLenum target, GLfloat s, GLfloat t)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord2f(ctx, target, s, t);
@@ -2567,6 +3022,7 @@ void glMultiTexCoord2f(GLenum target, GLfloat s, GLfloat t)
 
 void glMultiTexCoord2fv(GLenum target, const GLfloat *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord2fv(ctx, target, v);
@@ -2574,6 +3030,7 @@ void glMultiTexCoord2fv(GLenum target, const GLfloat *v)
 
 void glMultiTexCoord2i(GLenum target, GLint s, GLint t)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord2i(ctx, target, s, t);
@@ -2581,6 +3038,7 @@ void glMultiTexCoord2i(GLenum target, GLint s, GLint t)
 
 void glMultiTexCoord2iv(GLenum target, const GLint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord2iv(ctx, target, v);
@@ -2588,6 +3046,7 @@ void glMultiTexCoord2iv(GLenum target, const GLint *v)
 
 void glMultiTexCoord2s(GLenum target, GLshort s, GLshort t)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord2s(ctx, target, s, t);
@@ -2595,6 +3054,7 @@ void glMultiTexCoord2s(GLenum target, GLshort s, GLshort t)
 
 void glMultiTexCoord2sv(GLenum target, const GLshort *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord2sv(ctx, target, v);
@@ -2602,6 +3062,7 @@ void glMultiTexCoord2sv(GLenum target, const GLshort *v)
 
 void glMultiTexCoord3d(GLenum target, GLdouble s, GLdouble t, GLdouble r)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord3d(ctx, target, s, t, r);
@@ -2609,6 +3070,7 @@ void glMultiTexCoord3d(GLenum target, GLdouble s, GLdouble t, GLdouble r)
 
 void glMultiTexCoord3dv(GLenum target, const GLdouble *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord3dv(ctx, target, v);
@@ -2616,6 +3078,7 @@ void glMultiTexCoord3dv(GLenum target, const GLdouble *v)
 
 void glMultiTexCoord3f(GLenum target, GLfloat s, GLfloat t, GLfloat r)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord3f(ctx, target, s, t, r);
@@ -2623,6 +3086,7 @@ void glMultiTexCoord3f(GLenum target, GLfloat s, GLfloat t, GLfloat r)
 
 void glMultiTexCoord3fv(GLenum target, const GLfloat *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord3fv(ctx, target, v);
@@ -2630,6 +3094,7 @@ void glMultiTexCoord3fv(GLenum target, const GLfloat *v)
 
 void glMultiTexCoord3i(GLenum target, GLint s, GLint t, GLint r)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord3i(ctx, target, s, t, r);
@@ -2637,6 +3102,7 @@ void glMultiTexCoord3i(GLenum target, GLint s, GLint t, GLint r)
 
 void glMultiTexCoord3iv(GLenum target, const GLint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord3iv(ctx, target, v);
@@ -2644,6 +3110,7 @@ void glMultiTexCoord3iv(GLenum target, const GLint *v)
 
 void glMultiTexCoord3s(GLenum target, GLshort s, GLshort t, GLshort r)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord3s(ctx, target, s, t, r);
@@ -2651,6 +3118,7 @@ void glMultiTexCoord3s(GLenum target, GLshort s, GLshort t, GLshort r)
 
 void glMultiTexCoord3sv(GLenum target, const GLshort *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord3sv(ctx, target, v);
@@ -2658,6 +3126,7 @@ void glMultiTexCoord3sv(GLenum target, const GLshort *v)
 
 void glMultiTexCoord4d(GLenum target, GLdouble s, GLdouble t, GLdouble r, GLdouble q)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord4d(ctx, target, s, t, r, q);
@@ -2665,6 +3134,7 @@ void glMultiTexCoord4d(GLenum target, GLdouble s, GLdouble t, GLdouble r, GLdoub
 
 void glMultiTexCoord4dv(GLenum target, const GLdouble *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord4dv(ctx, target, v);
@@ -2672,6 +3142,7 @@ void glMultiTexCoord4dv(GLenum target, const GLdouble *v)
 
 void glMultiTexCoord4f(GLenum target, GLfloat s, GLfloat t, GLfloat r, GLfloat q)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord4f(ctx, target, s, t, r, q);
@@ -2679,6 +3150,7 @@ void glMultiTexCoord4f(GLenum target, GLfloat s, GLfloat t, GLfloat r, GLfloat q
 
 void glMultiTexCoord4fv(GLenum target, const GLfloat *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord4fv(ctx, target, v);
@@ -2686,6 +3158,7 @@ void glMultiTexCoord4fv(GLenum target, const GLfloat *v)
 
 void glMultiTexCoord4i(GLenum target, GLint s, GLint t, GLint r, GLint q)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord4i(ctx, target, s, t, r, q);
@@ -2693,6 +3166,7 @@ void glMultiTexCoord4i(GLenum target, GLint s, GLint t, GLint r, GLint q)
 
 void glMultiTexCoord4iv(GLenum target, const GLint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord4iv(ctx, target, v);
@@ -2700,6 +3174,7 @@ void glMultiTexCoord4iv(GLenum target, const GLint *v)
 
 void glMultiTexCoord4s(GLenum target, GLshort s, GLshort t, GLshort r, GLshort q)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord4s(ctx, target, s, t, r, q);
@@ -2707,6 +3182,7 @@ void glMultiTexCoord4s(GLenum target, GLshort s, GLshort t, GLshort r, GLshort q
 
 void glMultiTexCoord4sv(GLenum target, const GLshort *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord4sv(ctx, target, v);
@@ -2714,6 +3190,7 @@ void glMultiTexCoord4sv(GLenum target, const GLshort *v)
 
 void glLoadTransposeMatrixf(const GLfloat *m)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.load_transpose_matrixf(ctx, m);
@@ -2721,6 +3198,7 @@ void glLoadTransposeMatrixf(const GLfloat *m)
 
 void glLoadTransposeMatrixd(const GLdouble *m)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.load_transpose_matrixd(ctx, m);
@@ -2728,6 +3206,7 @@ void glLoadTransposeMatrixd(const GLdouble *m)
 
 void glMultTransposeMatrixf(const GLfloat *m)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.mult_transpose_matrixf(ctx, m);
@@ -2735,6 +3214,7 @@ void glMultTransposeMatrixf(const GLfloat *m)
 
 void glMultTransposeMatrixd(const GLdouble *m)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.mult_transpose_matrixd(ctx, m);
@@ -2742,6 +3222,7 @@ void glMultTransposeMatrixd(const GLdouble *m)
 
 void glBlendFuncSeparate(GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.blend_func_separate(ctx, sfactorRGB, dfactorRGB, sfactorAlpha, dfactorAlpha);
@@ -2749,6 +3230,7 @@ void glBlendFuncSeparate(GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlp
 
 void glMultiDrawArrays(GLenum mode, const GLint *first, const GLsizei *count, GLsizei drawcount)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_draw_arrays(ctx, mode, first, count, drawcount);
@@ -2756,6 +3238,7 @@ void glMultiDrawArrays(GLenum mode, const GLint *first, const GLsizei *count, GL
 
 void glMultiDrawElements(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices, GLsizei drawcount)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_draw_elements(ctx, mode, count, type, indices, drawcount);
@@ -2763,6 +3246,7 @@ void glMultiDrawElements(GLenum mode, const GLsizei *count, GLenum type, const v
 
 void glPointParameterf(GLenum pname, GLfloat param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.point_parameterf(ctx, pname, param);
@@ -2770,6 +3254,7 @@ void glPointParameterf(GLenum pname, GLfloat param)
 
 void glPointParameterfv(GLenum pname, const GLfloat *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.point_parameterfv(ctx, pname, params);
@@ -2777,6 +3262,7 @@ void glPointParameterfv(GLenum pname, const GLfloat *params)
 
 void glPointParameteri(GLenum pname, GLint param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.point_parameteri(ctx, pname, param);
@@ -2784,6 +3270,7 @@ void glPointParameteri(GLenum pname, GLint param)
 
 void glPointParameteriv(GLenum pname, const GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.point_parameteriv(ctx, pname, params);
@@ -2791,6 +3278,7 @@ void glPointParameteriv(GLenum pname, const GLint *params)
 
 void glFogCoordf(GLfloat coord)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.fog_coordf(ctx, coord);
@@ -2798,6 +3286,7 @@ void glFogCoordf(GLfloat coord)
 
 void glFogCoordfv(const GLfloat *coord)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.fog_coordfv(ctx, coord);
@@ -2805,6 +3294,7 @@ void glFogCoordfv(const GLfloat *coord)
 
 void glFogCoordd(GLdouble coord)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.fog_coordd(ctx, coord);
@@ -2812,6 +3302,7 @@ void glFogCoordd(GLdouble coord)
 
 void glFogCoorddv(const GLdouble *coord)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.fog_coorddv(ctx, coord);
@@ -2819,6 +3310,7 @@ void glFogCoorddv(const GLdouble *coord)
 
 void glFogCoordPointer(GLenum type, GLsizei stride, const void *pointer)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.fog_coord_pointer(ctx, type, stride, pointer);
@@ -2826,6 +3318,7 @@ void glFogCoordPointer(GLenum type, GLsizei stride, const void *pointer)
 
 void glSecondaryColor3b(GLbyte red, GLbyte green, GLbyte blue)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.secondary_color3b(ctx, red, green, blue);
@@ -2833,6 +3326,7 @@ void glSecondaryColor3b(GLbyte red, GLbyte green, GLbyte blue)
 
 void glSecondaryColor3bv(const GLbyte *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.secondary_color3bv(ctx, v);
@@ -2840,6 +3334,7 @@ void glSecondaryColor3bv(const GLbyte *v)
 
 void glSecondaryColor3d(GLdouble red, GLdouble green, GLdouble blue)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.secondary_color3d(ctx, red, green, blue);
@@ -2847,6 +3342,7 @@ void glSecondaryColor3d(GLdouble red, GLdouble green, GLdouble blue)
 
 void glSecondaryColor3dv(const GLdouble *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.secondary_color3dv(ctx, v);
@@ -2854,6 +3350,7 @@ void glSecondaryColor3dv(const GLdouble *v)
 
 void glSecondaryColor3f(GLfloat red, GLfloat green, GLfloat blue)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.secondary_color3f(ctx, red, green, blue);
@@ -2861,6 +3358,7 @@ void glSecondaryColor3f(GLfloat red, GLfloat green, GLfloat blue)
 
 void glSecondaryColor3fv(const GLfloat *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.secondary_color3fv(ctx, v);
@@ -2868,6 +3366,7 @@ void glSecondaryColor3fv(const GLfloat *v)
 
 void glSecondaryColor3i(GLint red, GLint green, GLint blue)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.secondary_color3i(ctx, red, green, blue);
@@ -2875,6 +3374,7 @@ void glSecondaryColor3i(GLint red, GLint green, GLint blue)
 
 void glSecondaryColor3iv(const GLint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.secondary_color3iv(ctx, v);
@@ -2882,6 +3382,7 @@ void glSecondaryColor3iv(const GLint *v)
 
 void glSecondaryColor3s(GLshort red, GLshort green, GLshort blue)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.secondary_color3s(ctx, red, green, blue);
@@ -2889,6 +3390,7 @@ void glSecondaryColor3s(GLshort red, GLshort green, GLshort blue)
 
 void glSecondaryColor3sv(const GLshort *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.secondary_color3sv(ctx, v);
@@ -2896,6 +3398,7 @@ void glSecondaryColor3sv(const GLshort *v)
 
 void glSecondaryColor3ub(GLubyte red, GLubyte green, GLubyte blue)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.secondary_color3ub(ctx, red, green, blue);
@@ -2903,6 +3406,7 @@ void glSecondaryColor3ub(GLubyte red, GLubyte green, GLubyte blue)
 
 void glSecondaryColor3ubv(const GLubyte *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.secondary_color3ubv(ctx, v);
@@ -2910,6 +3414,7 @@ void glSecondaryColor3ubv(const GLubyte *v)
 
 void glSecondaryColor3ui(GLuint red, GLuint green, GLuint blue)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.secondary_color3ui(ctx, red, green, blue);
@@ -2917,6 +3422,7 @@ void glSecondaryColor3ui(GLuint red, GLuint green, GLuint blue)
 
 void glSecondaryColor3uiv(const GLuint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.secondary_color3uiv(ctx, v);
@@ -2924,6 +3430,7 @@ void glSecondaryColor3uiv(const GLuint *v)
 
 void glSecondaryColor3us(GLushort red, GLushort green, GLushort blue)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.secondary_color3us(ctx, red, green, blue);
@@ -2931,6 +3438,7 @@ void glSecondaryColor3us(GLushort red, GLushort green, GLushort blue)
 
 void glSecondaryColor3usv(const GLushort *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.secondary_color3usv(ctx, v);
@@ -2938,6 +3446,7 @@ void glSecondaryColor3usv(const GLushort *v)
 
 void glSecondaryColorPointer(GLint size, GLenum type, GLsizei stride, const void *pointer)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.secondary_color_pointer(ctx, size, type, stride, pointer);
@@ -2945,6 +3454,7 @@ void glSecondaryColorPointer(GLint size, GLenum type, GLsizei stride, const void
 
 void glWindowPos2d(GLdouble x, GLdouble y)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.window_pos2d(ctx, x, y);
@@ -2952,6 +3462,7 @@ void glWindowPos2d(GLdouble x, GLdouble y)
 
 void glWindowPos2dv(const GLdouble *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.window_pos2dv(ctx, v);
@@ -2959,6 +3470,7 @@ void glWindowPos2dv(const GLdouble *v)
 
 void glWindowPos2f(GLfloat x, GLfloat y)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.window_pos2f(ctx, x, y);
@@ -2966,6 +3478,7 @@ void glWindowPos2f(GLfloat x, GLfloat y)
 
 void glWindowPos2fv(const GLfloat *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.window_pos2fv(ctx, v);
@@ -2973,6 +3486,7 @@ void glWindowPos2fv(const GLfloat *v)
 
 void glWindowPos2i(GLint x, GLint y)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.window_pos2i(ctx, x, y);
@@ -2980,6 +3494,7 @@ void glWindowPos2i(GLint x, GLint y)
 
 void glWindowPos2iv(const GLint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.window_pos2iv(ctx, v);
@@ -2987,6 +3502,7 @@ void glWindowPos2iv(const GLint *v)
 
 void glWindowPos2s(GLshort x, GLshort y)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.window_pos2s(ctx, x, y);
@@ -2994,6 +3510,7 @@ void glWindowPos2s(GLshort x, GLshort y)
 
 void glWindowPos2sv(const GLshort *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.window_pos2sv(ctx, v);
@@ -3001,6 +3518,7 @@ void glWindowPos2sv(const GLshort *v)
 
 void glWindowPos3d(GLdouble x, GLdouble y, GLdouble z)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.window_pos3d(ctx, x, y, z);
@@ -3008,6 +3526,7 @@ void glWindowPos3d(GLdouble x, GLdouble y, GLdouble z)
 
 void glWindowPos3dv(const GLdouble *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.window_pos3dv(ctx, v);
@@ -3015,6 +3534,7 @@ void glWindowPos3dv(const GLdouble *v)
 
 void glWindowPos3f(GLfloat x, GLfloat y, GLfloat z)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.window_pos3f(ctx, x, y, z);
@@ -3022,6 +3542,7 @@ void glWindowPos3f(GLfloat x, GLfloat y, GLfloat z)
 
 void glWindowPos3fv(const GLfloat *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.window_pos3fv(ctx, v);
@@ -3029,6 +3550,7 @@ void glWindowPos3fv(const GLfloat *v)
 
 void glWindowPos3i(GLint x, GLint y, GLint z)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.window_pos3i(ctx, x, y, z);
@@ -3036,6 +3558,7 @@ void glWindowPos3i(GLint x, GLint y, GLint z)
 
 void glWindowPos3iv(const GLint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.window_pos3iv(ctx, v);
@@ -3043,6 +3566,7 @@ void glWindowPos3iv(const GLint *v)
 
 void glWindowPos3s(GLshort x, GLshort y, GLshort z)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.window_pos3s(ctx, x, y, z);
@@ -3050,6 +3574,7 @@ void glWindowPos3s(GLshort x, GLshort y, GLshort z)
 
 void glWindowPos3sv(const GLshort *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.window_pos3sv(ctx, v);
@@ -3057,6 +3582,7 @@ void glWindowPos3sv(const GLshort *v)
 
 void glBlendColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.blend_color(ctx, red, green, blue, alpha);
@@ -3064,6 +3590,11 @@ void glBlendColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 
 void glBlendEquation(GLenum mode)
 {
+    CHECK_CONTEXT();
+    CHECK_CONTEXT();
+
+    CHECK_CONTEXT();
+
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.blend_equation(ctx, mode);
@@ -3071,6 +3602,7 @@ void glBlendEquation(GLenum mode)
 
 void glGenQueries(GLsizei n, GLuint *ids)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.gen_queries(ctx, n, ids);
@@ -3078,6 +3610,7 @@ void glGenQueries(GLsizei n, GLuint *ids)
 
 void glDeleteQueries(GLsizei n, const GLuint *ids)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.delete_queries(ctx, n, ids);
@@ -3092,6 +3625,7 @@ GLboolean glIsQuery(GLuint id)
 
 void glBeginQuery(GLenum target, GLuint id)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.begin_query(ctx, target, id);
@@ -3099,6 +3633,7 @@ void glBeginQuery(GLenum target, GLuint id)
 
 void glEndQuery(GLenum target)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.end_query(ctx, target);
@@ -3106,6 +3641,7 @@ void glEndQuery(GLenum target)
 
 void glGetQueryiv(GLenum target, GLenum pname, GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_queryiv(ctx, target, pname, params);
@@ -3113,6 +3649,7 @@ void glGetQueryiv(GLenum target, GLenum pname, GLint *params)
 
 void glGetQueryObjectiv(GLuint id, GLenum pname, GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_query_objectiv(ctx, id, pname, params);
@@ -3120,6 +3657,7 @@ void glGetQueryObjectiv(GLuint id, GLenum pname, GLint *params)
 
 void glGetQueryObjectuiv(GLuint id, GLenum pname, GLuint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_query_objectuiv(ctx, id, pname, params);
@@ -3127,6 +3665,11 @@ void glGetQueryObjectuiv(GLuint id, GLenum pname, GLuint *params)
 
 void glBindBuffer(GLenum target, GLuint buffer)
 {
+    CHECK_CONTEXT();
+    CHECK_CONTEXT();
+
+    CHECK_CONTEXT();
+
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.bind_buffer(ctx, target, buffer);
@@ -3134,6 +3677,11 @@ void glBindBuffer(GLenum target, GLuint buffer)
 
 void glDeleteBuffers(GLsizei n, const GLuint *buffers)
 {
+    CHECK_CONTEXT();
+    CHECK_CONTEXT();
+
+    CHECK_CONTEXT();
+
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.delete_buffers(ctx, n, buffers);
@@ -3141,6 +3689,11 @@ void glDeleteBuffers(GLsizei n, const GLuint *buffers)
 
 void glGenBuffers(GLsizei n, GLuint *buffers)
 {
+    CHECK_CONTEXT();
+    CHECK_CONTEXT();
+
+    CHECK_CONTEXT();
+
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.gen_buffers(ctx, n, buffers);
@@ -3155,6 +3708,11 @@ GLboolean glIsBuffer(GLuint buffer)
 
 void glBufferData(GLenum target, GLsizeiptr size, const void *data, GLenum usage)
 {
+    CHECK_CONTEXT();
+    CHECK_CONTEXT();
+
+    CHECK_CONTEXT();
+
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.buffer_data(ctx, target, size, data, usage);
@@ -3162,6 +3720,11 @@ void glBufferData(GLenum target, GLsizeiptr size, const void *data, GLenum usage
 
 void glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const void *data)
 {
+    CHECK_CONTEXT();
+    CHECK_CONTEXT();
+
+    CHECK_CONTEXT();
+
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.buffer_sub_data(ctx, target, offset, size, data);
@@ -3169,6 +3732,7 @@ void glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const void
 
 void glGetBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, void *data)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_buffer_sub_data(ctx, target, offset, size, data);
@@ -3190,6 +3754,7 @@ GLboolean glUnmapBuffer(GLenum target)
 
 void glGetBufferParameteriv(GLenum target, GLenum pname, GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_buffer_parameteriv(ctx, target, pname, params);
@@ -3197,6 +3762,7 @@ void glGetBufferParameteriv(GLenum target, GLenum pname, GLint *params)
 
 void glGetBufferPointerv(GLenum target, GLenum pname, void **params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_buffer_pointerv(ctx, target, pname, params);
@@ -3204,6 +3770,7 @@ void glGetBufferPointerv(GLenum target, GLenum pname, void **params)
 
 void glBlendEquationSeparate(GLenum modeRGB, GLenum modeAlpha)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.blend_equation_separate(ctx, modeRGB, modeAlpha);
@@ -3211,6 +3778,7 @@ void glBlendEquationSeparate(GLenum modeRGB, GLenum modeAlpha)
 
 void glDrawBuffers(GLsizei n, const GLenum *bufs)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.draw_buffers(ctx, n, bufs);
@@ -3218,6 +3786,7 @@ void glDrawBuffers(GLsizei n, const GLenum *bufs)
 
 void glStencilOpSeparate(GLenum face, GLenum sfail, GLenum dpfail, GLenum dppass)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.stencil_op_separate(ctx, face, sfail, dpfail, dppass);
@@ -3225,6 +3794,7 @@ void glStencilOpSeparate(GLenum face, GLenum sfail, GLenum dpfail, GLenum dppass
 
 void glStencilFuncSeparate(GLenum face, GLenum func, GLint ref, GLuint mask)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.stencil_func_separate(ctx, face, func, ref, mask);
@@ -3232,6 +3802,7 @@ void glStencilFuncSeparate(GLenum face, GLenum func, GLint ref, GLuint mask)
 
 void glStencilMaskSeparate(GLenum face, GLuint mask)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.stencil_mask_separate(ctx, face, mask);
@@ -3239,6 +3810,7 @@ void glStencilMaskSeparate(GLenum face, GLuint mask)
 
 void glAttachShader(GLuint program, GLuint shader)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.attach_shader(ctx, program, shader);
@@ -3246,6 +3818,7 @@ void glAttachShader(GLuint program, GLuint shader)
 
 void glBindAttribLocation(GLuint program, GLuint index, const GLchar *name)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.bind_attrib_location(ctx, program, index, name);
@@ -3253,6 +3826,7 @@ void glBindAttribLocation(GLuint program, GLuint index, const GLchar *name)
 
 void glCompileShader(GLuint shader)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.compile_shader(ctx, shader);
@@ -3260,6 +3834,7 @@ void glCompileShader(GLuint shader)
 
 GLuint glCreateProgram()
 {
+    CHECK_CONTEXT_RET(0);
     GLMContext ctx = GET_CONTEXT();
 
     return ctx->dispatch.create_program(ctx);
@@ -3268,12 +3843,14 @@ GLuint glCreateProgram()
 GLuint glCreateShader(GLenum type)
 {
     GLMContext ctx = GET_CONTEXT();
+    CHECK_CONTEXT_RET(0);
 
     return ctx->dispatch.create_shader(ctx, type);
 }
 
 void glDeleteProgram(GLuint program)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.delete_program(ctx, program);
@@ -3281,6 +3858,7 @@ void glDeleteProgram(GLuint program)
 
 void glDeleteShader(GLuint shader)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.delete_shader(ctx, shader);
@@ -3288,6 +3866,7 @@ void glDeleteShader(GLuint shader)
 
 void glDetachShader(GLuint program, GLuint shader)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.detach_shader(ctx, program, shader);
@@ -3295,6 +3874,11 @@ void glDetachShader(GLuint program, GLuint shader)
 
 void glDisableVertexAttribArray(GLuint index)
 {
+    CHECK_CONTEXT();
+    CHECK_CONTEXT();
+
+    CHECK_CONTEXT();
+
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.disable_vertex_attrib_array(ctx, index);
@@ -3302,6 +3886,11 @@ void glDisableVertexAttribArray(GLuint index)
 
 void glEnableVertexAttribArray(GLuint index)
 {
+    CHECK_CONTEXT();
+    CHECK_CONTEXT();
+
+    CHECK_CONTEXT();
+
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.enable_vertex_attrib_array(ctx, index);
@@ -3310,6 +3899,7 @@ void glEnableVertexAttribArray(GLuint index)
 void glGetActiveAttrib(GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLint *size, GLenum *type,
                        GLchar *name)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_active_attrib(ctx, program, index, bufSize, length, size, type, name);
@@ -3318,6 +3908,7 @@ void glGetActiveAttrib(GLuint program, GLuint index, GLsizei bufSize, GLsizei *l
 void glGetActiveUniform(GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLint *size, GLenum *type,
                         GLchar *name)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_active_uniform(ctx, program, index, bufSize, length, size, type, name);
@@ -3325,6 +3916,7 @@ void glGetActiveUniform(GLuint program, GLuint index, GLsizei bufSize, GLsizei *
 
 void glGetAttachedShaders(GLuint program, GLsizei maxCount, GLsizei *count, GLuint *shaders)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_attached_shaders(ctx, program, maxCount, count, shaders);
@@ -3339,6 +3931,7 @@ GLint glGetAttribLocation(GLuint program, const GLchar *name)
 
 void glGetProgramiv(GLuint program, GLenum pname, GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_programiv(ctx, program, pname, params);
@@ -3346,6 +3939,7 @@ void glGetProgramiv(GLuint program, GLenum pname, GLint *params)
 
 void glGetProgramInfoLog(GLuint program, GLsizei bufSize, GLsizei *length, GLchar *infoLog)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_program_info_log(ctx, program, bufSize, length, infoLog);
@@ -3353,6 +3947,7 @@ void glGetProgramInfoLog(GLuint program, GLsizei bufSize, GLsizei *length, GLcha
 
 void glGetShaderiv(GLuint shader, GLenum pname, GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_shaderiv(ctx, shader, pname, params);
@@ -3360,6 +3955,7 @@ void glGetShaderiv(GLuint shader, GLenum pname, GLint *params)
 
 void glGetShaderInfoLog(GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *infoLog)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_shader_info_log(ctx, shader, bufSize, length, infoLog);
@@ -3367,6 +3963,7 @@ void glGetShaderInfoLog(GLuint shader, GLsizei bufSize, GLsizei *length, GLchar 
 
 void glGetShaderSource(GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *source)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_shader_source(ctx, shader, bufSize, length, source);
@@ -3381,6 +3978,7 @@ GLint glGetUniformLocation(GLuint program, const GLchar *name)
 
 void glGetUniformfv(GLuint program, GLint location, GLfloat *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_uniformfv(ctx, program, location, params);
@@ -3388,6 +3986,7 @@ void glGetUniformfv(GLuint program, GLint location, GLfloat *params)
 
 void glGetUniformiv(GLuint program, GLint location, GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_uniformiv(ctx, program, location, params);
@@ -3395,6 +3994,7 @@ void glGetUniformiv(GLuint program, GLint location, GLint *params)
 
 void glGetVertexAttribdv(GLuint index, GLenum pname, GLdouble *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_vertex_attribdv(ctx, index, pname, params);
@@ -3402,6 +4002,7 @@ void glGetVertexAttribdv(GLuint index, GLenum pname, GLdouble *params)
 
 void glGetVertexAttribfv(GLuint index, GLenum pname, GLfloat *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_vertex_attribfv(ctx, index, pname, params);
@@ -3409,6 +4010,7 @@ void glGetVertexAttribfv(GLuint index, GLenum pname, GLfloat *params)
 
 void glGetVertexAttribiv(GLuint index, GLenum pname, GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_vertex_attribiv(ctx, index, pname, params);
@@ -3416,6 +4018,7 @@ void glGetVertexAttribiv(GLuint index, GLenum pname, GLint *params)
 
 void glGetVertexAttribPointerv(GLuint index, GLenum pname, void **pointer)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_vertex_attrib_pointerv(ctx, index, pname, pointer);
@@ -3423,6 +4026,7 @@ void glGetVertexAttribPointerv(GLuint index, GLenum pname, void **pointer)
 
 GLboolean glIsProgram(GLuint program)
 {
+    CHECK_CONTEXT_RET(GL_FALSE);
     GLMContext ctx = GET_CONTEXT();
 
     return ctx->dispatch.is_program(ctx, program);
@@ -3430,6 +4034,7 @@ GLboolean glIsProgram(GLuint program)
 
 GLboolean glIsShader(GLuint shader)
 {
+    CHECK_CONTEXT_RET(GL_FALSE);
     GLMContext ctx = GET_CONTEXT();
 
     return ctx->dispatch.is_shader(ctx, shader);
@@ -3437,6 +4042,7 @@ GLboolean glIsShader(GLuint shader)
 
 void glLinkProgram(GLuint program)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.link_program(ctx, program);
@@ -3444,6 +4050,7 @@ void glLinkProgram(GLuint program)
 
 void glShaderSource(GLuint shader, GLsizei count, const GLchar *const *string, const GLint *length)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.shader_source(ctx, shader, count, string, length);
@@ -3451,6 +4058,7 @@ void glShaderSource(GLuint shader, GLsizei count, const GLchar *const *string, c
 
 void glUseProgram(GLuint program)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.use_program(ctx, program);
@@ -3458,6 +4066,7 @@ void glUseProgram(GLuint program)
 
 void glUniform1f(GLint location, GLfloat v0)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform1f(ctx, location, v0);
@@ -3465,6 +4074,7 @@ void glUniform1f(GLint location, GLfloat v0)
 
 void glUniform2f(GLint location, GLfloat v0, GLfloat v1)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform2f(ctx, location, v0, v1);
@@ -3472,6 +4082,7 @@ void glUniform2f(GLint location, GLfloat v0, GLfloat v1)
 
 void glUniform3f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform3f(ctx, location, v0, v1, v2);
@@ -3479,6 +4090,7 @@ void glUniform3f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2)
 
 void glUniform4f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform4f(ctx, location, v0, v1, v2, v3);
@@ -3486,6 +4098,7 @@ void glUniform4f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3)
 
 void glUniform1i(GLint location, GLint v0)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform1i(ctx, location, v0);
@@ -3493,6 +4106,7 @@ void glUniform1i(GLint location, GLint v0)
 
 void glUniform2i(GLint location, GLint v0, GLint v1)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform2i(ctx, location, v0, v1);
@@ -3500,6 +4114,7 @@ void glUniform2i(GLint location, GLint v0, GLint v1)
 
 void glUniform3i(GLint location, GLint v0, GLint v1, GLint v2)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform3i(ctx, location, v0, v1, v2);
@@ -3507,6 +4122,7 @@ void glUniform3i(GLint location, GLint v0, GLint v1, GLint v2)
 
 void glUniform4i(GLint location, GLint v0, GLint v1, GLint v2, GLint v3)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform4i(ctx, location, v0, v1, v2, v3);
@@ -3514,6 +4130,7 @@ void glUniform4i(GLint location, GLint v0, GLint v1, GLint v2, GLint v3)
 
 void glUniform1fv(GLint location, GLsizei count, const GLfloat *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform1fv(ctx, location, count, value);
@@ -3521,6 +4138,7 @@ void glUniform1fv(GLint location, GLsizei count, const GLfloat *value)
 
 void glUniform2fv(GLint location, GLsizei count, const GLfloat *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform2fv(ctx, location, count, value);
@@ -3528,6 +4146,7 @@ void glUniform2fv(GLint location, GLsizei count, const GLfloat *value)
 
 void glUniform3fv(GLint location, GLsizei count, const GLfloat *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform3fv(ctx, location, count, value);
@@ -3535,6 +4154,7 @@ void glUniform3fv(GLint location, GLsizei count, const GLfloat *value)
 
 void glUniform4fv(GLint location, GLsizei count, const GLfloat *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform4fv(ctx, location, count, value);
@@ -3542,6 +4162,7 @@ void glUniform4fv(GLint location, GLsizei count, const GLfloat *value)
 
 void glUniform1iv(GLint location, GLsizei count, const GLint *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform1iv(ctx, location, count, value);
@@ -3549,6 +4170,7 @@ void glUniform1iv(GLint location, GLsizei count, const GLint *value)
 
 void glUniform2iv(GLint location, GLsizei count, const GLint *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform2iv(ctx, location, count, value);
@@ -3556,6 +4178,7 @@ void glUniform2iv(GLint location, GLsizei count, const GLint *value)
 
 void glUniform3iv(GLint location, GLsizei count, const GLint *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform3iv(ctx, location, count, value);
@@ -3563,6 +4186,7 @@ void glUniform3iv(GLint location, GLsizei count, const GLint *value)
 
 void glUniform4iv(GLint location, GLsizei count, const GLint *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform4iv(ctx, location, count, value);
@@ -3570,6 +4194,7 @@ void glUniform4iv(GLint location, GLsizei count, const GLint *value)
 
 void glUniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform_matrix2fv(ctx, location, count, transpose, value);
@@ -3577,6 +4202,7 @@ void glUniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose, cons
 
 void glUniformMatrix3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform_matrix3fv(ctx, location, count, transpose, value);
@@ -3584,6 +4210,7 @@ void glUniformMatrix3fv(GLint location, GLsizei count, GLboolean transpose, cons
 
 void glUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform_matrix4fv(ctx, location, count, transpose, value);
@@ -3591,6 +4218,7 @@ void glUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, cons
 
 void glValidateProgram(GLuint program)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.validate_program(ctx, program);
@@ -3598,6 +4226,7 @@ void glValidateProgram(GLuint program)
 
 void glVertexAttrib1d(GLuint index, GLdouble x)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib1d(ctx, index, x);
@@ -3605,6 +4234,7 @@ void glVertexAttrib1d(GLuint index, GLdouble x)
 
 void glVertexAttrib1dv(GLuint index, const GLdouble *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib1dv(ctx, index, v);
@@ -3612,6 +4242,7 @@ void glVertexAttrib1dv(GLuint index, const GLdouble *v)
 
 void glVertexAttrib1f(GLuint index, GLfloat x)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib1f(ctx, index, x);
@@ -3619,6 +4250,7 @@ void glVertexAttrib1f(GLuint index, GLfloat x)
 
 void glVertexAttrib1fv(GLuint index, const GLfloat *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib1fv(ctx, index, v);
@@ -3626,6 +4258,7 @@ void glVertexAttrib1fv(GLuint index, const GLfloat *v)
 
 void glVertexAttrib1s(GLuint index, GLshort x)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib1s(ctx, index, x);
@@ -3633,6 +4266,7 @@ void glVertexAttrib1s(GLuint index, GLshort x)
 
 void glVertexAttrib1sv(GLuint index, const GLshort *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib1sv(ctx, index, v);
@@ -3640,6 +4274,7 @@ void glVertexAttrib1sv(GLuint index, const GLshort *v)
 
 void glVertexAttrib2d(GLuint index, GLdouble x, GLdouble y)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib2d(ctx, index, x, y);
@@ -3647,6 +4282,7 @@ void glVertexAttrib2d(GLuint index, GLdouble x, GLdouble y)
 
 void glVertexAttrib2dv(GLuint index, const GLdouble *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib2dv(ctx, index, v);
@@ -3654,6 +4290,7 @@ void glVertexAttrib2dv(GLuint index, const GLdouble *v)
 
 void glVertexAttrib2f(GLuint index, GLfloat x, GLfloat y)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib2f(ctx, index, x, y);
@@ -3661,6 +4298,7 @@ void glVertexAttrib2f(GLuint index, GLfloat x, GLfloat y)
 
 void glVertexAttrib2fv(GLuint index, const GLfloat *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib2fv(ctx, index, v);
@@ -3668,6 +4306,7 @@ void glVertexAttrib2fv(GLuint index, const GLfloat *v)
 
 void glVertexAttrib2s(GLuint index, GLshort x, GLshort y)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib2s(ctx, index, x, y);
@@ -3675,6 +4314,7 @@ void glVertexAttrib2s(GLuint index, GLshort x, GLshort y)
 
 void glVertexAttrib2sv(GLuint index, const GLshort *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib2sv(ctx, index, v);
@@ -3682,6 +4322,7 @@ void glVertexAttrib2sv(GLuint index, const GLshort *v)
 
 void glVertexAttrib3d(GLuint index, GLdouble x, GLdouble y, GLdouble z)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib3d(ctx, index, x, y, z);
@@ -3689,6 +4330,7 @@ void glVertexAttrib3d(GLuint index, GLdouble x, GLdouble y, GLdouble z)
 
 void glVertexAttrib3dv(GLuint index, const GLdouble *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib3dv(ctx, index, v);
@@ -3696,6 +4338,7 @@ void glVertexAttrib3dv(GLuint index, const GLdouble *v)
 
 void glVertexAttrib3f(GLuint index, GLfloat x, GLfloat y, GLfloat z)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib3f(ctx, index, x, y, z);
@@ -3703,6 +4346,7 @@ void glVertexAttrib3f(GLuint index, GLfloat x, GLfloat y, GLfloat z)
 
 void glVertexAttrib3fv(GLuint index, const GLfloat *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib3fv(ctx, index, v);
@@ -3710,6 +4354,7 @@ void glVertexAttrib3fv(GLuint index, const GLfloat *v)
 
 void glVertexAttrib3s(GLuint index, GLshort x, GLshort y, GLshort z)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib3s(ctx, index, x, y, z);
@@ -3717,6 +4362,7 @@ void glVertexAttrib3s(GLuint index, GLshort x, GLshort y, GLshort z)
 
 void glVertexAttrib3sv(GLuint index, const GLshort *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib3sv(ctx, index, v);
@@ -3724,6 +4370,7 @@ void glVertexAttrib3sv(GLuint index, const GLshort *v)
 
 void glVertexAttrib4Nbv(GLuint index, const GLbyte *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib4_nbv(ctx, index, v);
@@ -3731,6 +4378,7 @@ void glVertexAttrib4Nbv(GLuint index, const GLbyte *v)
 
 void glVertexAttrib4Niv(GLuint index, const GLint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib4_niv(ctx, index, v);
@@ -3738,6 +4386,7 @@ void glVertexAttrib4Niv(GLuint index, const GLint *v)
 
 void glVertexAttrib4Nsv(GLuint index, const GLshort *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib4_nsv(ctx, index, v);
@@ -3745,6 +4394,7 @@ void glVertexAttrib4Nsv(GLuint index, const GLshort *v)
 
 void glVertexAttrib4Nub(GLuint index, GLubyte x, GLubyte y, GLubyte z, GLubyte w)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib4_nub(ctx, index, x, y, z, w);
@@ -3752,6 +4402,7 @@ void glVertexAttrib4Nub(GLuint index, GLubyte x, GLubyte y, GLubyte z, GLubyte w
 
 void glVertexAttrib4Nubv(GLuint index, const GLubyte *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib4_nubv(ctx, index, v);
@@ -3759,6 +4410,7 @@ void glVertexAttrib4Nubv(GLuint index, const GLubyte *v)
 
 void glVertexAttrib4Nuiv(GLuint index, const GLuint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib4_nuiv(ctx, index, v);
@@ -3766,6 +4418,7 @@ void glVertexAttrib4Nuiv(GLuint index, const GLuint *v)
 
 void glVertexAttrib4Nusv(GLuint index, const GLushort *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib4_nusv(ctx, index, v);
@@ -3773,6 +4426,7 @@ void glVertexAttrib4Nusv(GLuint index, const GLushort *v)
 
 void glVertexAttrib4bv(GLuint index, const GLbyte *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib4bv(ctx, index, v);
@@ -3780,6 +4434,7 @@ void glVertexAttrib4bv(GLuint index, const GLbyte *v)
 
 void glVertexAttrib4d(GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib4d(ctx, index, x, y, z, w);
@@ -3787,6 +4442,7 @@ void glVertexAttrib4d(GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble
 
 void glVertexAttrib4dv(GLuint index, const GLdouble *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib4dv(ctx, index, v);
@@ -3794,6 +4450,7 @@ void glVertexAttrib4dv(GLuint index, const GLdouble *v)
 
 void glVertexAttrib4f(GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib4f(ctx, index, x, y, z, w);
@@ -3801,6 +4458,7 @@ void glVertexAttrib4f(GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w)
 
 void glVertexAttrib4fv(GLuint index, const GLfloat *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib4fv(ctx, index, v);
@@ -3808,6 +4466,7 @@ void glVertexAttrib4fv(GLuint index, const GLfloat *v)
 
 void glVertexAttrib4iv(GLuint index, const GLint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib4iv(ctx, index, v);
@@ -3815,6 +4474,7 @@ void glVertexAttrib4iv(GLuint index, const GLint *v)
 
 void glVertexAttrib4s(GLuint index, GLshort x, GLshort y, GLshort z, GLshort w)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib4s(ctx, index, x, y, z, w);
@@ -3822,6 +4482,7 @@ void glVertexAttrib4s(GLuint index, GLshort x, GLshort y, GLshort z, GLshort w)
 
 void glVertexAttrib4sv(GLuint index, const GLshort *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib4sv(ctx, index, v);
@@ -3829,6 +4490,7 @@ void glVertexAttrib4sv(GLuint index, const GLshort *v)
 
 void glVertexAttrib4ubv(GLuint index, const GLubyte *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib4ubv(ctx, index, v);
@@ -3836,6 +4498,7 @@ void glVertexAttrib4ubv(GLuint index, const GLubyte *v)
 
 void glVertexAttrib4uiv(GLuint index, const GLuint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib4uiv(ctx, index, v);
@@ -3843,6 +4506,7 @@ void glVertexAttrib4uiv(GLuint index, const GLuint *v)
 
 void glVertexAttrib4usv(GLuint index, const GLushort *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib4usv(ctx, index, v);
@@ -3851,6 +4515,11 @@ void glVertexAttrib4usv(GLuint index, const GLushort *v)
 void glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride,
                            const void *pointer)
 {
+    CHECK_CONTEXT();
+    CHECK_CONTEXT();
+
+    CHECK_CONTEXT();
+
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_pointer(ctx, index, size, type, normalized, stride, pointer);
@@ -3858,6 +4527,7 @@ void glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean norm
 
 void glUniformMatrix2x3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform_matrix2x3fv(ctx, location, count, transpose, value);
@@ -3865,6 +4535,7 @@ void glUniformMatrix2x3fv(GLint location, GLsizei count, GLboolean transpose, co
 
 void glUniformMatrix3x2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform_matrix3x2fv(ctx, location, count, transpose, value);
@@ -3872,6 +4543,7 @@ void glUniformMatrix3x2fv(GLint location, GLsizei count, GLboolean transpose, co
 
 void glUniformMatrix2x4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform_matrix2x4fv(ctx, location, count, transpose, value);
@@ -3879,6 +4551,7 @@ void glUniformMatrix2x4fv(GLint location, GLsizei count, GLboolean transpose, co
 
 void glUniformMatrix4x2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform_matrix4x2fv(ctx, location, count, transpose, value);
@@ -3886,6 +4559,7 @@ void glUniformMatrix4x2fv(GLint location, GLsizei count, GLboolean transpose, co
 
 void glUniformMatrix3x4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform_matrix3x4fv(ctx, location, count, transpose, value);
@@ -3893,6 +4567,7 @@ void glUniformMatrix3x4fv(GLint location, GLsizei count, GLboolean transpose, co
 
 void glUniformMatrix4x3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform_matrix4x3fv(ctx, location, count, transpose, value);
@@ -3900,6 +4575,7 @@ void glUniformMatrix4x3fv(GLint location, GLsizei count, GLboolean transpose, co
 
 void glColorMaski(GLuint index, GLboolean r, GLboolean g, GLboolean b, GLboolean a)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color_maski(ctx, index, r, g, b, a);
@@ -3907,6 +4583,7 @@ void glColorMaski(GLuint index, GLboolean r, GLboolean g, GLboolean b, GLboolean
 
 void glGetBooleani_v(GLenum target, GLuint index, GLboolean *data)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_booleani_v(ctx, target, index, data);
@@ -3914,6 +4591,7 @@ void glGetBooleani_v(GLenum target, GLuint index, GLboolean *data)
 
 void glGetIntegeri_v(GLenum target, GLuint index, GLint *data)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_integeri_v(ctx, target, index, data);
@@ -3921,6 +4599,7 @@ void glGetIntegeri_v(GLenum target, GLuint index, GLint *data)
 
 void glEnablei(GLenum target, GLuint index)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.enablei(ctx, target, index);
@@ -3928,6 +4607,7 @@ void glEnablei(GLenum target, GLuint index)
 
 void glDisablei(GLenum target, GLuint index)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.disablei(ctx, target, index);
@@ -3942,6 +4622,7 @@ GLboolean glIsEnabledi(GLenum target, GLuint index)
 
 void glBeginTransformFeedback(GLenum primitiveMode)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.begin_transform_feedback(ctx, primitiveMode);
@@ -3949,6 +4630,7 @@ void glBeginTransformFeedback(GLenum primitiveMode)
 
 void glEndTransformFeedback()
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.end_transform_feedback(ctx);
@@ -3956,6 +4638,7 @@ void glEndTransformFeedback()
 
 void glBindBufferRange(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.bind_buffer_range(ctx, target, index, buffer, offset, size);
@@ -3963,6 +4646,7 @@ void glBindBufferRange(GLenum target, GLuint index, GLuint buffer, GLintptr offs
 
 void glBindBufferBase(GLenum target, GLuint index, GLuint buffer)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.bind_buffer_base(ctx, target, index, buffer);
@@ -3970,6 +4654,7 @@ void glBindBufferBase(GLenum target, GLuint index, GLuint buffer)
 
 void glTransformFeedbackVaryings(GLuint program, GLsizei count, const GLchar *const *varyings, GLenum bufferMode)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.transform_feedback_varyings(ctx, program, count, varyings, bufferMode);
@@ -3978,6 +4663,7 @@ void glTransformFeedbackVaryings(GLuint program, GLsizei count, const GLchar *co
 void glGetTransformFeedbackVarying(GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLsizei *size,
                                    GLenum *type, GLchar *name)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_transform_feedback_varying(ctx, program, index, bufSize, length, size, type, name);
@@ -3985,6 +4671,7 @@ void glGetTransformFeedbackVarying(GLuint program, GLuint index, GLsizei bufSize
 
 void glClampColor(GLenum target, GLenum clamp)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.clamp_color(ctx, target, clamp);
@@ -3992,6 +4679,7 @@ void glClampColor(GLenum target, GLenum clamp)
 
 void glBeginConditionalRender(GLuint id, GLenum mode)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.begin_conditional_render(ctx, id, mode);
@@ -3999,6 +4687,7 @@ void glBeginConditionalRender(GLuint id, GLenum mode)
 
 void glEndConditionalRender()
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.end_conditional_render(ctx);
@@ -4006,6 +4695,7 @@ void glEndConditionalRender()
 
 void glVertexAttribIPointer(GLuint index, GLint size, GLenum type, GLsizei stride, const void *pointer)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_i_pointer(ctx, index, size, type, stride, pointer);
@@ -4013,6 +4703,7 @@ void glVertexAttribIPointer(GLuint index, GLint size, GLenum type, GLsizei strid
 
 void glGetVertexAttribIiv(GLuint index, GLenum pname, GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_vertex_attrib_iiv(ctx, index, pname, params);
@@ -4020,6 +4711,7 @@ void glGetVertexAttribIiv(GLuint index, GLenum pname, GLint *params)
 
 void glGetVertexAttribIuiv(GLuint index, GLenum pname, GLuint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_vertex_attrib_iuiv(ctx, index, pname, params);
@@ -4027,6 +4719,7 @@ void glGetVertexAttribIuiv(GLuint index, GLenum pname, GLuint *params)
 
 void glVertexAttribI1i(GLuint index, GLint x)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_i1i(ctx, index, x);
@@ -4034,6 +4727,7 @@ void glVertexAttribI1i(GLuint index, GLint x)
 
 void glVertexAttribI2i(GLuint index, GLint x, GLint y)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_i2i(ctx, index, x, y);
@@ -4041,6 +4735,7 @@ void glVertexAttribI2i(GLuint index, GLint x, GLint y)
 
 void glVertexAttribI3i(GLuint index, GLint x, GLint y, GLint z)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_i3i(ctx, index, x, y, z);
@@ -4048,6 +4743,7 @@ void glVertexAttribI3i(GLuint index, GLint x, GLint y, GLint z)
 
 void glVertexAttribI4i(GLuint index, GLint x, GLint y, GLint z, GLint w)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_i4i(ctx, index, x, y, z, w);
@@ -4055,6 +4751,7 @@ void glVertexAttribI4i(GLuint index, GLint x, GLint y, GLint z, GLint w)
 
 void glVertexAttribI1ui(GLuint index, GLuint x)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_i1ui(ctx, index, x);
@@ -4062,6 +4759,7 @@ void glVertexAttribI1ui(GLuint index, GLuint x)
 
 void glVertexAttribI2ui(GLuint index, GLuint x, GLuint y)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_i2ui(ctx, index, x, y);
@@ -4069,6 +4767,7 @@ void glVertexAttribI2ui(GLuint index, GLuint x, GLuint y)
 
 void glVertexAttribI3ui(GLuint index, GLuint x, GLuint y, GLuint z)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_i3ui(ctx, index, x, y, z);
@@ -4076,6 +4775,7 @@ void glVertexAttribI3ui(GLuint index, GLuint x, GLuint y, GLuint z)
 
 void glVertexAttribI4ui(GLuint index, GLuint x, GLuint y, GLuint z, GLuint w)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_i4ui(ctx, index, x, y, z, w);
@@ -4083,6 +4783,7 @@ void glVertexAttribI4ui(GLuint index, GLuint x, GLuint y, GLuint z, GLuint w)
 
 void glVertexAttribI1iv(GLuint index, const GLint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_i1iv(ctx, index, v);
@@ -4090,6 +4791,7 @@ void glVertexAttribI1iv(GLuint index, const GLint *v)
 
 void glVertexAttribI2iv(GLuint index, const GLint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_i2iv(ctx, index, v);
@@ -4097,6 +4799,7 @@ void glVertexAttribI2iv(GLuint index, const GLint *v)
 
 void glVertexAttribI3iv(GLuint index, const GLint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_i3iv(ctx, index, v);
@@ -4104,6 +4807,7 @@ void glVertexAttribI3iv(GLuint index, const GLint *v)
 
 void glVertexAttribI4iv(GLuint index, const GLint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_i4iv(ctx, index, v);
@@ -4111,6 +4815,7 @@ void glVertexAttribI4iv(GLuint index, const GLint *v)
 
 void glVertexAttribI1uiv(GLuint index, const GLuint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_i1uiv(ctx, index, v);
@@ -4118,6 +4823,7 @@ void glVertexAttribI1uiv(GLuint index, const GLuint *v)
 
 void glVertexAttribI2uiv(GLuint index, const GLuint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_i2uiv(ctx, index, v);
@@ -4125,6 +4831,7 @@ void glVertexAttribI2uiv(GLuint index, const GLuint *v)
 
 void glVertexAttribI3uiv(GLuint index, const GLuint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_i3uiv(ctx, index, v);
@@ -4132,6 +4839,7 @@ void glVertexAttribI3uiv(GLuint index, const GLuint *v)
 
 void glVertexAttribI4uiv(GLuint index, const GLuint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_i4uiv(ctx, index, v);
@@ -4139,6 +4847,7 @@ void glVertexAttribI4uiv(GLuint index, const GLuint *v)
 
 void glVertexAttribI4bv(GLuint index, const GLbyte *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_i4bv(ctx, index, v);
@@ -4146,6 +4855,7 @@ void glVertexAttribI4bv(GLuint index, const GLbyte *v)
 
 void glVertexAttribI4sv(GLuint index, const GLshort *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_i4sv(ctx, index, v);
@@ -4153,6 +4863,7 @@ void glVertexAttribI4sv(GLuint index, const GLshort *v)
 
 void glVertexAttribI4ubv(GLuint index, const GLubyte *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_i4ubv(ctx, index, v);
@@ -4160,6 +4871,7 @@ void glVertexAttribI4ubv(GLuint index, const GLubyte *v)
 
 void glVertexAttribI4usv(GLuint index, const GLushort *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_i4usv(ctx, index, v);
@@ -4167,6 +4879,7 @@ void glVertexAttribI4usv(GLuint index, const GLushort *v)
 
 void glGetUniformuiv(GLuint program, GLint location, GLuint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_uniformuiv(ctx, program, location, params);
@@ -4174,6 +4887,7 @@ void glGetUniformuiv(GLuint program, GLint location, GLuint *params)
 
 void glBindFragDataLocation(GLuint program, GLuint color, const GLchar *name)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.bind_frag_data_location(ctx, program, color, name);
@@ -4188,6 +4902,7 @@ GLint glGetFragDataLocation(GLuint program, const GLchar *name)
 
 void glUniform1ui(GLint location, GLuint v0)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform1ui(ctx, location, v0);
@@ -4195,6 +4910,7 @@ void glUniform1ui(GLint location, GLuint v0)
 
 void glUniform2ui(GLint location, GLuint v0, GLuint v1)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform2ui(ctx, location, v0, v1);
@@ -4202,6 +4918,7 @@ void glUniform2ui(GLint location, GLuint v0, GLuint v1)
 
 void glUniform3ui(GLint location, GLuint v0, GLuint v1, GLuint v2)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform3ui(ctx, location, v0, v1, v2);
@@ -4209,6 +4926,7 @@ void glUniform3ui(GLint location, GLuint v0, GLuint v1, GLuint v2)
 
 void glUniform4ui(GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform4ui(ctx, location, v0, v1, v2, v3);
@@ -4216,6 +4934,7 @@ void glUniform4ui(GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3)
 
 void glUniform1uiv(GLint location, GLsizei count, const GLuint *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform1uiv(ctx, location, count, value);
@@ -4223,6 +4942,7 @@ void glUniform1uiv(GLint location, GLsizei count, const GLuint *value)
 
 void glUniform2uiv(GLint location, GLsizei count, const GLuint *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform2uiv(ctx, location, count, value);
@@ -4230,6 +4950,7 @@ void glUniform2uiv(GLint location, GLsizei count, const GLuint *value)
 
 void glUniform3uiv(GLint location, GLsizei count, const GLuint *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform3uiv(ctx, location, count, value);
@@ -4237,6 +4958,7 @@ void glUniform3uiv(GLint location, GLsizei count, const GLuint *value)
 
 void glUniform4uiv(GLint location, GLsizei count, const GLuint *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform4uiv(ctx, location, count, value);
@@ -4244,6 +4966,7 @@ void glUniform4uiv(GLint location, GLsizei count, const GLuint *value)
 
 void glTexParameterIiv(GLenum target, GLenum pname, const GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_parameter_iiv(ctx, target, pname, params);
@@ -4251,6 +4974,7 @@ void glTexParameterIiv(GLenum target, GLenum pname, const GLint *params)
 
 void glTexParameterIuiv(GLenum target, GLenum pname, const GLuint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_parameter_iuiv(ctx, target, pname, params);
@@ -4258,6 +4982,7 @@ void glTexParameterIuiv(GLenum target, GLenum pname, const GLuint *params)
 
 void glGetTexParameterIiv(GLenum target, GLenum pname, GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_tex_parameter_iiv(ctx, target, pname, params);
@@ -4265,6 +4990,7 @@ void glGetTexParameterIiv(GLenum target, GLenum pname, GLint *params)
 
 void glGetTexParameterIuiv(GLenum target, GLenum pname, GLuint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_tex_parameter_iuiv(ctx, target, pname, params);
@@ -4272,6 +4998,7 @@ void glGetTexParameterIuiv(GLenum target, GLenum pname, GLuint *params)
 
 void glClearBufferiv(GLenum buffer, GLint drawbuffer, const GLint *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.clear_bufferiv(ctx, buffer, drawbuffer, value);
@@ -4279,6 +5006,7 @@ void glClearBufferiv(GLenum buffer, GLint drawbuffer, const GLint *value)
 
 void glClearBufferuiv(GLenum buffer, GLint drawbuffer, const GLuint *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.clear_bufferuiv(ctx, buffer, drawbuffer, value);
@@ -4286,6 +5014,7 @@ void glClearBufferuiv(GLenum buffer, GLint drawbuffer, const GLuint *value)
 
 void glClearBufferfv(GLenum buffer, GLint drawbuffer, const GLfloat *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.clear_bufferfv(ctx, buffer, drawbuffer, value);
@@ -4293,6 +5022,7 @@ void glClearBufferfv(GLenum buffer, GLint drawbuffer, const GLfloat *value)
 
 void glClearBufferfi(GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.clear_bufferfi(ctx, buffer, drawbuffer, depth, stencil);
@@ -4314,6 +5044,7 @@ GLboolean glIsRenderbuffer(GLuint renderbuffer)
 
 void glBindRenderbuffer(GLenum target, GLuint renderbuffer)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.bind_renderbuffer(ctx, target, renderbuffer);
@@ -4321,6 +5052,7 @@ void glBindRenderbuffer(GLenum target, GLuint renderbuffer)
 
 void glDeleteRenderbuffers(GLsizei n, const GLuint *renderbuffers)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.delete_renderbuffers(ctx, n, renderbuffers);
@@ -4328,6 +5060,7 @@ void glDeleteRenderbuffers(GLsizei n, const GLuint *renderbuffers)
 
 void glGenRenderbuffers(GLsizei n, GLuint *renderbuffers)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.gen_renderbuffers(ctx, n, renderbuffers);
@@ -4335,6 +5068,7 @@ void glGenRenderbuffers(GLsizei n, GLuint *renderbuffers)
 
 void glRenderbufferStorage(GLenum target, GLenum internalformat, GLsizei width, GLsizei height)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.renderbuffer_storage(ctx, target, internalformat, width, height);
@@ -4342,6 +5076,7 @@ void glRenderbufferStorage(GLenum target, GLenum internalformat, GLsizei width, 
 
 void glGetRenderbufferParameteriv(GLenum target, GLenum pname, GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_renderbuffer_parameteriv(ctx, target, pname, params);
@@ -4356,6 +5091,7 @@ GLboolean glIsFramebuffer(GLuint framebuffer)
 
 void glBindFramebuffer(GLenum target, GLuint framebuffer)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.bind_framebuffer(ctx, target, framebuffer);
@@ -4363,6 +5099,7 @@ void glBindFramebuffer(GLenum target, GLuint framebuffer)
 
 void glDeleteFramebuffers(GLsizei n, const GLuint *framebuffers)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.delete_framebuffers(ctx, n, framebuffers);
@@ -4370,6 +5107,7 @@ void glDeleteFramebuffers(GLsizei n, const GLuint *framebuffers)
 
 void glGenFramebuffers(GLsizei n, GLuint *framebuffers)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.gen_framebuffers(ctx, n, framebuffers);
@@ -4384,6 +5122,7 @@ GLenum glCheckFramebufferStatus(GLenum target)
 
 void glFramebufferTexture1D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.framebuffer_texture1D(ctx, target, attachment, textarget, texture, level);
@@ -4391,6 +5130,7 @@ void glFramebufferTexture1D(GLenum target, GLenum attachment, GLenum textarget, 
 
 void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.framebuffer_texture2D(ctx, target, attachment, textarget, texture, level);
@@ -4399,6 +5139,7 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, 
 void glFramebufferTexture3D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level,
                             GLint zoffset)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.framebuffer_texture3D(ctx, target, attachment, textarget, texture, level, zoffset);
@@ -4406,6 +5147,7 @@ void glFramebufferTexture3D(GLenum target, GLenum attachment, GLenum textarget, 
 
 void glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.framebuffer_renderbuffer(ctx, target, attachment, renderbuffertarget, renderbuffer);
@@ -4413,6 +5155,7 @@ void glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbu
 
 void glGetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenum pname, GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_framebuffer_attachment_parameteriv(ctx, target, attachment, pname, params);
@@ -4420,6 +5163,7 @@ void glGetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLe
 
 void glGenerateMipmap(GLenum target)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.generate_mipmap(ctx, target);
@@ -4428,6 +5172,7 @@ void glGenerateMipmap(GLenum target)
 void glBlitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1,
                        GLint dstY1, GLbitfield mask, GLenum filter)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.blit_framebuffer(ctx, srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
@@ -4436,6 +5181,7 @@ void glBlitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint
 void glRenderbufferStorageMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width,
                                       GLsizei height)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.renderbuffer_storage_multisample(ctx, target, samples, internalformat, width, height);
@@ -4443,6 +5189,7 @@ void glRenderbufferStorageMultisample(GLenum target, GLsizei samples, GLenum int
 
 void glFramebufferTextureLayer(GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.framebuffer_texture_layer(ctx, target, attachment, texture, level, layer);
@@ -4457,6 +5204,7 @@ void *glMapBufferRange(GLenum target, GLintptr offset, GLsizeiptr length, GLbitf
 
 void glFlushMappedBufferRange(GLenum target, GLintptr offset, GLsizeiptr length)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.flush_mapped_buffer_range(ctx, target, offset, length);
@@ -4464,6 +5212,11 @@ void glFlushMappedBufferRange(GLenum target, GLintptr offset, GLsizeiptr length)
 
 void glBindVertexArray(GLuint array)
 {
+    CHECK_CONTEXT();
+    CHECK_CONTEXT();
+
+    CHECK_CONTEXT();
+
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.bind_vertex_array(ctx, array);
@@ -4471,6 +5224,11 @@ void glBindVertexArray(GLuint array)
 
 void glDeleteVertexArrays(GLsizei n, const GLuint *arrays)
 {
+    CHECK_CONTEXT();
+    CHECK_CONTEXT();
+
+    CHECK_CONTEXT();
+
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.delete_vertex_arrays(ctx, n, arrays);
@@ -4478,6 +5236,11 @@ void glDeleteVertexArrays(GLsizei n, const GLuint *arrays)
 
 void glGenVertexArrays(GLsizei n, GLuint *arrays)
 {
+    CHECK_CONTEXT();
+    CHECK_CONTEXT();
+
+    CHECK_CONTEXT();
+
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.gen_vertex_arrays(ctx, n, arrays);
@@ -4492,6 +5255,7 @@ GLboolean glIsVertexArray(GLuint array)
 
 void glDrawArraysInstanced(GLenum mode, GLint first, GLsizei count, GLsizei instancecount)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.draw_arrays_instanced(ctx, mode, first, count, instancecount);
@@ -4499,6 +5263,7 @@ void glDrawArraysInstanced(GLenum mode, GLint first, GLsizei count, GLsizei inst
 
 void glDrawElementsInstanced(GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.draw_elements_instanced(ctx, mode, count, type, indices, instancecount);
@@ -4506,6 +5271,7 @@ void glDrawElementsInstanced(GLenum mode, GLsizei count, GLenum type, const void
 
 void glTexBuffer(GLenum target, GLenum internalformat, GLuint buffer)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_buffer(ctx, target, internalformat, buffer);
@@ -4513,6 +5279,7 @@ void glTexBuffer(GLenum target, GLenum internalformat, GLuint buffer)
 
 void glPrimitiveRestartIndex(GLuint index)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.primitive_restart_index(ctx, index);
@@ -4521,6 +5288,7 @@ void glPrimitiveRestartIndex(GLuint index)
 void glCopyBufferSubData(GLenum readTarget, GLenum writeTarget, GLintptr readOffset, GLintptr writeOffset,
                          GLsizeiptr size)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.copy_buffer_sub_data(ctx, readTarget, writeTarget, readOffset, writeOffset, size);
@@ -4529,6 +5297,7 @@ void glCopyBufferSubData(GLenum readTarget, GLenum writeTarget, GLintptr readOff
 void glGetUniformIndices(GLuint program, GLsizei uniformCount, const GLchar *const *uniformNames,
                          GLuint *uniformIndices)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_uniform_indices(ctx, program, uniformCount, uniformNames, uniformIndices);
@@ -4537,6 +5306,7 @@ void glGetUniformIndices(GLuint program, GLsizei uniformCount, const GLchar *con
 void glGetActiveUniformsiv(GLuint program, GLsizei uniformCount, const GLuint *uniformIndices, GLenum pname,
                            GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_active_uniformsiv(ctx, program, uniformCount, uniformIndices, pname, params);
@@ -4544,6 +5314,7 @@ void glGetActiveUniformsiv(GLuint program, GLsizei uniformCount, const GLuint *u
 
 void glGetActiveUniformName(GLuint program, GLuint uniformIndex, GLsizei bufSize, GLsizei *length, GLchar *uniformName)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_active_uniform_name(ctx, program, uniformIndex, bufSize, length, uniformName);
@@ -4558,6 +5329,7 @@ GLuint glGetUniformBlockIndex(GLuint program, const GLchar *uniformBlockName)
 
 void glGetActiveUniformBlockiv(GLuint program, GLuint uniformBlockIndex, GLenum pname, GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_active_uniform_blockiv(ctx, program, uniformBlockIndex, pname, params);
@@ -4566,6 +5338,7 @@ void glGetActiveUniformBlockiv(GLuint program, GLuint uniformBlockIndex, GLenum 
 void glGetActiveUniformBlockName(GLuint program, GLuint uniformBlockIndex, GLsizei bufSize, GLsizei *length,
                                  GLchar *uniformBlockName)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_active_uniform_block_name(ctx, program, uniformBlockIndex, bufSize, length, uniformBlockName);
@@ -4573,6 +5346,7 @@ void glGetActiveUniformBlockName(GLuint program, GLuint uniformBlockIndex, GLsiz
 
 void glUniformBlockBinding(GLuint program, GLuint uniformBlockIndex, GLuint uniformBlockBinding)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform_block_binding(ctx, program, uniformBlockIndex, uniformBlockBinding);
@@ -4580,6 +5354,7 @@ void glUniformBlockBinding(GLuint program, GLuint uniformBlockIndex, GLuint unif
 
 void glDrawElementsBaseVertex(GLenum mode, GLsizei count, GLenum type, const void *indices, GLint basevertex)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.draw_elements_base_vertex(ctx, mode, count, type, indices, basevertex);
@@ -4588,6 +5363,7 @@ void glDrawElementsBaseVertex(GLenum mode, GLsizei count, GLenum type, const voi
 void glDrawRangeElementsBaseVertex(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type,
                                    const void *indices, GLint basevertex)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.draw_range_elements_base_vertex(ctx, mode, start, end, count, type, indices, basevertex);
@@ -4596,6 +5372,7 @@ void glDrawRangeElementsBaseVertex(GLenum mode, GLuint start, GLuint end, GLsize
 void glDrawElementsInstancedBaseVertex(GLenum mode, GLsizei count, GLenum type, const void *indices,
                                        GLsizei instancecount, GLint basevertex)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.draw_elements_instanced_base_vertex(ctx, mode, count, type, indices, instancecount, basevertex);
@@ -4604,6 +5381,7 @@ void glDrawElementsInstancedBaseVertex(GLenum mode, GLsizei count, GLenum type, 
 void glMultiDrawElementsBaseVertex(GLenum mode, const GLsizei *count, GLenum type, const void *const *indices,
                                    GLsizei drawcount, const GLint *basevertex)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_draw_elements_base_vertex(ctx, mode, count, type, indices, drawcount, basevertex);
@@ -4611,6 +5389,7 @@ void glMultiDrawElementsBaseVertex(GLenum mode, const GLsizei *count, GLenum typ
 
 void glProvokingVertex(GLenum mode)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.provoking_vertex(ctx, mode);
@@ -4632,6 +5411,7 @@ GLboolean glIsSync(GLsync sync)
 
 void glDeleteSync(GLsync sync)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.delete_sync(ctx, sync);
@@ -4646,6 +5426,7 @@ GLenum glClientWaitSync(GLsync sync, GLbitfield flags, GLuint64 timeout)
 
 void glWaitSync(GLsync sync, GLbitfield flags, GLuint64 timeout)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.wait_sync(ctx, sync, flags, timeout);
@@ -4653,6 +5434,7 @@ void glWaitSync(GLsync sync, GLbitfield flags, GLuint64 timeout)
 
 void glGetInteger64v(GLenum pname, GLint64 *data)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_integer64v(ctx, pname, data);
@@ -4660,6 +5442,7 @@ void glGetInteger64v(GLenum pname, GLint64 *data)
 
 void glGetSynciv(GLsync sync, GLenum pname, GLsizei count, GLsizei *length, GLint *values)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_synciv(ctx, sync, pname, count, length, values);
@@ -4667,6 +5450,7 @@ void glGetSynciv(GLsync sync, GLenum pname, GLsizei count, GLsizei *length, GLin
 
 void glGetInteger64i_v(GLenum target, GLuint index, GLint64 *data)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_integer64i_v(ctx, target, index, data);
@@ -4674,6 +5458,7 @@ void glGetInteger64i_v(GLenum target, GLuint index, GLint64 *data)
 
 void glGetBufferParameteri64v(GLenum target, GLenum pname, GLint64 *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_buffer_parameteri64v(ctx, target, pname, params);
@@ -4681,6 +5466,7 @@ void glGetBufferParameteri64v(GLenum target, GLenum pname, GLint64 *params)
 
 void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLint level)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.framebuffer_texture(ctx, target, attachment, texture, level);
@@ -4689,6 +5475,7 @@ void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture, GLin
 void glTexImage2DMultisample(GLenum target, GLsizei samples, GLint internalformat, GLsizei width, GLsizei height,
                              GLboolean fixedsamplelocations)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_image2_d_multisample(ctx, target, samples, internalformat, width, height, fixedsamplelocations);
@@ -4697,6 +5484,7 @@ void glTexImage2DMultisample(GLenum target, GLsizei samples, GLint internalforma
 void glTexImage3DMultisample(GLenum target, GLsizei samples, GLint internalformat, GLsizei width, GLsizei height,
                              GLsizei depth, GLboolean fixedsamplelocations)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_image3_d_multisample(ctx, target, samples, internalformat, width, height, depth,
@@ -4705,6 +5493,7 @@ void glTexImage3DMultisample(GLenum target, GLsizei samples, GLint internalforma
 
 void glGetMultisamplefv(GLenum pname, GLuint index, GLfloat *val)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_multisamplefv(ctx, pname, index, val);
@@ -4712,6 +5501,7 @@ void glGetMultisamplefv(GLenum pname, GLuint index, GLfloat *val)
 
 void glSampleMaski(GLuint maskNumber, GLbitfield mask)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.sample_maski(ctx, maskNumber, mask);
@@ -4719,6 +5509,7 @@ void glSampleMaski(GLuint maskNumber, GLbitfield mask)
 
 void glBindFragDataLocationIndexed(GLuint program, GLuint colorNumber, GLuint index, const GLchar *name)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.bind_frag_data_location_indexed(ctx, program, colorNumber, index, name);
@@ -4733,6 +5524,7 @@ GLint glGetFragDataIndex(GLuint program, const GLchar *name)
 
 void glGenSamplers(GLsizei count, GLuint *samplers)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.gen_samplers(ctx, count, samplers);
@@ -4740,6 +5532,7 @@ void glGenSamplers(GLsizei count, GLuint *samplers)
 
 void glDeleteSamplers(GLsizei count, const GLuint *samplers)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.delete_samplers(ctx, count, samplers);
@@ -4754,6 +5547,7 @@ GLboolean glIsSampler(GLuint sampler)
 
 void glBindSampler(GLuint unit, GLuint sampler)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.bind_sampler(ctx, unit, sampler);
@@ -4761,6 +5555,7 @@ void glBindSampler(GLuint unit, GLuint sampler)
 
 void glSamplerParameteri(GLuint sampler, GLenum pname, GLint param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.sampler_parameteri(ctx, sampler, pname, param);
@@ -4768,6 +5563,7 @@ void glSamplerParameteri(GLuint sampler, GLenum pname, GLint param)
 
 void glSamplerParameteriv(GLuint sampler, GLenum pname, const GLint *param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.sampler_parameteriv(ctx, sampler, pname, param);
@@ -4775,6 +5571,7 @@ void glSamplerParameteriv(GLuint sampler, GLenum pname, const GLint *param)
 
 void glSamplerParameterf(GLuint sampler, GLenum pname, GLfloat param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.sampler_parameterf(ctx, sampler, pname, param);
@@ -4782,6 +5579,7 @@ void glSamplerParameterf(GLuint sampler, GLenum pname, GLfloat param)
 
 void glSamplerParameterfv(GLuint sampler, GLenum pname, const GLfloat *param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.sampler_parameterfv(ctx, sampler, pname, param);
@@ -4789,6 +5587,7 @@ void glSamplerParameterfv(GLuint sampler, GLenum pname, const GLfloat *param)
 
 void glSamplerParameterIiv(GLuint sampler, GLenum pname, const GLint *param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.sampler_parameter_iiv(ctx, sampler, pname, param);
@@ -4796,6 +5595,7 @@ void glSamplerParameterIiv(GLuint sampler, GLenum pname, const GLint *param)
 
 void glSamplerParameterIuiv(GLuint sampler, GLenum pname, const GLuint *param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.sampler_parameter_iuiv(ctx, sampler, pname, param);
@@ -4803,6 +5603,7 @@ void glSamplerParameterIuiv(GLuint sampler, GLenum pname, const GLuint *param)
 
 void glGetSamplerParameteriv(GLuint sampler, GLenum pname, GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_sampler_parameteriv(ctx, sampler, pname, params);
@@ -4810,6 +5611,7 @@ void glGetSamplerParameteriv(GLuint sampler, GLenum pname, GLint *params)
 
 void glGetSamplerParameterIiv(GLuint sampler, GLenum pname, GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_sampler_parameter_iiv(ctx, sampler, pname, params);
@@ -4817,6 +5619,7 @@ void glGetSamplerParameterIiv(GLuint sampler, GLenum pname, GLint *params)
 
 void glGetSamplerParameterfv(GLuint sampler, GLenum pname, GLfloat *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_sampler_parameterfv(ctx, sampler, pname, params);
@@ -4824,6 +5627,7 @@ void glGetSamplerParameterfv(GLuint sampler, GLenum pname, GLfloat *params)
 
 void glGetSamplerParameterIuiv(GLuint sampler, GLenum pname, GLuint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_sampler_parameter_iuiv(ctx, sampler, pname, params);
@@ -4831,6 +5635,7 @@ void glGetSamplerParameterIuiv(GLuint sampler, GLenum pname, GLuint *params)
 
 void glQueryCounter(GLuint id, GLenum target)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.query_counter(ctx, id, target);
@@ -4838,6 +5643,7 @@ void glQueryCounter(GLuint id, GLenum target)
 
 void glGetQueryObjecti64v(GLuint id, GLenum pname, GLint64 *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_query_objecti64v(ctx, id, pname, params);
@@ -4845,6 +5651,7 @@ void glGetQueryObjecti64v(GLuint id, GLenum pname, GLint64 *params)
 
 void glGetQueryObjectui64v(GLuint id, GLenum pname, GLuint64 *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_query_objectui64v(ctx, id, pname, params);
@@ -4852,6 +5659,7 @@ void glGetQueryObjectui64v(GLuint id, GLenum pname, GLuint64 *params)
 
 void glVertexAttribDivisor(GLuint index, GLuint divisor)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_divisor(ctx, index, divisor);
@@ -4859,6 +5667,7 @@ void glVertexAttribDivisor(GLuint index, GLuint divisor)
 
 void glVertexAttribP1ui(GLuint index, GLenum type, GLboolean normalized, GLuint value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_p1ui(ctx, index, type, normalized, value);
@@ -4866,6 +5675,7 @@ void glVertexAttribP1ui(GLuint index, GLenum type, GLboolean normalized, GLuint 
 
 void glVertexAttribP1uiv(GLuint index, GLenum type, GLboolean normalized, const GLuint *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_p1uiv(ctx, index, type, normalized, value);
@@ -4873,6 +5683,7 @@ void glVertexAttribP1uiv(GLuint index, GLenum type, GLboolean normalized, const 
 
 void glVertexAttribP2ui(GLuint index, GLenum type, GLboolean normalized, GLuint value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_p2ui(ctx, index, type, normalized, value);
@@ -4880,6 +5691,7 @@ void glVertexAttribP2ui(GLuint index, GLenum type, GLboolean normalized, GLuint 
 
 void glVertexAttribP2uiv(GLuint index, GLenum type, GLboolean normalized, const GLuint *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_p2uiv(ctx, index, type, normalized, value);
@@ -4887,6 +5699,7 @@ void glVertexAttribP2uiv(GLuint index, GLenum type, GLboolean normalized, const 
 
 void glVertexAttribP3ui(GLuint index, GLenum type, GLboolean normalized, GLuint value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_p3ui(ctx, index, type, normalized, value);
@@ -4894,6 +5707,7 @@ void glVertexAttribP3ui(GLuint index, GLenum type, GLboolean normalized, GLuint 
 
 void glVertexAttribP3uiv(GLuint index, GLenum type, GLboolean normalized, const GLuint *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_p3uiv(ctx, index, type, normalized, value);
@@ -4901,6 +5715,7 @@ void glVertexAttribP3uiv(GLuint index, GLenum type, GLboolean normalized, const 
 
 void glVertexAttribP4ui(GLuint index, GLenum type, GLboolean normalized, GLuint value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_p4ui(ctx, index, type, normalized, value);
@@ -4908,6 +5723,7 @@ void glVertexAttribP4ui(GLuint index, GLenum type, GLboolean normalized, GLuint 
 
 void glVertexAttribP4uiv(GLuint index, GLenum type, GLboolean normalized, const GLuint *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_p4uiv(ctx, index, type, normalized, value);
@@ -4915,6 +5731,7 @@ void glVertexAttribP4uiv(GLuint index, GLenum type, GLboolean normalized, const 
 
 void glVertexP2ui(GLenum type, GLuint value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_p2ui(ctx, type, value);
@@ -4922,6 +5739,7 @@ void glVertexP2ui(GLenum type, GLuint value)
 
 void glVertexP2uiv(GLenum type, const GLuint *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_p2uiv(ctx, type, value);
@@ -4929,6 +5747,7 @@ void glVertexP2uiv(GLenum type, const GLuint *value)
 
 void glVertexP3ui(GLenum type, GLuint value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_p3ui(ctx, type, value);
@@ -4936,6 +5755,7 @@ void glVertexP3ui(GLenum type, GLuint value)
 
 void glVertexP3uiv(GLenum type, const GLuint *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_p3uiv(ctx, type, value);
@@ -4943,6 +5763,7 @@ void glVertexP3uiv(GLenum type, const GLuint *value)
 
 void glVertexP4ui(GLenum type, GLuint value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_p4ui(ctx, type, value);
@@ -4950,6 +5771,7 @@ void glVertexP4ui(GLenum type, GLuint value)
 
 void glVertexP4uiv(GLenum type, const GLuint *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_p4uiv(ctx, type, value);
@@ -4957,6 +5779,7 @@ void glVertexP4uiv(GLenum type, const GLuint *value)
 
 void glTexCoordP1ui(GLenum type, GLuint coords)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord_p1ui(ctx, type, coords);
@@ -4964,6 +5787,7 @@ void glTexCoordP1ui(GLenum type, GLuint coords)
 
 void glTexCoordP1uiv(GLenum type, const GLuint *coords)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord_p1uiv(ctx, type, coords);
@@ -4971,6 +5795,7 @@ void glTexCoordP1uiv(GLenum type, const GLuint *coords)
 
 void glTexCoordP2ui(GLenum type, GLuint coords)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord_p2ui(ctx, type, coords);
@@ -4978,6 +5803,7 @@ void glTexCoordP2ui(GLenum type, GLuint coords)
 
 void glTexCoordP2uiv(GLenum type, const GLuint *coords)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord_p2uiv(ctx, type, coords);
@@ -4985,6 +5811,7 @@ void glTexCoordP2uiv(GLenum type, const GLuint *coords)
 
 void glTexCoordP3ui(GLenum type, GLuint coords)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord_p3ui(ctx, type, coords);
@@ -4992,6 +5819,7 @@ void glTexCoordP3ui(GLenum type, GLuint coords)
 
 void glTexCoordP3uiv(GLenum type, const GLuint *coords)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord_p3uiv(ctx, type, coords);
@@ -4999,6 +5827,7 @@ void glTexCoordP3uiv(GLenum type, const GLuint *coords)
 
 void glTexCoordP4ui(GLenum type, GLuint coords)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord_p4ui(ctx, type, coords);
@@ -5006,6 +5835,7 @@ void glTexCoordP4ui(GLenum type, GLuint coords)
 
 void glTexCoordP4uiv(GLenum type, const GLuint *coords)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_coord_p4uiv(ctx, type, coords);
@@ -5013,6 +5843,7 @@ void glTexCoordP4uiv(GLenum type, const GLuint *coords)
 
 void glMultiTexCoordP1ui(GLenum texture, GLenum type, GLuint coords)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord_p1ui(ctx, texture, type, coords);
@@ -5020,6 +5851,7 @@ void glMultiTexCoordP1ui(GLenum texture, GLenum type, GLuint coords)
 
 void glMultiTexCoordP1uiv(GLenum texture, GLenum type, const GLuint *coords)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord_p1uiv(ctx, texture, type, coords);
@@ -5027,6 +5859,7 @@ void glMultiTexCoordP1uiv(GLenum texture, GLenum type, const GLuint *coords)
 
 void glMultiTexCoordP2ui(GLenum texture, GLenum type, GLuint coords)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord_p2ui(ctx, texture, type, coords);
@@ -5034,6 +5867,7 @@ void glMultiTexCoordP2ui(GLenum texture, GLenum type, GLuint coords)
 
 void glMultiTexCoordP2uiv(GLenum texture, GLenum type, const GLuint *coords)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord_p2uiv(ctx, texture, type, coords);
@@ -5041,6 +5875,7 @@ void glMultiTexCoordP2uiv(GLenum texture, GLenum type, const GLuint *coords)
 
 void glMultiTexCoordP3ui(GLenum texture, GLenum type, GLuint coords)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord_p3ui(ctx, texture, type, coords);
@@ -5048,6 +5883,7 @@ void glMultiTexCoordP3ui(GLenum texture, GLenum type, GLuint coords)
 
 void glMultiTexCoordP3uiv(GLenum texture, GLenum type, const GLuint *coords)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord_p3uiv(ctx, texture, type, coords);
@@ -5055,6 +5891,7 @@ void glMultiTexCoordP3uiv(GLenum texture, GLenum type, const GLuint *coords)
 
 void glMultiTexCoordP4ui(GLenum texture, GLenum type, GLuint coords)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord_p4ui(ctx, texture, type, coords);
@@ -5062,6 +5899,7 @@ void glMultiTexCoordP4ui(GLenum texture, GLenum type, GLuint coords)
 
 void glMultiTexCoordP4uiv(GLenum texture, GLenum type, const GLuint *coords)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_tex_coord_p4uiv(ctx, texture, type, coords);
@@ -5069,6 +5907,7 @@ void glMultiTexCoordP4uiv(GLenum texture, GLenum type, const GLuint *coords)
 
 void glNormalP3ui(GLenum type, GLuint coords)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.normal_p3ui(ctx, type, coords);
@@ -5076,6 +5915,7 @@ void glNormalP3ui(GLenum type, GLuint coords)
 
 void glNormalP3uiv(GLenum type, const GLuint *coords)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.normal_p3uiv(ctx, type, coords);
@@ -5083,6 +5923,7 @@ void glNormalP3uiv(GLenum type, const GLuint *coords)
 
 void glColorP3ui(GLenum type, GLuint color)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color_p3ui(ctx, type, color);
@@ -5090,6 +5931,7 @@ void glColorP3ui(GLenum type, GLuint color)
 
 void glColorP3uiv(GLenum type, const GLuint *color)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color_p3uiv(ctx, type, color);
@@ -5097,6 +5939,7 @@ void glColorP3uiv(GLenum type, const GLuint *color)
 
 void glColorP4ui(GLenum type, GLuint color)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color_p4ui(ctx, type, color);
@@ -5104,6 +5947,7 @@ void glColorP4ui(GLenum type, GLuint color)
 
 void glColorP4uiv(GLenum type, const GLuint *color)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.color_p4uiv(ctx, type, color);
@@ -5111,6 +5955,7 @@ void glColorP4uiv(GLenum type, const GLuint *color)
 
 void glSecondaryColorP3ui(GLenum type, GLuint color)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.secondary_color_p3ui(ctx, type, color);
@@ -5118,6 +5963,7 @@ void glSecondaryColorP3ui(GLenum type, GLuint color)
 
 void glSecondaryColorP3uiv(GLenum type, const GLuint *color)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.secondary_color_p3uiv(ctx, type, color);
@@ -5125,6 +5971,7 @@ void glSecondaryColorP3uiv(GLenum type, const GLuint *color)
 
 void glMinSampleShading(GLfloat value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.min_sample_shading(ctx, value);
@@ -5132,6 +5979,7 @@ void glMinSampleShading(GLfloat value)
 
 void glBlendEquationi(GLuint buf, GLenum mode)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.blend_equationi(ctx, buf, mode);
@@ -5139,6 +5987,7 @@ void glBlendEquationi(GLuint buf, GLenum mode)
 
 void glBlendEquationSeparatei(GLuint buf, GLenum modeRGB, GLenum modeAlpha)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.blend_equation_separatei(ctx, buf, modeRGB, modeAlpha);
@@ -5146,6 +5995,7 @@ void glBlendEquationSeparatei(GLuint buf, GLenum modeRGB, GLenum modeAlpha)
 
 void glBlendFunci(GLuint buf, GLenum src, GLenum dst)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.blend_funci(ctx, buf, src, dst);
@@ -5153,6 +6003,7 @@ void glBlendFunci(GLuint buf, GLenum src, GLenum dst)
 
 void glBlendFuncSeparatei(GLuint buf, GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.blend_func_separatei(ctx, buf, srcRGB, dstRGB, srcAlpha, dstAlpha);
@@ -5160,6 +6011,7 @@ void glBlendFuncSeparatei(GLuint buf, GLenum srcRGB, GLenum dstRGB, GLenum srcAl
 
 void glDrawArraysIndirect(GLenum mode, const void *indirect)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.draw_arrays_indirect(ctx, mode, indirect);
@@ -5167,6 +6019,7 @@ void glDrawArraysIndirect(GLenum mode, const void *indirect)
 
 void glDrawElementsIndirect(GLenum mode, GLenum type, const void *indirect)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.draw_elements_indirect(ctx, mode, type, indirect);
@@ -5174,6 +6027,7 @@ void glDrawElementsIndirect(GLenum mode, GLenum type, const void *indirect)
 
 void glUniform1d(GLint location, GLdouble x)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform1d(ctx, location, x);
@@ -5181,6 +6035,7 @@ void glUniform1d(GLint location, GLdouble x)
 
 void glUniform2d(GLint location, GLdouble x, GLdouble y)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform2d(ctx, location, x, y);
@@ -5188,6 +6043,7 @@ void glUniform2d(GLint location, GLdouble x, GLdouble y)
 
 void glUniform3d(GLint location, GLdouble x, GLdouble y, GLdouble z)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform3d(ctx, location, x, y, z);
@@ -5195,6 +6051,7 @@ void glUniform3d(GLint location, GLdouble x, GLdouble y, GLdouble z)
 
 void glUniform4d(GLint location, GLdouble x, GLdouble y, GLdouble z, GLdouble w)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform4d(ctx, location, x, y, z, w);
@@ -5202,6 +6059,7 @@ void glUniform4d(GLint location, GLdouble x, GLdouble y, GLdouble z, GLdouble w)
 
 void glUniform1dv(GLint location, GLsizei count, const GLdouble *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform1dv(ctx, location, count, value);
@@ -5209,6 +6067,7 @@ void glUniform1dv(GLint location, GLsizei count, const GLdouble *value)
 
 void glUniform2dv(GLint location, GLsizei count, const GLdouble *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform2dv(ctx, location, count, value);
@@ -5216,6 +6075,7 @@ void glUniform2dv(GLint location, GLsizei count, const GLdouble *value)
 
 void glUniform3dv(GLint location, GLsizei count, const GLdouble *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform3dv(ctx, location, count, value);
@@ -5223,6 +6083,7 @@ void glUniform3dv(GLint location, GLsizei count, const GLdouble *value)
 
 void glUniform4dv(GLint location, GLsizei count, const GLdouble *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform4dv(ctx, location, count, value);
@@ -5230,6 +6091,7 @@ void glUniform4dv(GLint location, GLsizei count, const GLdouble *value)
 
 void glUniformMatrix2dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform_matrix2dv(ctx, location, count, transpose, value);
@@ -5237,6 +6099,7 @@ void glUniformMatrix2dv(GLint location, GLsizei count, GLboolean transpose, cons
 
 void glUniformMatrix3dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform_matrix3dv(ctx, location, count, transpose, value);
@@ -5244,6 +6107,7 @@ void glUniformMatrix3dv(GLint location, GLsizei count, GLboolean transpose, cons
 
 void glUniformMatrix4dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform_matrix4dv(ctx, location, count, transpose, value);
@@ -5251,6 +6115,7 @@ void glUniformMatrix4dv(GLint location, GLsizei count, GLboolean transpose, cons
 
 void glUniformMatrix2x3dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform_matrix2x3dv(ctx, location, count, transpose, value);
@@ -5258,6 +6123,7 @@ void glUniformMatrix2x3dv(GLint location, GLsizei count, GLboolean transpose, co
 
 void glUniformMatrix2x4dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform_matrix2x4dv(ctx, location, count, transpose, value);
@@ -5265,6 +6131,7 @@ void glUniformMatrix2x4dv(GLint location, GLsizei count, GLboolean transpose, co
 
 void glUniformMatrix3x2dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform_matrix3x2dv(ctx, location, count, transpose, value);
@@ -5272,6 +6139,7 @@ void glUniformMatrix3x2dv(GLint location, GLsizei count, GLboolean transpose, co
 
 void glUniformMatrix3x4dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform_matrix3x4dv(ctx, location, count, transpose, value);
@@ -5279,6 +6147,7 @@ void glUniformMatrix3x4dv(GLint location, GLsizei count, GLboolean transpose, co
 
 void glUniformMatrix4x2dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform_matrix4x2dv(ctx, location, count, transpose, value);
@@ -5286,6 +6155,7 @@ void glUniformMatrix4x2dv(GLint location, GLsizei count, GLboolean transpose, co
 
 void glUniformMatrix4x3dv(GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform_matrix4x3dv(ctx, location, count, transpose, value);
@@ -5293,6 +6163,7 @@ void glUniformMatrix4x3dv(GLint location, GLsizei count, GLboolean transpose, co
 
 void glGetUniformdv(GLuint program, GLint location, GLdouble *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_uniformdv(ctx, program, location, params);
@@ -5314,6 +6185,7 @@ GLuint glGetSubroutineIndex(GLuint program, GLenum shadertype, const GLchar *nam
 
 void glGetActiveSubroutineUniformiv(GLuint program, GLenum shadertype, GLuint index, GLenum pname, GLint *values)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_active_subroutine_uniformiv(ctx, program, shadertype, index, pname, values);
@@ -5322,6 +6194,7 @@ void glGetActiveSubroutineUniformiv(GLuint program, GLenum shadertype, GLuint in
 void glGetActiveSubroutineUniformName(GLuint program, GLenum shadertype, GLuint index, GLsizei bufSize, GLsizei *length,
                                       GLchar *name)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_active_subroutine_uniform_name(ctx, program, shadertype, index, bufSize, length, name);
@@ -5330,6 +6203,7 @@ void glGetActiveSubroutineUniformName(GLuint program, GLenum shadertype, GLuint 
 void glGetActiveSubroutineName(GLuint program, GLenum shadertype, GLuint index, GLsizei bufSize, GLsizei *length,
                                GLchar *name)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_active_subroutine_name(ctx, program, shadertype, index, bufSize, length, name);
@@ -5337,6 +6211,7 @@ void glGetActiveSubroutineName(GLuint program, GLenum shadertype, GLuint index, 
 
 void glUniformSubroutinesuiv(GLenum shadertype, GLsizei count, const GLuint *indices)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.uniform_subroutinesuiv(ctx, shadertype, count, indices);
@@ -5344,6 +6219,7 @@ void glUniformSubroutinesuiv(GLenum shadertype, GLsizei count, const GLuint *ind
 
 void glGetUniformSubroutineuiv(GLenum shadertype, GLint location, GLuint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_uniform_subroutineuiv(ctx, shadertype, location, params);
@@ -5351,6 +6227,7 @@ void glGetUniformSubroutineuiv(GLenum shadertype, GLint location, GLuint *params
 
 void glGetProgramStageiv(GLuint program, GLenum shadertype, GLenum pname, GLint *values)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_program_stageiv(ctx, program, shadertype, pname, values);
@@ -5358,6 +6235,7 @@ void glGetProgramStageiv(GLuint program, GLenum shadertype, GLenum pname, GLint 
 
 void glPatchParameteri(GLenum pname, GLint value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.patch_parameteri(ctx, pname, value);
@@ -5365,6 +6243,7 @@ void glPatchParameteri(GLenum pname, GLint value)
 
 void glPatchParameterfv(GLenum pname, const GLfloat *values)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.patch_parameterfv(ctx, pname, values);
@@ -5372,6 +6251,7 @@ void glPatchParameterfv(GLenum pname, const GLfloat *values)
 
 void glBindTransformFeedback(GLenum target, GLuint id)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.bind_transform_feedback(ctx, target, id);
@@ -5379,6 +6259,7 @@ void glBindTransformFeedback(GLenum target, GLuint id)
 
 void glDeleteTransformFeedbacks(GLsizei n, const GLuint *ids)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.delete_transform_feedbacks(ctx, n, ids);
@@ -5386,6 +6267,7 @@ void glDeleteTransformFeedbacks(GLsizei n, const GLuint *ids)
 
 void glGenTransformFeedbacks(GLsizei n, GLuint *ids)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.gen_transform_feedbacks(ctx, n, ids);
@@ -5400,6 +6282,7 @@ GLboolean glIsTransformFeedback(GLuint id)
 
 void glPauseTransformFeedback()
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.pause_transform_feedback(ctx);
@@ -5407,6 +6290,7 @@ void glPauseTransformFeedback()
 
 void glResumeTransformFeedback()
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.resume_transform_feedback(ctx);
@@ -5414,6 +6298,7 @@ void glResumeTransformFeedback()
 
 void glDrawTransformFeedback(GLenum mode, GLuint id)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.draw_transform_feedback(ctx, mode, id);
@@ -5421,6 +6306,7 @@ void glDrawTransformFeedback(GLenum mode, GLuint id)
 
 void glDrawTransformFeedbackStream(GLenum mode, GLuint id, GLuint stream)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.draw_transform_feedback_stream(ctx, mode, id, stream);
@@ -5428,6 +6314,7 @@ void glDrawTransformFeedbackStream(GLenum mode, GLuint id, GLuint stream)
 
 void glBeginQueryIndexed(GLenum target, GLuint index, GLuint id)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.begin_query_indexed(ctx, target, index, id);
@@ -5435,6 +6322,7 @@ void glBeginQueryIndexed(GLenum target, GLuint index, GLuint id)
 
 void glEndQueryIndexed(GLenum target, GLuint index)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.end_query_indexed(ctx, target, index);
@@ -5442,6 +6330,7 @@ void glEndQueryIndexed(GLenum target, GLuint index)
 
 void glGetQueryIndexediv(GLenum target, GLuint index, GLenum pname, GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_query_indexediv(ctx, target, index, pname, params);
@@ -5449,6 +6338,7 @@ void glGetQueryIndexediv(GLenum target, GLuint index, GLenum pname, GLint *param
 
 void glReleaseShaderCompiler()
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.release_shader_compiler(ctx);
@@ -5456,6 +6346,7 @@ void glReleaseShaderCompiler()
 
 void glShaderBinary(GLsizei count, const GLuint *shaders, GLenum binaryFormat, const void *binary, GLsizei length)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.shader_binary(ctx, count, shaders, binaryFormat, binary, length);
@@ -5463,6 +6354,7 @@ void glShaderBinary(GLsizei count, const GLuint *shaders, GLenum binaryFormat, c
 
 void glGetShaderPrecisionFormat(GLenum shadertype, GLenum precisiontype, GLint *range, GLint *precision)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_shader_precision_format(ctx, shadertype, precisiontype, range, precision);
@@ -5470,6 +6362,7 @@ void glGetShaderPrecisionFormat(GLenum shadertype, GLenum precisiontype, GLint *
 
 void glDepthRangef(GLfloat n, GLfloat f)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.depth_rangef(ctx, n, f);
@@ -5477,6 +6370,7 @@ void glDepthRangef(GLfloat n, GLfloat f)
 
 void glClearDepthf(GLfloat d)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.clear_depthf(ctx, d);
@@ -5484,6 +6378,7 @@ void glClearDepthf(GLfloat d)
 
 void glGetProgramBinary(GLuint program, GLsizei bufSize, GLsizei *length, GLenum *binaryFormat, void *binary)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_program_binary(ctx, program, bufSize, length, binaryFormat, binary);
@@ -5491,6 +6386,7 @@ void glGetProgramBinary(GLuint program, GLsizei bufSize, GLsizei *length, GLenum
 
 void glProgramBinary(GLuint program, GLenum binaryFormat, const void *binary, GLsizei length)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_binary(ctx, program, binaryFormat, binary, length);
@@ -5498,6 +6394,7 @@ void glProgramBinary(GLuint program, GLenum binaryFormat, const void *binary, GL
 
 void glProgramParameteri(GLuint program, GLenum pname, GLint value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_parameteri(ctx, program, pname, value);
@@ -5505,6 +6402,7 @@ void glProgramParameteri(GLuint program, GLenum pname, GLint value)
 
 void glUseProgramStages(GLuint pipeline, GLbitfield stages, GLuint program)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.use_program_stages(ctx, pipeline, stages, program);
@@ -5512,6 +6410,7 @@ void glUseProgramStages(GLuint pipeline, GLbitfield stages, GLuint program)
 
 void glActiveShaderProgram(GLuint pipeline, GLuint program)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.active_shader_program(ctx, pipeline, program);
@@ -5519,6 +6418,7 @@ void glActiveShaderProgram(GLuint pipeline, GLuint program)
 
 GLuint glCreateShaderProgramv(GLenum type, GLsizei count, const GLchar *const *strings)
 {
+    CHECK_CONTEXT_RET(0);
     GLMContext ctx = GET_CONTEXT();
 
     return ctx->dispatch.create_shader_programv(ctx, type, count, strings);
@@ -5526,6 +6426,7 @@ GLuint glCreateShaderProgramv(GLenum type, GLsizei count, const GLchar *const *s
 
 void glBindProgramPipeline(GLuint pipeline)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.bind_program_pipeline(ctx, pipeline);
@@ -5533,6 +6434,7 @@ void glBindProgramPipeline(GLuint pipeline)
 
 void glDeleteProgramPipelines(GLsizei n, const GLuint *pipelines)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.delete_program_pipelines(ctx, n, pipelines);
@@ -5540,6 +6442,7 @@ void glDeleteProgramPipelines(GLsizei n, const GLuint *pipelines)
 
 void glGenProgramPipelines(GLsizei n, GLuint *pipelines)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.gen_program_pipelines(ctx, n, pipelines);
@@ -5547,6 +6450,7 @@ void glGenProgramPipelines(GLsizei n, GLuint *pipelines)
 
 GLboolean glIsProgramPipeline(GLuint pipeline)
 {
+    CHECK_CONTEXT_RET(GL_FALSE);
     GLMContext ctx = GET_CONTEXT();
 
     return ctx->dispatch.is_program_pipeline(ctx, pipeline);
@@ -5554,6 +6458,7 @@ GLboolean glIsProgramPipeline(GLuint pipeline)
 
 void glGetProgramPipelineiv(GLuint pipeline, GLenum pname, GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_program_pipelineiv(ctx, pipeline, pname, params);
@@ -5561,6 +6466,7 @@ void glGetProgramPipelineiv(GLuint pipeline, GLenum pname, GLint *params)
 
 void glProgramUniform1i(GLuint program, GLint location, GLint v0)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform1i(ctx, program, location, v0);
@@ -5568,6 +6474,7 @@ void glProgramUniform1i(GLuint program, GLint location, GLint v0)
 
 void glProgramUniform1iv(GLuint program, GLint location, GLsizei count, const GLint *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform1iv(ctx, program, location, count, value);
@@ -5575,6 +6482,7 @@ void glProgramUniform1iv(GLuint program, GLint location, GLsizei count, const GL
 
 void glProgramUniform1f(GLuint program, GLint location, GLfloat v0)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform1f(ctx, program, location, v0);
@@ -5582,6 +6490,7 @@ void glProgramUniform1f(GLuint program, GLint location, GLfloat v0)
 
 void glProgramUniform1fv(GLuint program, GLint location, GLsizei count, const GLfloat *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform1fv(ctx, program, location, count, value);
@@ -5589,6 +6498,7 @@ void glProgramUniform1fv(GLuint program, GLint location, GLsizei count, const GL
 
 void glProgramUniform1d(GLuint program, GLint location, GLdouble v0)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform1d(ctx, program, location, v0);
@@ -5596,6 +6506,7 @@ void glProgramUniform1d(GLuint program, GLint location, GLdouble v0)
 
 void glProgramUniform1dv(GLuint program, GLint location, GLsizei count, const GLdouble *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform1dv(ctx, program, location, count, value);
@@ -5603,6 +6514,7 @@ void glProgramUniform1dv(GLuint program, GLint location, GLsizei count, const GL
 
 void glProgramUniform1ui(GLuint program, GLint location, GLuint v0)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform1ui(ctx, program, location, v0);
@@ -5610,6 +6522,7 @@ void glProgramUniform1ui(GLuint program, GLint location, GLuint v0)
 
 void glProgramUniform1uiv(GLuint program, GLint location, GLsizei count, const GLuint *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform1uiv(ctx, program, location, count, value);
@@ -5617,6 +6530,7 @@ void glProgramUniform1uiv(GLuint program, GLint location, GLsizei count, const G
 
 void glProgramUniform2i(GLuint program, GLint location, GLint v0, GLint v1)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform2i(ctx, program, location, v0, v1);
@@ -5624,6 +6538,7 @@ void glProgramUniform2i(GLuint program, GLint location, GLint v0, GLint v1)
 
 void glProgramUniform2iv(GLuint program, GLint location, GLsizei count, const GLint *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform2iv(ctx, program, location, count, value);
@@ -5631,6 +6546,7 @@ void glProgramUniform2iv(GLuint program, GLint location, GLsizei count, const GL
 
 void glProgramUniform2f(GLuint program, GLint location, GLfloat v0, GLfloat v1)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform2f(ctx, program, location, v0, v1);
@@ -5638,6 +6554,7 @@ void glProgramUniform2f(GLuint program, GLint location, GLfloat v0, GLfloat v1)
 
 void glProgramUniform2fv(GLuint program, GLint location, GLsizei count, const GLfloat *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform2fv(ctx, program, location, count, value);
@@ -5645,6 +6562,7 @@ void glProgramUniform2fv(GLuint program, GLint location, GLsizei count, const GL
 
 void glProgramUniform2d(GLuint program, GLint location, GLdouble v0, GLdouble v1)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform2d(ctx, program, location, v0, v1);
@@ -5652,6 +6570,7 @@ void glProgramUniform2d(GLuint program, GLint location, GLdouble v0, GLdouble v1
 
 void glProgramUniform2dv(GLuint program, GLint location, GLsizei count, const GLdouble *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform2dv(ctx, program, location, count, value);
@@ -5659,6 +6578,7 @@ void glProgramUniform2dv(GLuint program, GLint location, GLsizei count, const GL
 
 void glProgramUniform2ui(GLuint program, GLint location, GLuint v0, GLuint v1)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform2ui(ctx, program, location, v0, v1);
@@ -5666,6 +6586,7 @@ void glProgramUniform2ui(GLuint program, GLint location, GLuint v0, GLuint v1)
 
 void glProgramUniform2uiv(GLuint program, GLint location, GLsizei count, const GLuint *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform2uiv(ctx, program, location, count, value);
@@ -5673,6 +6594,7 @@ void glProgramUniform2uiv(GLuint program, GLint location, GLsizei count, const G
 
 void glProgramUniform3i(GLuint program, GLint location, GLint v0, GLint v1, GLint v2)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform3i(ctx, program, location, v0, v1, v2);
@@ -5680,6 +6602,7 @@ void glProgramUniform3i(GLuint program, GLint location, GLint v0, GLint v1, GLin
 
 void glProgramUniform3iv(GLuint program, GLint location, GLsizei count, const GLint *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform3iv(ctx, program, location, count, value);
@@ -5687,6 +6610,7 @@ void glProgramUniform3iv(GLuint program, GLint location, GLsizei count, const GL
 
 void glProgramUniform3f(GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform3f(ctx, program, location, v0, v1, v2);
@@ -5694,6 +6618,7 @@ void glProgramUniform3f(GLuint program, GLint location, GLfloat v0, GLfloat v1, 
 
 void glProgramUniform3fv(GLuint program, GLint location, GLsizei count, const GLfloat *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform3fv(ctx, program, location, count, value);
@@ -5701,6 +6626,7 @@ void glProgramUniform3fv(GLuint program, GLint location, GLsizei count, const GL
 
 void glProgramUniform3d(GLuint program, GLint location, GLdouble v0, GLdouble v1, GLdouble v2)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform3d(ctx, program, location, v0, v1, v2);
@@ -5708,6 +6634,7 @@ void glProgramUniform3d(GLuint program, GLint location, GLdouble v0, GLdouble v1
 
 void glProgramUniform3dv(GLuint program, GLint location, GLsizei count, const GLdouble *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform3dv(ctx, program, location, count, value);
@@ -5715,6 +6642,7 @@ void glProgramUniform3dv(GLuint program, GLint location, GLsizei count, const GL
 
 void glProgramUniform3ui(GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform3ui(ctx, program, location, v0, v1, v2);
@@ -5722,6 +6650,7 @@ void glProgramUniform3ui(GLuint program, GLint location, GLuint v0, GLuint v1, G
 
 void glProgramUniform3uiv(GLuint program, GLint location, GLsizei count, const GLuint *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform3uiv(ctx, program, location, count, value);
@@ -5729,6 +6658,7 @@ void glProgramUniform3uiv(GLuint program, GLint location, GLsizei count, const G
 
 void glProgramUniform4i(GLuint program, GLint location, GLint v0, GLint v1, GLint v2, GLint v3)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform4i(ctx, program, location, v0, v1, v2, v3);
@@ -5736,6 +6666,7 @@ void glProgramUniform4i(GLuint program, GLint location, GLint v0, GLint v1, GLin
 
 void glProgramUniform4iv(GLuint program, GLint location, GLsizei count, const GLint *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform4iv(ctx, program, location, count, value);
@@ -5743,6 +6674,7 @@ void glProgramUniform4iv(GLuint program, GLint location, GLsizei count, const GL
 
 void glProgramUniform4f(GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform4f(ctx, program, location, v0, v1, v2, v3);
@@ -5750,6 +6682,7 @@ void glProgramUniform4f(GLuint program, GLint location, GLfloat v0, GLfloat v1, 
 
 void glProgramUniform4fv(GLuint program, GLint location, GLsizei count, const GLfloat *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform4fv(ctx, program, location, count, value);
@@ -5757,6 +6690,7 @@ void glProgramUniform4fv(GLuint program, GLint location, GLsizei count, const GL
 
 void glProgramUniform4d(GLuint program, GLint location, GLdouble v0, GLdouble v1, GLdouble v2, GLdouble v3)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform4d(ctx, program, location, v0, v1, v2, v3);
@@ -5764,6 +6698,7 @@ void glProgramUniform4d(GLuint program, GLint location, GLdouble v0, GLdouble v1
 
 void glProgramUniform4dv(GLuint program, GLint location, GLsizei count, const GLdouble *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform4dv(ctx, program, location, count, value);
@@ -5771,6 +6706,7 @@ void glProgramUniform4dv(GLuint program, GLint location, GLsizei count, const GL
 
 void glProgramUniform4ui(GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform4ui(ctx, program, location, v0, v1, v2, v3);
@@ -5778,6 +6714,7 @@ void glProgramUniform4ui(GLuint program, GLint location, GLuint v0, GLuint v1, G
 
 void glProgramUniform4uiv(GLuint program, GLint location, GLsizei count, const GLuint *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform4uiv(ctx, program, location, count, value);
@@ -5785,6 +6722,7 @@ void glProgramUniform4uiv(GLuint program, GLint location, GLsizei count, const G
 
 void glProgramUniformMatrix2fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform_matrix2fv(ctx, program, location, count, transpose, value);
@@ -5792,6 +6730,7 @@ void glProgramUniformMatrix2fv(GLuint program, GLint location, GLsizei count, GL
 
 void glProgramUniformMatrix3fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform_matrix3fv(ctx, program, location, count, transpose, value);
@@ -5799,6 +6738,7 @@ void glProgramUniformMatrix3fv(GLuint program, GLint location, GLsizei count, GL
 
 void glProgramUniformMatrix4fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform_matrix4fv(ctx, program, location, count, transpose, value);
@@ -5807,6 +6747,7 @@ void glProgramUniformMatrix4fv(GLuint program, GLint location, GLsizei count, GL
 void glProgramUniformMatrix2dv(GLuint program, GLint location, GLsizei count, GLboolean transpose,
                                const GLdouble *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform_matrix2dv(ctx, program, location, count, transpose, value);
@@ -5815,6 +6756,7 @@ void glProgramUniformMatrix2dv(GLuint program, GLint location, GLsizei count, GL
 void glProgramUniformMatrix3dv(GLuint program, GLint location, GLsizei count, GLboolean transpose,
                                const GLdouble *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform_matrix3dv(ctx, program, location, count, transpose, value);
@@ -5823,6 +6765,7 @@ void glProgramUniformMatrix3dv(GLuint program, GLint location, GLsizei count, GL
 void glProgramUniformMatrix4dv(GLuint program, GLint location, GLsizei count, GLboolean transpose,
                                const GLdouble *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform_matrix4dv(ctx, program, location, count, transpose, value);
@@ -5831,6 +6774,7 @@ void glProgramUniformMatrix4dv(GLuint program, GLint location, GLsizei count, GL
 void glProgramUniformMatrix2x3fv(GLuint program, GLint location, GLsizei count, GLboolean transpose,
                                  const GLfloat *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform_matrix2x3fv(ctx, program, location, count, transpose, value);
@@ -5839,6 +6783,7 @@ void glProgramUniformMatrix2x3fv(GLuint program, GLint location, GLsizei count, 
 void glProgramUniformMatrix3x2fv(GLuint program, GLint location, GLsizei count, GLboolean transpose,
                                  const GLfloat *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform_matrix3x2fv(ctx, program, location, count, transpose, value);
@@ -5847,6 +6792,7 @@ void glProgramUniformMatrix3x2fv(GLuint program, GLint location, GLsizei count, 
 void glProgramUniformMatrix2x4fv(GLuint program, GLint location, GLsizei count, GLboolean transpose,
                                  const GLfloat *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform_matrix2x4fv(ctx, program, location, count, transpose, value);
@@ -5855,6 +6801,7 @@ void glProgramUniformMatrix2x4fv(GLuint program, GLint location, GLsizei count, 
 void glProgramUniformMatrix4x2fv(GLuint program, GLint location, GLsizei count, GLboolean transpose,
                                  const GLfloat *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform_matrix4x2fv(ctx, program, location, count, transpose, value);
@@ -5863,6 +6810,7 @@ void glProgramUniformMatrix4x2fv(GLuint program, GLint location, GLsizei count, 
 void glProgramUniformMatrix3x4fv(GLuint program, GLint location, GLsizei count, GLboolean transpose,
                                  const GLfloat *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform_matrix3x4fv(ctx, program, location, count, transpose, value);
@@ -5871,6 +6819,7 @@ void glProgramUniformMatrix3x4fv(GLuint program, GLint location, GLsizei count, 
 void glProgramUniformMatrix4x3fv(GLuint program, GLint location, GLsizei count, GLboolean transpose,
                                  const GLfloat *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform_matrix4x3fv(ctx, program, location, count, transpose, value);
@@ -5879,6 +6828,7 @@ void glProgramUniformMatrix4x3fv(GLuint program, GLint location, GLsizei count, 
 void glProgramUniformMatrix2x3dv(GLuint program, GLint location, GLsizei count, GLboolean transpose,
                                  const GLdouble *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform_matrix2x3dv(ctx, program, location, count, transpose, value);
@@ -5887,6 +6837,7 @@ void glProgramUniformMatrix2x3dv(GLuint program, GLint location, GLsizei count, 
 void glProgramUniformMatrix3x2dv(GLuint program, GLint location, GLsizei count, GLboolean transpose,
                                  const GLdouble *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform_matrix3x2dv(ctx, program, location, count, transpose, value);
@@ -5895,6 +6846,7 @@ void glProgramUniformMatrix3x2dv(GLuint program, GLint location, GLsizei count, 
 void glProgramUniformMatrix2x4dv(GLuint program, GLint location, GLsizei count, GLboolean transpose,
                                  const GLdouble *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform_matrix2x4dv(ctx, program, location, count, transpose, value);
@@ -5903,6 +6855,7 @@ void glProgramUniformMatrix2x4dv(GLuint program, GLint location, GLsizei count, 
 void glProgramUniformMatrix4x2dv(GLuint program, GLint location, GLsizei count, GLboolean transpose,
                                  const GLdouble *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform_matrix4x2dv(ctx, program, location, count, transpose, value);
@@ -5911,6 +6864,7 @@ void glProgramUniformMatrix4x2dv(GLuint program, GLint location, GLsizei count, 
 void glProgramUniformMatrix3x4dv(GLuint program, GLint location, GLsizei count, GLboolean transpose,
                                  const GLdouble *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform_matrix3x4dv(ctx, program, location, count, transpose, value);
@@ -5919,6 +6873,7 @@ void glProgramUniformMatrix3x4dv(GLuint program, GLint location, GLsizei count, 
 void glProgramUniformMatrix4x3dv(GLuint program, GLint location, GLsizei count, GLboolean transpose,
                                  const GLdouble *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.program_uniform_matrix4x3dv(ctx, program, location, count, transpose, value);
@@ -5926,6 +6881,7 @@ void glProgramUniformMatrix4x3dv(GLuint program, GLint location, GLsizei count, 
 
 void glValidateProgramPipeline(GLuint pipeline)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.validate_program_pipeline(ctx, pipeline);
@@ -5933,6 +6889,7 @@ void glValidateProgramPipeline(GLuint pipeline)
 
 void glGetProgramPipelineInfoLog(GLuint pipeline, GLsizei bufSize, GLsizei *length, GLchar *infoLog)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_program_pipeline_info_log(ctx, pipeline, bufSize, length, infoLog);
@@ -5940,6 +6897,7 @@ void glGetProgramPipelineInfoLog(GLuint pipeline, GLsizei bufSize, GLsizei *leng
 
 void glVertexAttribL1d(GLuint index, GLdouble x)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_l1d(ctx, index, x);
@@ -5947,6 +6905,7 @@ void glVertexAttribL1d(GLuint index, GLdouble x)
 
 void glVertexAttribL2d(GLuint index, GLdouble x, GLdouble y)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_l2d(ctx, index, x, y);
@@ -5954,6 +6913,7 @@ void glVertexAttribL2d(GLuint index, GLdouble x, GLdouble y)
 
 void glVertexAttribL3d(GLuint index, GLdouble x, GLdouble y, GLdouble z)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_l3d(ctx, index, x, y, z);
@@ -5961,6 +6921,7 @@ void glVertexAttribL3d(GLuint index, GLdouble x, GLdouble y, GLdouble z)
 
 void glVertexAttribL4d(GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_l4d(ctx, index, x, y, z, w);
@@ -5968,6 +6929,7 @@ void glVertexAttribL4d(GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdoubl
 
 void glVertexAttribL1dv(GLuint index, const GLdouble *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_l1dv(ctx, index, v);
@@ -5975,6 +6937,7 @@ void glVertexAttribL1dv(GLuint index, const GLdouble *v)
 
 void glVertexAttribL2dv(GLuint index, const GLdouble *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_l2dv(ctx, index, v);
@@ -5982,6 +6945,7 @@ void glVertexAttribL2dv(GLuint index, const GLdouble *v)
 
 void glVertexAttribL3dv(GLuint index, const GLdouble *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_l3dv(ctx, index, v);
@@ -5989,6 +6953,7 @@ void glVertexAttribL3dv(GLuint index, const GLdouble *v)
 
 void glVertexAttribL4dv(GLuint index, const GLdouble *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_l4dv(ctx, index, v);
@@ -5996,6 +6961,7 @@ void glVertexAttribL4dv(GLuint index, const GLdouble *v)
 
 void glVertexAttribLPointer(GLuint index, GLint size, GLenum type, GLsizei stride, const void *pointer)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_l_pointer(ctx, index, size, type, stride, pointer);
@@ -6003,6 +6969,7 @@ void glVertexAttribLPointer(GLuint index, GLint size, GLenum type, GLsizei strid
 
 void glGetVertexAttribLdv(GLuint index, GLenum pname, GLdouble *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_vertex_attrib_ldv(ctx, index, pname, params);
@@ -6010,6 +6977,7 @@ void glGetVertexAttribLdv(GLuint index, GLenum pname, GLdouble *params)
 
 void glViewportArrayv(GLuint first, GLsizei count, const GLfloat *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.viewport_arrayv(ctx, first, count, v);
@@ -6017,6 +6985,7 @@ void glViewportArrayv(GLuint first, GLsizei count, const GLfloat *v)
 
 void glViewportIndexedf(GLuint index, GLfloat x, GLfloat y, GLfloat w, GLfloat h)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.viewport_indexedf(ctx, index, x, y, w, h);
@@ -6024,6 +6993,7 @@ void glViewportIndexedf(GLuint index, GLfloat x, GLfloat y, GLfloat w, GLfloat h
 
 void glViewportIndexedfv(GLuint index, const GLfloat *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.viewport_indexedfv(ctx, index, v);
@@ -6031,6 +7001,7 @@ void glViewportIndexedfv(GLuint index, const GLfloat *v)
 
 void glScissorArrayv(GLuint first, GLsizei count, const GLint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.scissor_arrayv(ctx, first, count, v);
@@ -6038,6 +7009,7 @@ void glScissorArrayv(GLuint first, GLsizei count, const GLint *v)
 
 void glScissorIndexed(GLuint index, GLint left, GLint bottom, GLsizei width, GLsizei height)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.scissor_indexed(ctx, index, left, bottom, width, height);
@@ -6045,6 +7017,7 @@ void glScissorIndexed(GLuint index, GLint left, GLint bottom, GLsizei width, GLs
 
 void glScissorIndexedv(GLuint index, const GLint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.scissor_indexedv(ctx, index, v);
@@ -6052,6 +7025,7 @@ void glScissorIndexedv(GLuint index, const GLint *v)
 
 void glDepthRangeArrayv(GLuint first, GLsizei count, const GLdouble *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.depth_range_arrayv(ctx, first, count, v);
@@ -6059,6 +7033,7 @@ void glDepthRangeArrayv(GLuint first, GLsizei count, const GLdouble *v)
 
 void glDepthRangeIndexed(GLuint index, GLdouble n, GLdouble f)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.depth_range_indexed(ctx, index, n, f);
@@ -6066,6 +7041,7 @@ void glDepthRangeIndexed(GLuint index, GLdouble n, GLdouble f)
 
 void glGetFloati_v(GLenum target, GLuint index, GLfloat *data)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_floati_v(ctx, target, index, data);
@@ -6073,6 +7049,7 @@ void glGetFloati_v(GLenum target, GLuint index, GLfloat *data)
 
 void glGetDoublei_v(GLenum target, GLuint index, GLdouble *data)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_doublei_v(ctx, target, index, data);
@@ -6081,6 +7058,7 @@ void glGetDoublei_v(GLenum target, GLuint index, GLdouble *data)
 void glDrawArraysInstancedBaseInstance(GLenum mode, GLint first, GLsizei count, GLsizei instancecount,
                                        GLuint baseinstance)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.draw_arrays_instanced_base_instance(ctx, mode, first, count, instancecount, baseinstance);
@@ -6089,6 +7067,7 @@ void glDrawArraysInstancedBaseInstance(GLenum mode, GLint first, GLsizei count, 
 void glDrawElementsInstancedBaseInstance(GLenum mode, GLsizei count, GLenum type, const void *indices,
                                          GLsizei instancecount, GLuint baseinstance)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.draw_elements_instanced_base_instance(ctx, mode, count, type, indices, instancecount, baseinstance);
@@ -6097,6 +7076,7 @@ void glDrawElementsInstancedBaseInstance(GLenum mode, GLsizei count, GLenum type
 void glDrawElementsInstancedBaseVertexBaseInstance(GLenum mode, GLsizei count, GLenum type, const void *indices,
                                                    GLsizei instancecount, GLint basevertex, GLuint baseinstance)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.draw_elements_instanced_base_vertex_base_instance(ctx, mode, count, type, indices, instancecount,
@@ -6105,6 +7085,7 @@ void glDrawElementsInstancedBaseVertexBaseInstance(GLenum mode, GLsizei count, G
 
 void glGetInternalformativ(GLenum target, GLenum internalformat, GLenum pname, GLsizei count, GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_internalformativ(ctx, target, internalformat, pname, count, params);
@@ -6112,6 +7093,7 @@ void glGetInternalformativ(GLenum target, GLenum internalformat, GLenum pname, G
 
 void glGetActiveAtomicCounterBufferiv(GLuint program, GLuint bufferIndex, GLenum pname, GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_active_atomic_counter_bufferiv(ctx, program, bufferIndex, pname, params);
@@ -6120,6 +7102,7 @@ void glGetActiveAtomicCounterBufferiv(GLuint program, GLuint bufferIndex, GLenum
 void glBindImageTexture(GLuint unit, GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum access,
                         GLenum format)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.bind_image_texture(ctx, unit, texture, level, layered, layer, access, format);
@@ -6127,6 +7110,7 @@ void glBindImageTexture(GLuint unit, GLuint texture, GLint level, GLboolean laye
 
 void glMemoryBarrier(GLbitfield barriers)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.memory_barrier(ctx, barriers);
@@ -6134,6 +7118,7 @@ void glMemoryBarrier(GLbitfield barriers)
 
 void glTexStorage1D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_storage1D(ctx, target, levels, internalformat, width);
@@ -6141,6 +7126,7 @@ void glTexStorage1D(GLenum target, GLsizei levels, GLenum internalformat, GLsize
 
 void glTexStorage2D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_storage2D(ctx, target, levels, internalformat, width, height);
@@ -6148,6 +7134,7 @@ void glTexStorage2D(GLenum target, GLsizei levels, GLenum internalformat, GLsize
 
 void glTexStorage3D(GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_storage3D(ctx, target, levels, internalformat, width, height, depth);
@@ -6155,6 +7142,7 @@ void glTexStorage3D(GLenum target, GLsizei levels, GLenum internalformat, GLsize
 
 void glDrawTransformFeedbackInstanced(GLenum mode, GLuint id, GLsizei instancecount)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.draw_transform_feedback_instanced(ctx, mode, id, instancecount);
@@ -6162,6 +7150,7 @@ void glDrawTransformFeedbackInstanced(GLenum mode, GLuint id, GLsizei instanceco
 
 void glDrawTransformFeedbackStreamInstanced(GLenum mode, GLuint id, GLuint stream, GLsizei instancecount)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.draw_transform_feedback_stream_instanced(ctx, mode, id, stream, instancecount);
@@ -6169,6 +7158,7 @@ void glDrawTransformFeedbackStreamInstanced(GLenum mode, GLuint id, GLuint strea
 
 void glClearBufferData(GLenum target, GLenum internalformat, GLenum format, GLenum type, const void *data)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.clear_buffer_data(ctx, target, internalformat, format, type, data);
@@ -6177,6 +7167,7 @@ void glClearBufferData(GLenum target, GLenum internalformat, GLenum format, GLen
 void glClearBufferSubData(GLenum target, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format,
                           GLenum type, const void *data)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.clear_buffer_sub_data(ctx, target, internalformat, offset, size, format, type, data);
@@ -6184,6 +7175,7 @@ void glClearBufferSubData(GLenum target, GLenum internalformat, GLintptr offset,
 
 void glDispatchCompute(GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.dispatch_compute(ctx, num_groups_x, num_groups_y, num_groups_z);
@@ -6191,6 +7183,7 @@ void glDispatchCompute(GLuint num_groups_x, GLuint num_groups_y, GLuint num_grou
 
 void glDispatchComputeIndirect(GLintptr indirect)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.dispatch_compute_indirect(ctx, indirect);
@@ -6200,6 +7193,7 @@ void glCopyImageSubData(GLuint srcName, GLenum srcTarget, GLint srcLevel, GLint 
                         GLuint dstName, GLenum dstTarget, GLint dstLevel, GLint dstX, GLint dstY, GLint dstZ,
                         GLsizei srcWidth, GLsizei srcHeight, GLsizei srcDepth)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.copy_image_sub_data(ctx, srcName, srcTarget, srcLevel, srcX, srcY, srcZ, dstName, dstTarget, dstLevel,
@@ -6208,6 +7202,7 @@ void glCopyImageSubData(GLuint srcName, GLenum srcTarget, GLint srcLevel, GLint 
 
 void glFramebufferParameteri(GLenum target, GLenum pname, GLint param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.framebuffer_parameteri(ctx, target, pname, param);
@@ -6215,6 +7210,7 @@ void glFramebufferParameteri(GLenum target, GLenum pname, GLint param)
 
 void glGetFramebufferParameteriv(GLenum target, GLenum pname, GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_framebuffer_parameteriv(ctx, target, pname, params);
@@ -6222,6 +7218,7 @@ void glGetFramebufferParameteriv(GLenum target, GLenum pname, GLint *params)
 
 void glGetInternalformati64v(GLenum target, GLenum internalformat, GLenum pname, GLsizei count, GLint64 *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_internalformati64v(ctx, target, internalformat, pname, count, params);
@@ -6230,6 +7227,7 @@ void glGetInternalformati64v(GLenum target, GLenum internalformat, GLenum pname,
 void glInvalidateTexSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width,
                              GLsizei height, GLsizei depth)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.invalidate_tex_sub_image(ctx, texture, level, xoffset, yoffset, zoffset, width, height, depth);
@@ -6237,6 +7235,7 @@ void glInvalidateTexSubImage(GLuint texture, GLint level, GLint xoffset, GLint y
 
 void glInvalidateTexImage(GLuint texture, GLint level)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.invalidate_tex_image(ctx, texture, level);
@@ -6244,6 +7243,7 @@ void glInvalidateTexImage(GLuint texture, GLint level)
 
 void glInvalidateBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr length)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.invalidate_buffer_sub_data(ctx, buffer, offset, length);
@@ -6251,6 +7251,7 @@ void glInvalidateBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr length
 
 void glInvalidateBufferData(GLuint buffer)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.invalidate_buffer_data(ctx, buffer);
@@ -6258,6 +7259,7 @@ void glInvalidateBufferData(GLuint buffer)
 
 void glInvalidateFramebuffer(GLenum target, GLsizei numAttachments, const GLenum *attachments)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.invalidate_framebuffer(ctx, target, numAttachments, attachments);
@@ -6266,6 +7268,7 @@ void glInvalidateFramebuffer(GLenum target, GLsizei numAttachments, const GLenum
 void glInvalidateSubFramebuffer(GLenum target, GLsizei numAttachments, const GLenum *attachments, GLint x, GLint y,
                                 GLsizei width, GLsizei height)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.invalidate_sub_framebuffer(ctx, target, numAttachments, attachments, x, y, width, height);
@@ -6273,6 +7276,7 @@ void glInvalidateSubFramebuffer(GLenum target, GLsizei numAttachments, const GLe
 
 void glMultiDrawArraysIndirect(GLenum mode, const void *indirect, GLsizei drawcount, GLsizei stride)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_draw_arrays_indirect(ctx, mode, indirect, drawcount, stride);
@@ -6280,6 +7284,7 @@ void glMultiDrawArraysIndirect(GLenum mode, const void *indirect, GLsizei drawco
 
 void glMultiDrawElementsIndirect(GLenum mode, GLenum type, const void *indirect, GLsizei drawcount, GLsizei stride)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_draw_elements_indirect(ctx, mode, type, indirect, drawcount, stride);
@@ -6287,6 +7292,7 @@ void glMultiDrawElementsIndirect(GLenum mode, GLenum type, const void *indirect,
 
 void glGetProgramInterfaceiv(GLuint program, GLenum programInterface, GLenum pname, GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_program_interfaceiv(ctx, program, programInterface, pname, params);
@@ -6302,6 +7308,7 @@ GLuint glGetProgramResourceIndex(GLuint program, GLenum programInterface, const 
 void glGetProgramResourceName(GLuint program, GLenum programInterface, GLuint index, GLsizei bufSize, GLsizei *length,
                               GLchar *name)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_program_resource_name(ctx, program, programInterface, index, bufSize, length, name);
@@ -6310,6 +7317,7 @@ void glGetProgramResourceName(GLuint program, GLenum programInterface, GLuint in
 void glGetProgramResourceiv(GLuint program, GLenum programInterface, GLuint index, GLsizei propCount,
                             const GLenum *props, GLsizei count, GLsizei *length, GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_program_resourceiv(ctx, program, programInterface, index, propCount, props, count, length,
@@ -6332,6 +7340,7 @@ GLint glGetProgramResourceLocationIndex(GLuint program, GLenum programInterface,
 
 void glShaderStorageBlockBinding(GLuint program, GLuint storageBlockIndex, GLuint storageBlockBinding)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.shader_storage_block_binding(ctx, program, storageBlockIndex, storageBlockBinding);
@@ -6339,6 +7348,7 @@ void glShaderStorageBlockBinding(GLuint program, GLuint storageBlockIndex, GLuin
 
 void glTexBufferRange(GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_buffer_range(ctx, target, internalformat, buffer, offset, size);
@@ -6347,6 +7357,7 @@ void glTexBufferRange(GLenum target, GLenum internalformat, GLuint buffer, GLint
 void glTexStorage2DMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height,
                                GLboolean fixedsamplelocations)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_storage2_d_multisample(ctx, target, samples, internalformat, width, height, fixedsamplelocations);
@@ -6355,6 +7366,7 @@ void glTexStorage2DMultisample(GLenum target, GLsizei samples, GLenum internalfo
 void glTexStorage3DMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height,
                                GLsizei depth, GLboolean fixedsamplelocations)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.tex_storage3_d_multisample(ctx, target, samples, internalformat, width, height, depth,
@@ -6364,6 +7376,7 @@ void glTexStorage3DMultisample(GLenum target, GLsizei samples, GLenum internalfo
 void glTextureView(GLuint texture, GLenum target, GLuint origtexture, GLenum internalformat, GLuint minlevel,
                    GLuint numlevels, GLuint minlayer, GLuint numlayers)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.texture_view(ctx, texture, target, origtexture, internalformat, minlevel, numlevels, minlayer,
@@ -6372,6 +7385,7 @@ void glTextureView(GLuint texture, GLenum target, GLuint origtexture, GLenum int
 
 void glBindVertexBuffer(GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.bind_vertex_buffer(ctx, bindingindex, buffer, offset, stride);
@@ -6379,6 +7393,7 @@ void glBindVertexBuffer(GLuint bindingindex, GLuint buffer, GLintptr offset, GLs
 
 void glVertexAttribFormat(GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_format(ctx, attribindex, size, type, normalized, relativeoffset);
@@ -6386,6 +7401,7 @@ void glVertexAttribFormat(GLuint attribindex, GLint size, GLenum type, GLboolean
 
 void glVertexAttribIFormat(GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_i_format(ctx, attribindex, size, type, relativeoffset);
@@ -6393,6 +7409,7 @@ void glVertexAttribIFormat(GLuint attribindex, GLint size, GLenum type, GLuint r
 
 void glVertexAttribLFormat(GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_l_format(ctx, attribindex, size, type, relativeoffset);
@@ -6400,6 +7417,7 @@ void glVertexAttribLFormat(GLuint attribindex, GLint size, GLenum type, GLuint r
 
 void glVertexAttribBinding(GLuint attribindex, GLuint bindingindex)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_attrib_binding(ctx, attribindex, bindingindex);
@@ -6407,6 +7425,7 @@ void glVertexAttribBinding(GLuint attribindex, GLuint bindingindex)
 
 void glVertexBindingDivisor(GLuint bindingindex, GLuint divisor)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_binding_divisor(ctx, bindingindex, divisor);
@@ -6415,6 +7434,7 @@ void glVertexBindingDivisor(GLuint bindingindex, GLuint divisor)
 void glDebugMessageControl(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint *ids,
                            GLboolean enabled)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.debug_message_control(ctx, source, type, severity, count, ids, enabled);
@@ -6422,6 +7442,7 @@ void glDebugMessageControl(GLenum source, GLenum type, GLenum severity, GLsizei 
 
 void glDebugMessageInsert(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *buf)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.debug_message_insert(ctx, source, type, id, severity, length, buf);
@@ -6429,6 +7450,7 @@ void glDebugMessageInsert(GLenum source, GLenum type, GLuint id, GLenum severity
 
 void glDebugMessageCallback(GLDEBUGPROC callback, const void *userParam)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.debug_message_callback(ctx, callback, userParam);
@@ -6445,6 +7467,7 @@ GLuint glGetDebugMessageLog(GLuint count, GLsizei bufSize, GLenum *sources, GLen
 
 void glPushDebugGroup(GLenum source, GLuint id, GLsizei length, const GLchar *message)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.push_debug_group(ctx, source, id, length, message);
@@ -6452,6 +7475,7 @@ void glPushDebugGroup(GLenum source, GLuint id, GLsizei length, const GLchar *me
 
 void glPopDebugGroup()
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.pop_debug_group(ctx);
@@ -6459,6 +7483,7 @@ void glPopDebugGroup()
 
 void glObjectLabel(GLenum identifier, GLuint name, GLsizei length, const GLchar *label)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.object_label(ctx, identifier, name, length, label);
@@ -6466,6 +7491,7 @@ void glObjectLabel(GLenum identifier, GLuint name, GLsizei length, const GLchar 
 
 void glGetObjectLabel(GLenum identifier, GLuint name, GLsizei bufSize, GLsizei *length, GLchar *label)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_object_label(ctx, identifier, name, bufSize, length, label);
@@ -6473,6 +7499,7 @@ void glGetObjectLabel(GLenum identifier, GLuint name, GLsizei bufSize, GLsizei *
 
 void glObjectPtrLabel(const void *ptr, GLsizei length, const GLchar *label)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.object_ptr_label(ctx, ptr, length, label);
@@ -6480,6 +7507,7 @@ void glObjectPtrLabel(const void *ptr, GLsizei length, const GLchar *label)
 
 void glGetObjectPtrLabel(const void *ptr, GLsizei bufSize, GLsizei *length, GLchar *label)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_object_ptr_label(ctx, ptr, bufSize, length, label);
@@ -6487,6 +7515,7 @@ void glGetObjectPtrLabel(const void *ptr, GLsizei bufSize, GLsizei *length, GLch
 
 void glBufferStorage(GLenum target, GLsizeiptr size, const void *data, GLbitfield flags)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.buffer_storage(ctx, target, size, data, flags);
@@ -6494,6 +7523,7 @@ void glBufferStorage(GLenum target, GLsizeiptr size, const void *data, GLbitfiel
 
 void glClearTexImage(GLuint texture, GLint level, GLenum format, GLenum type, const void *data)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.clear_tex_image(ctx, texture, level, format, type, data);
@@ -6502,6 +7532,7 @@ void glClearTexImage(GLuint texture, GLint level, GLenum format, GLenum type, co
 void glClearTexSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width,
                         GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *data)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.clear_tex_sub_image(ctx, texture, level, xoffset, yoffset, zoffset, width, height, depth, format,
@@ -6510,6 +7541,7 @@ void glClearTexSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffse
 
 void glBindBuffersBase(GLenum target, GLuint first, GLsizei count, const GLuint *buffers)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.bind_buffers_base(ctx, target, first, count, buffers);
@@ -6518,6 +7550,7 @@ void glBindBuffersBase(GLenum target, GLuint first, GLsizei count, const GLuint 
 void glBindBuffersRange(GLenum target, GLuint first, GLsizei count, const GLuint *buffers, const GLintptr *offsets,
                         const GLsizeiptr *sizes)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.bind_buffers_range(ctx, target, first, count, buffers, offsets, sizes);
@@ -6525,6 +7558,7 @@ void glBindBuffersRange(GLenum target, GLuint first, GLsizei count, const GLuint
 
 void glBindTextures(GLuint first, GLsizei count, const GLuint *textures)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.bind_textures(ctx, first, count, textures);
@@ -6532,6 +7566,7 @@ void glBindTextures(GLuint first, GLsizei count, const GLuint *textures)
 
 void glBindSamplers(GLuint first, GLsizei count, const GLuint *samplers)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.bind_samplers(ctx, first, count, samplers);
@@ -6539,6 +7574,7 @@ void glBindSamplers(GLuint first, GLsizei count, const GLuint *samplers)
 
 void glBindImageTextures(GLuint first, GLsizei count, const GLuint *textures)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.bind_image_textures(ctx, first, count, textures);
@@ -6547,6 +7583,7 @@ void glBindImageTextures(GLuint first, GLsizei count, const GLuint *textures)
 void glBindVertexBuffers(GLuint first, GLsizei count, const GLuint *buffers, const GLintptr *offsets,
                          const GLsizei *strides)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.bind_vertex_buffers(ctx, first, count, buffers, offsets, strides);
@@ -6554,6 +7591,7 @@ void glBindVertexBuffers(GLuint first, GLsizei count, const GLuint *buffers, con
 
 void glClipControl(GLenum origin, GLenum depth)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.clip_control(ctx, origin, depth);
@@ -6561,6 +7599,7 @@ void glClipControl(GLenum origin, GLenum depth)
 
 void glCreateTransformFeedbacks(GLsizei n, GLuint *ids)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.create_transform_feedbacks(ctx, n, ids);
@@ -6568,6 +7607,7 @@ void glCreateTransformFeedbacks(GLsizei n, GLuint *ids)
 
 void glTransformFeedbackBufferBase(GLuint xfb, GLuint index, GLuint buffer)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.transform_feedback_buffer_base(ctx, xfb, index, buffer);
@@ -6575,6 +7615,7 @@ void glTransformFeedbackBufferBase(GLuint xfb, GLuint index, GLuint buffer)
 
 void glTransformFeedbackBufferRange(GLuint xfb, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.transform_feedback_buffer_range(ctx, xfb, index, buffer, offset, size);
@@ -6582,6 +7623,7 @@ void glTransformFeedbackBufferRange(GLuint xfb, GLuint index, GLuint buffer, GLi
 
 void glGetTransformFeedbackiv(GLuint xfb, GLenum pname, GLint *param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_transform_feedbackiv(ctx, xfb, pname, param);
@@ -6589,6 +7631,7 @@ void glGetTransformFeedbackiv(GLuint xfb, GLenum pname, GLint *param)
 
 void glGetTransformFeedbacki_v(GLuint xfb, GLenum pname, GLuint index, GLint *param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_transform_feedbacki_v(ctx, xfb, pname, index, param);
@@ -6596,6 +7639,7 @@ void glGetTransformFeedbacki_v(GLuint xfb, GLenum pname, GLuint index, GLint *pa
 
 void glGetTransformFeedbacki64_v(GLuint xfb, GLenum pname, GLuint index, GLint64 *param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_transform_feedbacki64_v(ctx, xfb, pname, index, param);
@@ -6603,6 +7647,7 @@ void glGetTransformFeedbacki64_v(GLuint xfb, GLenum pname, GLuint index, GLint64
 
 void glCreateBuffers(GLsizei n, GLuint *buffers)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.create_buffers(ctx, n, buffers);
@@ -6610,6 +7655,7 @@ void glCreateBuffers(GLsizei n, GLuint *buffers)
 
 void glNamedBufferStorage(GLuint buffer, GLsizeiptr size, const void *data, GLbitfield flags)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.named_buffer_storage(ctx, buffer, size, data, flags);
@@ -6617,6 +7663,7 @@ void glNamedBufferStorage(GLuint buffer, GLsizeiptr size, const void *data, GLbi
 
 void glNamedBufferData(GLuint buffer, GLsizeiptr size, const void *data, GLenum usage)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.named_buffer_data(ctx, buffer, size, data, usage);
@@ -6624,6 +7671,7 @@ void glNamedBufferData(GLuint buffer, GLsizeiptr size, const void *data, GLenum 
 
 void glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const void *data)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.named_buffer_sub_data(ctx, buffer, offset, size, data);
@@ -6632,6 +7680,7 @@ void glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const
 void glCopyNamedBufferSubData(GLuint readBuffer, GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset,
                               GLsizeiptr size)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.copy_named_buffer_sub_data(ctx, readBuffer, writeBuffer, readOffset, writeOffset, size);
@@ -6639,6 +7688,7 @@ void glCopyNamedBufferSubData(GLuint readBuffer, GLuint writeBuffer, GLintptr re
 
 void glClearNamedBufferData(GLuint buffer, GLenum internalformat, GLenum format, GLenum type, const void *data)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.clear_named_buffer_data(ctx, buffer, internalformat, format, type, data);
@@ -6647,6 +7697,7 @@ void glClearNamedBufferData(GLuint buffer, GLenum internalformat, GLenum format,
 void glClearNamedBufferSubData(GLuint buffer, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format,
                                GLenum type, const void *data)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.clear_named_buffer_sub_data(ctx, buffer, internalformat, offset, size, format, type, data);
@@ -6675,6 +7726,7 @@ GLboolean glUnmapNamedBuffer(GLuint buffer)
 
 void glFlushMappedNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.flush_mapped_named_buffer_range(ctx, buffer, offset, length);
@@ -6682,6 +7734,7 @@ void glFlushMappedNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr le
 
 void glGetNamedBufferParameteriv(GLuint buffer, GLenum pname, GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_named_buffer_parameteriv(ctx, buffer, pname, params);
@@ -6689,6 +7742,7 @@ void glGetNamedBufferParameteriv(GLuint buffer, GLenum pname, GLint *params)
 
 void glGetNamedBufferParameteri64v(GLuint buffer, GLenum pname, GLint64 *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_named_buffer_parameteri64v(ctx, buffer, pname, params);
@@ -6696,6 +7750,7 @@ void glGetNamedBufferParameteri64v(GLuint buffer, GLenum pname, GLint64 *params)
 
 void glGetNamedBufferPointerv(GLuint buffer, GLenum pname, void **params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_named_buffer_pointerv(ctx, buffer, pname, params);
@@ -6703,6 +7758,7 @@ void glGetNamedBufferPointerv(GLuint buffer, GLenum pname, void **params)
 
 void glGetNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, void *data)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_named_buffer_sub_data(ctx, buffer, offset, size, data);
@@ -6710,6 +7766,7 @@ void glGetNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, vo
 
 void glCreateFramebuffers(GLsizei n, GLuint *framebuffers)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.create_framebuffers(ctx, n, framebuffers);
@@ -6718,6 +7775,7 @@ void glCreateFramebuffers(GLsizei n, GLuint *framebuffers)
 void glNamedFramebufferRenderbuffer(GLuint framebuffer, GLenum attachment, GLenum renderbuffertarget,
                                     GLuint renderbuffer)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.named_framebuffer_renderbuffer(ctx, framebuffer, attachment, renderbuffertarget, renderbuffer);
@@ -6725,6 +7783,7 @@ void glNamedFramebufferRenderbuffer(GLuint framebuffer, GLenum attachment, GLenu
 
 void glNamedFramebufferParameteri(GLuint framebuffer, GLenum pname, GLint param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.named_framebuffer_parameteri(ctx, framebuffer, pname, param);
@@ -6732,6 +7791,7 @@ void glNamedFramebufferParameteri(GLuint framebuffer, GLenum pname, GLint param)
 
 void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.named_framebuffer_texture(ctx, framebuffer, attachment, texture, level);
@@ -6739,6 +7799,7 @@ void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment, GLuint tex
 
 void glNamedFramebufferTextureLayer(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.named_framebuffer_texture_layer(ctx, framebuffer, attachment, texture, level, layer);
@@ -6746,6 +7807,7 @@ void glNamedFramebufferTextureLayer(GLuint framebuffer, GLenum attachment, GLuin
 
 void glNamedFramebufferDrawBuffer(GLuint framebuffer, GLenum buf)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.named_framebuffer_draw_buffer(ctx, framebuffer, buf);
@@ -6753,6 +7815,7 @@ void glNamedFramebufferDrawBuffer(GLuint framebuffer, GLenum buf)
 
 void glNamedFramebufferDrawBuffers(GLuint framebuffer, GLsizei n, const GLenum *bufs)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.named_framebuffer_draw_buffers(ctx, framebuffer, n, bufs);
@@ -6760,6 +7823,7 @@ void glNamedFramebufferDrawBuffers(GLuint framebuffer, GLsizei n, const GLenum *
 
 void glNamedFramebufferReadBuffer(GLuint framebuffer, GLenum src)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.named_framebuffer_read_buffer(ctx, framebuffer, src);
@@ -6767,6 +7831,7 @@ void glNamedFramebufferReadBuffer(GLuint framebuffer, GLenum src)
 
 void glInvalidateNamedFramebufferData(GLuint framebuffer, GLsizei numAttachments, const GLenum *attachments)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.invalidate_named_framebuffer_data(ctx, framebuffer, numAttachments, attachments);
@@ -6775,6 +7840,7 @@ void glInvalidateNamedFramebufferData(GLuint framebuffer, GLsizei numAttachments
 void glInvalidateNamedFramebufferSubData(GLuint framebuffer, GLsizei numAttachments, const GLenum *attachments, GLint x,
                                          GLint y, GLsizei width, GLsizei height)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.invalidate_named_framebuffer_sub_data(ctx, framebuffer, numAttachments, attachments, x, y, width,
@@ -6783,6 +7849,7 @@ void glInvalidateNamedFramebufferSubData(GLuint framebuffer, GLsizei numAttachme
 
 void glClearNamedFramebufferiv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLint *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.clear_named_framebufferiv(ctx, framebuffer, buffer, drawbuffer, value);
@@ -6790,6 +7857,7 @@ void glClearNamedFramebufferiv(GLuint framebuffer, GLenum buffer, GLint drawbuff
 
 void glClearNamedFramebufferuiv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLuint *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.clear_named_framebufferuiv(ctx, framebuffer, buffer, drawbuffer, value);
@@ -6797,6 +7865,7 @@ void glClearNamedFramebufferuiv(GLuint framebuffer, GLenum buffer, GLint drawbuf
 
 void glClearNamedFramebufferfv(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLfloat *value)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.clear_named_framebufferfv(ctx, framebuffer, buffer, drawbuffer, value);
@@ -6804,6 +7873,7 @@ void glClearNamedFramebufferfv(GLuint framebuffer, GLenum buffer, GLint drawbuff
 
 void glClearNamedFramebufferfi(GLuint framebuffer, GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.clear_named_framebufferfi(ctx, framebuffer, buffer, drawbuffer, depth, stencil);
@@ -6813,6 +7883,7 @@ void glBlitNamedFramebuffer(GLuint readFramebuffer, GLuint drawFramebuffer, GLin
                             GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask,
                             GLenum filter)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.blit_named_framebuffer(ctx, readFramebuffer, drawFramebuffer, srcX0, srcY0, srcX1, srcY1, dstX0,
@@ -6828,6 +7899,7 @@ GLenum glCheckNamedFramebufferStatus(GLuint framebuffer, GLenum target)
 
 void glGetNamedFramebufferParameteriv(GLuint framebuffer, GLenum pname, GLint *param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_named_framebuffer_parameteriv(ctx, framebuffer, pname, param);
@@ -6835,6 +7907,7 @@ void glGetNamedFramebufferParameteriv(GLuint framebuffer, GLenum pname, GLint *p
 
 void glGetNamedFramebufferAttachmentParameteriv(GLuint framebuffer, GLenum attachment, GLenum pname, GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_named_framebuffer_attachment_parameteriv(ctx, framebuffer, attachment, pname, params);
@@ -6842,6 +7915,7 @@ void glGetNamedFramebufferAttachmentParameteriv(GLuint framebuffer, GLenum attac
 
 void glCreateRenderbuffers(GLsizei n, GLuint *renderbuffers)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.create_renderbuffers(ctx, n, renderbuffers);
@@ -6849,6 +7923,7 @@ void glCreateRenderbuffers(GLsizei n, GLuint *renderbuffers)
 
 void glNamedRenderbufferStorage(GLuint renderbuffer, GLenum internalformat, GLsizei width, GLsizei height)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.named_renderbuffer_storage(ctx, renderbuffer, internalformat, width, height);
@@ -6857,6 +7932,7 @@ void glNamedRenderbufferStorage(GLuint renderbuffer, GLenum internalformat, GLsi
 void glNamedRenderbufferStorageMultisample(GLuint renderbuffer, GLsizei samples, GLenum internalformat, GLsizei width,
                                            GLsizei height)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.named_renderbuffer_storage_multisample(ctx, renderbuffer, samples, internalformat, width, height);
@@ -6864,6 +7940,7 @@ void glNamedRenderbufferStorageMultisample(GLuint renderbuffer, GLsizei samples,
 
 void glGetNamedRenderbufferParameteriv(GLuint renderbuffer, GLenum pname, GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_named_renderbuffer_parameteriv(ctx, renderbuffer, pname, params);
@@ -6871,6 +7948,7 @@ void glGetNamedRenderbufferParameteriv(GLuint renderbuffer, GLenum pname, GLint 
 
 void glCreateTextures(GLenum target, GLsizei n, GLuint *textures)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.create_textures(ctx, target, n, textures);
@@ -6878,6 +7956,7 @@ void glCreateTextures(GLenum target, GLsizei n, GLuint *textures)
 
 void glTextureBuffer(GLuint texture, GLenum internalformat, GLuint buffer)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.texture_buffer(ctx, texture, internalformat, buffer);
@@ -6885,6 +7964,7 @@ void glTextureBuffer(GLuint texture, GLenum internalformat, GLuint buffer)
 
 void glTextureBufferRange(GLuint texture, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.texture_buffer_range(ctx, texture, internalformat, buffer, offset, size);
@@ -6892,6 +7972,7 @@ void glTextureBufferRange(GLuint texture, GLenum internalformat, GLuint buffer, 
 
 void glTextureStorage1D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.texture_storage1D(ctx, texture, levels, internalformat, width);
@@ -6899,6 +7980,7 @@ void glTextureStorage1D(GLuint texture, GLsizei levels, GLenum internalformat, G
 
 void glTextureStorage2D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.texture_storage2D(ctx, texture, levels, internalformat, width, height);
@@ -6907,6 +7989,7 @@ void glTextureStorage2D(GLuint texture, GLsizei levels, GLenum internalformat, G
 void glTextureStorage3D(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height,
                         GLsizei depth)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.texture_storage3D(ctx, texture, levels, internalformat, width, height, depth);
@@ -6915,6 +7998,7 @@ void glTextureStorage3D(GLuint texture, GLsizei levels, GLenum internalformat, G
 void glTextureStorage2DMultisample(GLuint texture, GLsizei samples, GLenum internalformat, GLsizei width,
                                    GLsizei height, GLboolean fixedsamplelocations)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.texture_storage2_d_multisample(ctx, texture, samples, internalformat, width, height,
@@ -6924,6 +8008,7 @@ void glTextureStorage2DMultisample(GLuint texture, GLsizei samples, GLenum inter
 void glTextureStorage3DMultisample(GLuint texture, GLsizei samples, GLenum internalformat, GLsizei width,
                                    GLsizei height, GLsizei depth, GLboolean fixedsamplelocations)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.texture_storage3_d_multisample(ctx, texture, samples, internalformat, width, height, depth,
@@ -6933,6 +8018,7 @@ void glTextureStorage3DMultisample(GLuint texture, GLsizei samples, GLenum inter
 void glTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type,
                          const void *pixels)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.texture_sub_image1D(ctx, texture, level, xoffset, width, format, type, pixels);
@@ -6941,6 +8027,7 @@ void glTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLsizei wid
 void glTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height,
                          GLenum format, GLenum type, const void *pixels)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.texture_sub_image2D(ctx, texture, level, xoffset, yoffset, width, height, format, type, pixels);
@@ -6949,6 +8036,7 @@ void glTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffs
 void glTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width,
                          GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.texture_sub_image3D(ctx, texture, level, xoffset, yoffset, zoffset, width, height, depth, format,
@@ -6958,6 +8046,7 @@ void glTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffs
 void glCompressedTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format,
                                    GLsizei imageSize, const void *data)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.compressed_texture_sub_image1D(ctx, texture, level, xoffset, width, format, imageSize, data);
@@ -6966,6 +8055,7 @@ void glCompressedTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, G
 void glCompressedTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width,
                                    GLsizei height, GLenum format, GLsizei imageSize, const void *data)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.compressed_texture_sub_image2D(ctx, texture, level, xoffset, yoffset, width, height, format,
@@ -6976,6 +8066,7 @@ void glCompressedTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, G
                                    GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize,
                                    const void *data)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.compressed_texture_sub_image3D(ctx, texture, level, xoffset, yoffset, zoffset, width, height, depth,
@@ -6984,6 +8075,7 @@ void glCompressedTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, G
 
 void glCopyTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.copy_texture_sub_image1D(ctx, texture, level, xoffset, x, y, width);
@@ -6992,6 +8084,7 @@ void glCopyTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLint x
 void glCopyTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width,
                              GLsizei height)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.copy_texture_sub_image2D(ctx, texture, level, xoffset, yoffset, x, y, width, height);
@@ -7000,6 +8093,7 @@ void glCopyTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint y
 void glCopyTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y,
                              GLsizei width, GLsizei height)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.copy_texture_sub_image3D(ctx, texture, level, xoffset, yoffset, zoffset, x, y, width, height);
@@ -7007,6 +8101,7 @@ void glCopyTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint y
 
 void glTextureParameterf(GLuint texture, GLenum pname, GLfloat param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.texture_parameterf(ctx, texture, pname, param);
@@ -7014,6 +8109,7 @@ void glTextureParameterf(GLuint texture, GLenum pname, GLfloat param)
 
 void glTextureParameterfv(GLuint texture, GLenum pname, const GLfloat *param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.texture_parameterfv(ctx, texture, pname, param);
@@ -7021,6 +8117,7 @@ void glTextureParameterfv(GLuint texture, GLenum pname, const GLfloat *param)
 
 void glTextureParameteri(GLuint texture, GLenum pname, GLint param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.texture_parameteri(ctx, texture, pname, param);
@@ -7028,6 +8125,7 @@ void glTextureParameteri(GLuint texture, GLenum pname, GLint param)
 
 void glTextureParameterIiv(GLuint texture, GLenum pname, const GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.texture_parameter_iiv(ctx, texture, pname, params);
@@ -7035,6 +8133,7 @@ void glTextureParameterIiv(GLuint texture, GLenum pname, const GLint *params)
 
 void glTextureParameterIuiv(GLuint texture, GLenum pname, const GLuint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.texture_parameter_iuiv(ctx, texture, pname, params);
@@ -7042,6 +8141,7 @@ void glTextureParameterIuiv(GLuint texture, GLenum pname, const GLuint *params)
 
 void glTextureParameteriv(GLuint texture, GLenum pname, const GLint *param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.texture_parameteriv(ctx, texture, pname, param);
@@ -7049,6 +8149,7 @@ void glTextureParameteriv(GLuint texture, GLenum pname, const GLint *param)
 
 void glGenerateTextureMipmap(GLuint texture)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.generate_texture_mipmap(ctx, texture);
@@ -7056,6 +8157,7 @@ void glGenerateTextureMipmap(GLuint texture)
 
 void glBindTextureUnit(GLuint unit, GLuint texture)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.bind_texture_unit(ctx, unit, texture);
@@ -7063,6 +8165,7 @@ void glBindTextureUnit(GLuint unit, GLuint texture)
 
 void glGetTextureImage(GLuint texture, GLint level, GLenum format, GLenum type, GLsizei bufSize, void *pixels)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_texture_image(ctx, texture, level, format, type, bufSize, pixels);
@@ -7070,6 +8173,7 @@ void glGetTextureImage(GLuint texture, GLint level, GLenum format, GLenum type, 
 
 void glGetCompressedTextureImage(GLuint texture, GLint level, GLsizei bufSize, void *pixels)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_compressed_texture_image(ctx, texture, level, bufSize, pixels);
@@ -7077,6 +8181,7 @@ void glGetCompressedTextureImage(GLuint texture, GLint level, GLsizei bufSize, v
 
 void glGetTextureLevelParameterfv(GLuint texture, GLint level, GLenum pname, GLfloat *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_texture_level_parameterfv(ctx, texture, level, pname, params);
@@ -7084,6 +8189,7 @@ void glGetTextureLevelParameterfv(GLuint texture, GLint level, GLenum pname, GLf
 
 void glGetTextureLevelParameteriv(GLuint texture, GLint level, GLenum pname, GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_texture_level_parameteriv(ctx, texture, level, pname, params);
@@ -7091,6 +8197,7 @@ void glGetTextureLevelParameteriv(GLuint texture, GLint level, GLenum pname, GLi
 
 void glGetTextureParameterfv(GLuint texture, GLenum pname, GLfloat *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_texture_parameterfv(ctx, texture, pname, params);
@@ -7098,6 +8205,7 @@ void glGetTextureParameterfv(GLuint texture, GLenum pname, GLfloat *params)
 
 void glGetTextureParameterIiv(GLuint texture, GLenum pname, GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_texture_parameter_iiv(ctx, texture, pname, params);
@@ -7105,6 +8213,7 @@ void glGetTextureParameterIiv(GLuint texture, GLenum pname, GLint *params)
 
 void glGetTextureParameterIuiv(GLuint texture, GLenum pname, GLuint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_texture_parameter_iuiv(ctx, texture, pname, params);
@@ -7112,6 +8221,7 @@ void glGetTextureParameterIuiv(GLuint texture, GLenum pname, GLuint *params)
 
 void glGetTextureParameteriv(GLuint texture, GLenum pname, GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_texture_parameteriv(ctx, texture, pname, params);
@@ -7119,6 +8229,7 @@ void glGetTextureParameteriv(GLuint texture, GLenum pname, GLint *params)
 
 void glCreateVertexArrays(GLsizei n, GLuint *arrays)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.create_vertex_arrays(ctx, n, arrays);
@@ -7126,6 +8237,7 @@ void glCreateVertexArrays(GLsizei n, GLuint *arrays)
 
 void glDisableVertexArrayAttrib(GLuint vaobj, GLuint index)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.disable_vertex_array_attrib(ctx, vaobj, index);
@@ -7133,6 +8245,7 @@ void glDisableVertexArrayAttrib(GLuint vaobj, GLuint index)
 
 void glEnableVertexArrayAttrib(GLuint vaobj, GLuint index)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.enable_vertex_array_attrib(ctx, vaobj, index);
@@ -7140,6 +8253,7 @@ void glEnableVertexArrayAttrib(GLuint vaobj, GLuint index)
 
 void glVertexArrayElementBuffer(GLuint vaobj, GLuint buffer)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_array_element_buffer(ctx, vaobj, buffer);
@@ -7147,6 +8261,7 @@ void glVertexArrayElementBuffer(GLuint vaobj, GLuint buffer)
 
 void glVertexArrayVertexBuffer(GLuint vaobj, GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_array_vertex_buffer(ctx, vaobj, bindingindex, buffer, offset, stride);
@@ -7155,6 +8270,7 @@ void glVertexArrayVertexBuffer(GLuint vaobj, GLuint bindingindex, GLuint buffer,
 void glVertexArrayVertexBuffers(GLuint vaobj, GLuint first, GLsizei count, const GLuint *buffers,
                                 const GLintptr *offsets, const GLsizei *strides)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_array_vertex_buffers(ctx, vaobj, first, count, buffers, offsets, strides);
@@ -7162,6 +8278,7 @@ void glVertexArrayVertexBuffers(GLuint vaobj, GLuint first, GLsizei count, const
 
 void glVertexArrayAttribBinding(GLuint vaobj, GLuint attribindex, GLuint bindingindex)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_array_attrib_binding(ctx, vaobj, attribindex, bindingindex);
@@ -7170,6 +8287,7 @@ void glVertexArrayAttribBinding(GLuint vaobj, GLuint attribindex, GLuint binding
 void glVertexArrayAttribFormat(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLboolean normalized,
                                GLuint relativeoffset)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_array_attrib_format(ctx, vaobj, attribindex, size, type, normalized, relativeoffset);
@@ -7177,6 +8295,7 @@ void glVertexArrayAttribFormat(GLuint vaobj, GLuint attribindex, GLint size, GLe
 
 void glVertexArrayAttribIFormat(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_array_attrib_i_format(ctx, vaobj, attribindex, size, type, relativeoffset);
@@ -7184,6 +8303,7 @@ void glVertexArrayAttribIFormat(GLuint vaobj, GLuint attribindex, GLint size, GL
 
 void glVertexArrayAttribLFormat(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_array_attrib_l_format(ctx, vaobj, attribindex, size, type, relativeoffset);
@@ -7191,6 +8311,7 @@ void glVertexArrayAttribLFormat(GLuint vaobj, GLuint attribindex, GLint size, GL
 
 void glVertexArrayBindingDivisor(GLuint vaobj, GLuint bindingindex, GLuint divisor)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.vertex_array_binding_divisor(ctx, vaobj, bindingindex, divisor);
@@ -7198,6 +8319,7 @@ void glVertexArrayBindingDivisor(GLuint vaobj, GLuint bindingindex, GLuint divis
 
 void glGetVertexArrayiv(GLuint vaobj, GLenum pname, GLint *param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_vertex_arrayiv(ctx, vaobj, pname, param);
@@ -7205,6 +8327,7 @@ void glGetVertexArrayiv(GLuint vaobj, GLenum pname, GLint *param)
 
 void glGetVertexArrayIndexediv(GLuint vaobj, GLuint index, GLenum pname, GLint *param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_vertex_array_indexediv(ctx, vaobj, index, pname, param);
@@ -7212,6 +8335,7 @@ void glGetVertexArrayIndexediv(GLuint vaobj, GLuint index, GLenum pname, GLint *
 
 void glGetVertexArrayIndexed64iv(GLuint vaobj, GLuint index, GLenum pname, GLint64 *param)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_vertex_array_indexed64iv(ctx, vaobj, index, pname, param);
@@ -7219,6 +8343,7 @@ void glGetVertexArrayIndexed64iv(GLuint vaobj, GLuint index, GLenum pname, GLint
 
 void glCreateSamplers(GLsizei n, GLuint *samplers)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.create_samplers(ctx, n, samplers);
@@ -7226,6 +8351,7 @@ void glCreateSamplers(GLsizei n, GLuint *samplers)
 
 void glCreateProgramPipelines(GLsizei n, GLuint *pipelines)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.create_program_pipelines(ctx, n, pipelines);
@@ -7233,6 +8359,7 @@ void glCreateProgramPipelines(GLsizei n, GLuint *pipelines)
 
 void glCreateQueries(GLenum target, GLsizei n, GLuint *ids)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.create_queries(ctx, target, n, ids);
@@ -7240,6 +8367,7 @@ void glCreateQueries(GLenum target, GLsizei n, GLuint *ids)
 
 void glGetQueryBufferObjecti64v(GLuint id, GLuint buffer, GLenum pname, GLintptr offset)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_query_buffer_objecti64v(ctx, id, buffer, pname, offset);
@@ -7247,6 +8375,7 @@ void glGetQueryBufferObjecti64v(GLuint id, GLuint buffer, GLenum pname, GLintptr
 
 void glGetQueryBufferObjectiv(GLuint id, GLuint buffer, GLenum pname, GLintptr offset)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_query_buffer_objectiv(ctx, id, buffer, pname, offset);
@@ -7254,6 +8383,7 @@ void glGetQueryBufferObjectiv(GLuint id, GLuint buffer, GLenum pname, GLintptr o
 
 void glGetQueryBufferObjectui64v(GLuint id, GLuint buffer, GLenum pname, GLintptr offset)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_query_buffer_objectui64v(ctx, id, buffer, pname, offset);
@@ -7261,6 +8391,7 @@ void glGetQueryBufferObjectui64v(GLuint id, GLuint buffer, GLenum pname, GLintpt
 
 void glGetQueryBufferObjectuiv(GLuint id, GLuint buffer, GLenum pname, GLintptr offset)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_query_buffer_objectuiv(ctx, id, buffer, pname, offset);
@@ -7268,6 +8399,7 @@ void glGetQueryBufferObjectuiv(GLuint id, GLuint buffer, GLenum pname, GLintptr 
 
 void glMemoryBarrierByRegion(GLbitfield barriers)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.memory_barrier_by_region(ctx, barriers);
@@ -7276,6 +8408,7 @@ void glMemoryBarrierByRegion(GLbitfield barriers)
 void glGetTextureSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width,
                           GLsizei height, GLsizei depth, GLenum format, GLenum type, GLsizei bufSize, void *pixels)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_texture_sub_image(ctx, texture, level, xoffset, yoffset, zoffset, width, height, depth, format,
@@ -7285,6 +8418,7 @@ void glGetTextureSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoff
 void glGetCompressedTextureSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset,
                                     GLsizei width, GLsizei height, GLsizei depth, GLsizei bufSize, void *pixels)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.get_compressed_texture_sub_image(ctx, texture, level, xoffset, yoffset, zoffset, width, height, depth,
@@ -7300,6 +8434,7 @@ GLenum glGetGraphicsResetStatus()
 
 void glGetnCompressedTexImage(GLenum target, GLint lod, GLsizei bufSize, void *pixels)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.getn_compressed_tex_image(ctx, target, lod, bufSize, pixels);
@@ -7307,6 +8442,7 @@ void glGetnCompressedTexImage(GLenum target, GLint lod, GLsizei bufSize, void *p
 
 void glGetnTexImage(GLenum target, GLint level, GLenum format, GLenum type, GLsizei bufSize, void *pixels)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.getn_tex_image(ctx, target, level, format, type, bufSize, pixels);
@@ -7314,6 +8450,7 @@ void glGetnTexImage(GLenum target, GLint level, GLenum format, GLenum type, GLsi
 
 void glGetnUniformdv(GLuint program, GLint location, GLsizei bufSize, GLdouble *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.getn_uniformdv(ctx, program, location, bufSize, params);
@@ -7321,6 +8458,7 @@ void glGetnUniformdv(GLuint program, GLint location, GLsizei bufSize, GLdouble *
 
 void glGetnUniformfv(GLuint program, GLint location, GLsizei bufSize, GLfloat *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.getn_uniformfv(ctx, program, location, bufSize, params);
@@ -7328,6 +8466,7 @@ void glGetnUniformfv(GLuint program, GLint location, GLsizei bufSize, GLfloat *p
 
 void glGetnUniformiv(GLuint program, GLint location, GLsizei bufSize, GLint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.getn_uniformiv(ctx, program, location, bufSize, params);
@@ -7335,6 +8474,7 @@ void glGetnUniformiv(GLuint program, GLint location, GLsizei bufSize, GLint *par
 
 void glGetnUniformuiv(GLuint program, GLint location, GLsizei bufSize, GLuint *params)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.getn_uniformuiv(ctx, program, location, bufSize, params);
@@ -7343,6 +8483,7 @@ void glGetnUniformuiv(GLuint program, GLint location, GLsizei bufSize, GLuint *p
 void glReadnPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei bufSize,
                    void *data)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.readn_pixels(ctx, x, y, width, height, format, type, bufSize, data);
@@ -7350,6 +8491,7 @@ void glReadnPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum forma
 
 void glGetnMapdv(GLenum target, GLenum query, GLsizei bufSize, GLdouble *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.getn_mapdv(ctx, target, query, bufSize, v);
@@ -7357,6 +8499,7 @@ void glGetnMapdv(GLenum target, GLenum query, GLsizei bufSize, GLdouble *v)
 
 void glGetnMapfv(GLenum target, GLenum query, GLsizei bufSize, GLfloat *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.getn_mapfv(ctx, target, query, bufSize, v);
@@ -7364,6 +8507,7 @@ void glGetnMapfv(GLenum target, GLenum query, GLsizei bufSize, GLfloat *v)
 
 void glGetnMapiv(GLenum target, GLenum query, GLsizei bufSize, GLint *v)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.getn_mapiv(ctx, target, query, bufSize, v);
@@ -7371,6 +8515,7 @@ void glGetnMapiv(GLenum target, GLenum query, GLsizei bufSize, GLint *v)
 
 void glGetnPixelMapfv(GLenum map, GLsizei bufSize, GLfloat *values)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.getn_pixel_mapfv(ctx, map, bufSize, values);
@@ -7378,6 +8523,7 @@ void glGetnPixelMapfv(GLenum map, GLsizei bufSize, GLfloat *values)
 
 void glGetnPixelMapuiv(GLenum map, GLsizei bufSize, GLuint *values)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.getn_pixel_mapuiv(ctx, map, bufSize, values);
@@ -7385,6 +8531,7 @@ void glGetnPixelMapuiv(GLenum map, GLsizei bufSize, GLuint *values)
 
 void glGetnPixelMapusv(GLenum map, GLsizei bufSize, GLushort *values)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.getn_pixel_mapusv(ctx, map, bufSize, values);
@@ -7392,6 +8539,7 @@ void glGetnPixelMapusv(GLenum map, GLsizei bufSize, GLushort *values)
 
 void glGetnPolygonStipple(GLsizei bufSize, GLubyte *pattern)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.getn_polygon_stipple(ctx, bufSize, pattern);
@@ -7399,6 +8547,7 @@ void glGetnPolygonStipple(GLsizei bufSize, GLubyte *pattern)
 
 void glGetnColorTable(GLenum target, GLenum format, GLenum type, GLsizei bufSize, void *table)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.getn_color_table(ctx, target, format, type, bufSize, table);
@@ -7406,6 +8555,7 @@ void glGetnColorTable(GLenum target, GLenum format, GLenum type, GLsizei bufSize
 
 void glGetnConvolutionFilter(GLenum target, GLenum format, GLenum type, GLsizei bufSize, void *image)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.getn_convolution_filter(ctx, target, format, type, bufSize, image);
@@ -7414,6 +8564,7 @@ void glGetnConvolutionFilter(GLenum target, GLenum format, GLenum type, GLsizei 
 void glGetnSeparableFilter(GLenum target, GLenum format, GLenum type, GLsizei rowBufSize, void *row,
                            GLsizei columnBufSize, void *column, void *span)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.getn_separable_filter(ctx, target, format, type, rowBufSize, row, columnBufSize, column, span);
@@ -7421,6 +8572,7 @@ void glGetnSeparableFilter(GLenum target, GLenum format, GLenum type, GLsizei ro
 
 void glGetnHistogram(GLenum target, GLboolean reset, GLenum format, GLenum type, GLsizei bufSize, void *values)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.getn_histogram(ctx, target, reset, format, type, bufSize, values);
@@ -7428,6 +8580,7 @@ void glGetnHistogram(GLenum target, GLboolean reset, GLenum format, GLenum type,
 
 void glGetnMinmax(GLenum target, GLboolean reset, GLenum format, GLenum type, GLsizei bufSize, void *values)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.getn_minmax(ctx, target, reset, format, type, bufSize, values);
@@ -7435,6 +8588,7 @@ void glGetnMinmax(GLenum target, GLboolean reset, GLenum format, GLenum type, GL
 
 void glTextureBarrier()
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.texture_barrier(ctx);
@@ -7443,6 +8597,7 @@ void glTextureBarrier()
 void glSpecializeShader(GLuint shader, const GLchar *pEntryPoint, GLuint numSpecializationConstants,
                         const GLuint *pConstantIndex, const GLuint *pConstantValue)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.specialize_shader(ctx, shader, pEntryPoint, numSpecializationConstants, pConstantIndex,
@@ -7452,6 +8607,7 @@ void glSpecializeShader(GLuint shader, const GLchar *pEntryPoint, GLuint numSpec
 void glMultiDrawArraysIndirectCount(GLenum mode, const void *indirect, GLintptr drawcount, GLsizei maxdrawcount,
                                     GLsizei stride)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_draw_arrays_indirect_count(ctx, mode, indirect, drawcount, maxdrawcount, stride);
@@ -7460,6 +8616,7 @@ void glMultiDrawArraysIndirectCount(GLenum mode, const void *indirect, GLintptr 
 void glMultiDrawElementsIndirectCount(GLenum mode, GLenum type, const void *indirect, GLintptr drawcount,
                                       GLsizei maxdrawcount, GLsizei stride)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.multi_draw_elements_indirect_count(ctx, mode, type, indirect, drawcount, maxdrawcount, stride);
@@ -7467,6 +8624,7 @@ void glMultiDrawElementsIndirectCount(GLenum mode, GLenum type, const void *indi
 
 void glPolygonOffsetClamp(GLfloat factor, GLfloat units, GLfloat clamp)
 {
+    CHECK_CONTEXT();
     GLMContext ctx = GET_CONTEXT();
 
     ctx->dispatch.polygon_offset_clamp(ctx, factor, units, clamp);

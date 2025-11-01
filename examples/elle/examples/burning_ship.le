@@ -1,84 +1,28 @@
 use std/raylib;
+use std/prelude;
 
 const SCREEN_FACTOR = 80;
 const SCREEN_WIDTH = 8 * SCREEN_FACTOR;
 const SCREEN_HEIGHT = 8 * SCREEN_FACTOR;
 
 fn main() {
-    rl::init_window(SCREEN_WIDTH, SCREEN_HEIGHT, "UV Mango");
+    rl::init_window(SCREEN_WIDTH, SCREEN_HEIGHT, "UV Test");
     defer rl::close_window();
-
     rl::set_target_fps(60);
 
-    vertex_shader := "
-        #version 460
-
-        layout(location = 0) in vec3 vertexPosition;
-        layout(location = 1) in vec2 vertexTexCoord;
-        layout(location = 2) in vec4 vertexColor;
-
-        layout(location = 0) out vec2 fragTexCoord;
-        layout(location = 1) out vec4 fragColor;
-
-        layout(location = 0) uniform mat4 mvp;
-
-        void main() {
-            fragTexCoord = vertexTexCoord;
-            fragColor = vertexColor;
-            gl_Position = mvp * vec4(vertexPosition, 1.0);
-        }
-    ";
-
-    fragment_shader := "
-        #version 460
-
-        layout(location = 0) in vec2 fragTexCoord;
-        layout(location = 0) out vec4 finalColor;
-
-        layout(location = 1) uniform float dummy_uniform;
-        layout(location = 2) uniform float time;
-
-        void main() {
-            vec2 uv = fragTexCoord;
-            uv -= vec2(0.5, 0.5);
-
-            float angle = time * 0.3 * 3.14159;
-            mat2 rotationMatrix = mat2(cos(angle), -sin(angle),
-                                        sin(angle), cos(angle));
-
-            uv *= rotationMatrix;
-            uv += vec2(0.5, 0.5);
-            finalColor = vec4(uv, 0.0, 1.0);
-        }
-    ";
-
-    shader := rl::load_shader_from_memory(vertex_shader, fragment_shader);
-
+    shader := rl::load_shader(nil,"examples/resources/burning_ship.fs");
     defer rl::unload_shader(shader);
 
-    time_loc := rl::get_shader_location(shader, "time");
-
-    // Load a simple 1x1 white texture that we'll scale to fullscreen
-    white_texture := rl::load_texture_from_image(rl::gen_image_color(1, 1, WHITE));
-    defer rl::unload_texture(white_texture);
-
     while !rl::window_should_close() {
-        time := #cast(f32, rl::get_time());
-
         rl::begin_drawing();
             rl::clear_background(RAYWHITE);
 
-            rl::set_shader_value(
-                shader,
-                time_loc,
-                &time,
-                ShaderUniformDataType::SHADER_UNIFORM_FLOAT
-            );
-
+            // Switch shader on and off each frame (triggers bug)
             rl::begin_shader_mode(shader);
-                // Draw the white texture scaled to fullscreen - this provides proper UV coords
-                rl::draw_texture_ex(white_texture, Vector2 { x = 0, y = 0 }, 0, SCREEN_WIDTH, WHITE);
+                rl::draw_rectangle(100, 100, 400, 400, GREEN);
             rl::end_shader_mode();
+
+            rl::draw_fps(4, 4);
         rl::end_drawing();
     }
 }

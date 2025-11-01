@@ -116,6 +116,30 @@ enum
 
     id<MTLEvent> _currentEvent;
     GLsizei _currentSyncName;
+
+    NSMutableDictionary<NSNumber *, id<MTLRenderPipelineState>> *_pipelineStateCache;
+    
+    BOOL _frameWasCleared;  // Track if we've already cleared this frame
+}
+
+- (NSUInteger)generatePipelineCacheKey
+{
+    NSUInteger hash = 0;
+    
+    hash ^= (NSUInteger)ctx->state.program;
+    hash ^= (NSUInteger)ctx->state.vao << 8;
+    hash ^= (NSUInteger)ctx->state.framebuffer << 16;
+    
+    if (ctx->state.caps.blend)
+    {
+        for (int i = 0; i < MAX_COLOR_ATTACHMENTS; i++)
+        {
+            hash ^= (NSUInteger)_src_blend_rgb_factor[i] << (24 + i);
+            hash ^= (NSUInteger)_dst_blend_rgb_factor[i] << (28 + i);
+        }
+    }
+    
+    return hash;
 }
 
 MTLVertexFormat glTypeSizeToMtlType(GLuint type, GLuint size, bool normalized)
@@ -1828,13 +1852,16 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
 
 - (bool)bindMTLProgram:(Program *)ptr
 {
+    fprintf(stderr, "DEBUG: bindMTLProgram called for program %u, dirty_bits=0x%x\n", ptr->name, ptr->dirty_bits);
     if (ptr->dirty_bits & DIRTY_PROGRAM)
     {
+        fprintf(stderr, "DEBUG: DIRTY_PROGRAM set on program %u, releasing MTL functions!\n", ptr->name);
         // release mtl shaders from program
         for (int i = _VERTEX_SHADER; i < _MAX_SHADER_TYPES; i++)
         {
             if (ptr->mtl_data[i].library)
             {
+                fprintf(stderr, "DEBUG: Releasing MTL library/function for stage %d of program %u\n", i, ptr->name);
                 CFBridgingRelease(ptr->mtl_data[i].library);
                 CFBridgingRelease(ptr->mtl_data[i].function);
                 ptr->mtl_data[i].library = NULL;
@@ -1844,7 +1871,11 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
             }
         }
 
+        fprintf(stderr, "DEBUG: bindMTLProgram clearing DIRTY_PROGRAM on program %u\n", ptr->name);
         ptr->dirty_bits &= ~DIRTY_PROGRAM;
+    }
+    else {
+        fprintf(stderr, "DEBUG: bindMTLProgram - program %u has dirty_bits=0x%x (not dirty)\n", ptr->name, ptr->dirty_bits);
     }
 
     // bind mtl functions to program
@@ -2298,8 +2329,12 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
         }
 
         // in case one of the framebuffers should be cleared
-        if (ctx->state.clear_bitmask)
+        // Only clear on the FIRST encoder creation after a clear is requested
+        fprintf(stderr, "DEBUG: Checking clear: bitmask=0x%x, frameWasCleared=%d\n", 
+                ctx->state.clear_bitmask, _frameWasCleared);
+        if (ctx->state.clear_bitmask && !_frameWasCleared)
         {
+            fprintf(stderr, "DEBUG: Will apply clear settings\n");
             if (ctx->state.clear_bitmask & GL_COLOR_BUFFER_BIT)
             {
                 _renderPassDescriptor.colorAttachments[0].clearColor =
@@ -2307,9 +2342,11 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
                                       STATE(color_clear_value[2]), STATE(color_clear_value[3]));
 
                 _renderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
-                fprintf(stderr, "DEBUG: Setting loadAction=Clear, clearColor=(%.2f,%.2f,%.2f,%.2f)\n",
+                fprintf(stderr, "DEBUG: Setting loadAction=Clear, clearColor=(%.2f,%.2f,%.2f,%.2f) [FRAME CLEAR]\n",
                         STATE(color_clear_value[0]), STATE(color_clear_value[1]),
                         STATE(color_clear_value[2]), STATE(color_clear_value[3]));
+                _frameWasCleared = YES;  // Mark that we've cleared this frame
+                ctx->state.clear_bitmask = 0;  // Clear it immediately so subsequent encoders don't clear
             }
             else
             {
@@ -2360,6 +2397,9 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
                 _renderPassDescriptor.stencilAttachment.loadAction = MTLLoadActionLoad;
             }
 
+            // CRITICAL: Clear the bitmask NOW, before the encoder is created
+            // This prevents subsequent encoder creations from clearing again
+            fprintf(stderr, "DEBUG: Clearing clear_bitmask after applying clear settings\n");
             ctx->state.clear_bitmask = 0;
         }
         else
@@ -2487,6 +2527,16 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
 
     // Get Metal functions from program's mtl_data, not from shader_slots
     // This allows the program to work even after shaders are detached
+    if (!program->mtl_data[_VERTEX_SHADER].function) {
+        fprintf(stderr, "ERROR: Vertex function is NULL, calling bindMTLProgram\n");
+        if ([self bindMTLProgram:program] == false)
+            return NULL;
+    }
+    if (!program->mtl_data[_FRAGMENT_SHADER].function) {
+        fprintf(stderr, "ERROR: Fragment function is NULL, calling bindMTLProgram\n");
+        if ([self bindMTLProgram:program] == false)
+            return NULL;
+    }
     assert(program->mtl_data[_VERTEX_SHADER].function);
     assert(program->mtl_data[_FRAGMENT_SHADER].function);
 
@@ -2964,6 +3014,7 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
             // Only create a new encoder if one doesn't exist yet
             if (_currentRenderEncoder == NULL)
             {
+                fprintf(stderr, "DEBUG: DIRTY_VAO: encoder is NULL, creating new one\n");
                 // end encoding on current render encoder (should be NULL anyway)
                 [self endRenderEncoding];
 
@@ -3008,44 +3059,72 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
         // bit
         if (ctx->state.dirty_bits & (DIRTY_PROGRAM | DIRTY_VAO | DIRTY_FBO | DIRTY_ALPHA_STATE | DIRTY_RENDER_STATE))
         {
-            // create pipeline descriptor
-            MTLRenderPipelineDescriptor *pipelineStateDescriptor;
-
-            pipelineStateDescriptor = [self generatePipelineDescriptor];
-            RETURN_FALSE_ON_NULL(pipelineStateDescriptor);
-
-            // create vertex descriptor
-            MTLVertexDescriptor *vertexDescriptor;
-
-            vertexDescriptor = [self generateVertexDescriptor];
-            RETURN_FALSE_ON_NULL(vertexDescriptor);
-
-            if (ctx->state.caps.blend)
+            // If program is NULL (glUseProgram(0) was called), skip pipeline state update
+            // This can happen when EndShaderMode() is called in raylib
+            if (ctx->state.program == NULL)
             {
-                // cache these rather than recalculating them each time
-                if (ctx->state.dirty_bits & DIRTY_ALPHA_STATE)
-                {
-                    [self updateBlendStateCache];
+                fprintf(stderr, "ERROR: processGLState called with NULL program! Pipeline=%p, draw_command=%d\n", 
+                        _pipelineState, draw_command);
+                fprintf(stderr, "       This indicates a draw call is being made with no shader bound!\n");
+                // Keep using the current pipeline state, just clear the dirty bits
+                ctx->state.dirty_bits &= ~(DIRTY_PROGRAM | DIRTY_VAO | DIRTY_FBO);
+                // Continue to the rest of processGLState
+            }
+            else
+            {
+            NSUInteger cacheKey = [self generatePipelineCacheKey];
+            NSNumber *cacheKeyNum = @(cacheKey);
+            
+            _pipelineState = _pipelineStateCache[cacheKeyNum];
+            
+            fprintf(stderr, "DEBUG: Pipeline lookup for program %u: cache key %lu, %s\n", 
+                    ctx->state.program->name, (unsigned long)cacheKey, 
+                    _pipelineState ? "HIT" : "MISS");
+            
+            if (_pipelineState == nil)
+            {
+                // create pipeline descriptor
+                MTLRenderPipelineDescriptor *pipelineStateDescriptor;
 
-                    ctx->state.dirty_bits &= ~DIRTY_ALPHA_STATE;
+                pipelineStateDescriptor = [self generatePipelineDescriptor];
+                RETURN_FALSE_ON_NULL(pipelineStateDescriptor);
+
+                // create vertex descriptor
+                MTLVertexDescriptor *vertexDescriptor;
+
+                vertexDescriptor = [self generateVertexDescriptor];
+                RETURN_FALSE_ON_NULL(vertexDescriptor);
+
+                if (ctx->state.caps.blend)
+                {
+                    // cache these rather than recalculating them each time
+                    if (ctx->state.dirty_bits & DIRTY_ALPHA_STATE)
+                    {
+                        [self updateBlendStateCache];
+
+                        ctx->state.dirty_bits &= ~DIRTY_ALPHA_STATE;
+                    }
+
+                    [self bindBlendStateToPipelineStateDescriptor:pipelineStateDescriptor];
                 }
 
-                [self bindBlendStateToPipelineStateDescriptor:pipelineStateDescriptor];
+                pipelineStateDescriptor.vertexDescriptor = vertexDescriptor;
+
+                NSError *error;
+                _pipelineState = [_device newRenderPipelineStateWithDescriptor:pipelineStateDescriptor error:&error];
+
+                // Pipeline State creation could fail if the pipeline descriptor isn't set up properly.
+                //  If the Metal API validation is enabled, you can find out more information about what
+                //  went wrong.  (Metal API validation is enabled by default when a debug build is run
+                //  from Xcode.)
+                NSAssert(_pipelineState, @"Failed to created pipeline state: %@", error);
+                RETURN_FALSE_ON_NULL(_pipelineState);
+                
+                _pipelineStateCache[cacheKeyNum] = _pipelineState;
             }
 
-            pipelineStateDescriptor.vertexDescriptor = vertexDescriptor;
-
-            NSError *error;
-            _pipelineState = [_device newRenderPipelineStateWithDescriptor:pipelineStateDescriptor error:&error];
-
-            // Pipeline State creation could fail if the pipeline descriptor isn't set up properly.
-            //  If the Metal API validation is enabled, you can find out more information about what
-            //  went wrong.  (Metal API validation is enabled by default when a debug build is run
-            //  from Xcode.)
-            NSAssert(_pipelineState, @"Failed to created pipeline state: %@", error);
-            RETURN_FALSE_ON_NULL(_pipelineState);
-
             ctx->state.dirty_bits &= ~(DIRTY_PROGRAM | DIRTY_VAO | DIRTY_FBO);
+            }
         }
 
         // if (ctx->state.dirty_bits)
@@ -3080,7 +3159,6 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
     }
 
     // Create a render command encoder.
-    fprintf(stderr, "DEBUG: Setting pipeline state: %p\n", _pipelineState);
     if (_pipelineState == NULL) {
         fprintf(stderr, "ERROR: Pipeline state is NULL!\n");
         return false;
@@ -3587,6 +3665,7 @@ void mtlFlush(GLMContext glm_ctx, bool finish)
 - (void)mtlSwapBuffers:(GLMContext)glm_ctx
 {
     fprintf(stderr, "DEBUG: mtlSwapBuffers called, draw_buffer=%d, VAO=%p\n", ctx->state.draw_buffer, ctx->state.vao);
+    
     if (ctx->state.draw_buffer == GL_FRONT || ctx->state.draw_buffer == GL_COLOR_ATTACHMENT0)
     {
         fprintf(stderr, "DEBUG: Will present drawable\n");
@@ -3614,6 +3693,9 @@ void mtlFlush(GLMContext glm_ctx, bool finish)
         fprintf(stderr, "DEBUG: Presented drawable\n");
 
         [_currentCommandBuffer commit];
+        
+        // Reset the frame clear flag for the next frame AFTER presenting
+        _frameWasCleared = NO;
 
         _drawable = [_layer nextDrawable];
         assert(_drawable);
@@ -5301,6 +5383,8 @@ void *CppCreateMGLRendererFromContextAndBindToWindow(void *glm_ctx, void *window
     // Create the command queue
     _commandQueue = [_device newCommandQueue];
     assert(_commandQueue);
+
+    _pipelineStateCache = [[NSMutableDictionary alloc] init];
 
     _view = view;
 

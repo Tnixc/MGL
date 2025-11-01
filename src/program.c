@@ -198,6 +198,7 @@ void mglAttachShader(GLMContext ctx, GLuint program, GLuint shader)
     index = sptr->glm_type;
 
     pptr->shader_slots[index] = sptr;
+    fprintf(stderr, "DEBUG: mglAttachShader setting DIRTY_PROGRAM on program %u\n", pptr->name);
     pptr->dirty_bits |= DIRTY_PROGRAM;
 }
 
@@ -238,7 +239,19 @@ void mglDetachShader(GLMContext ctx, GLuint program, GLuint shader)
     }
 
     pptr->shader_slots[index] = NULL;
-    pptr->dirty_bits |= DIRTY_PROGRAM;
+    
+    // Only set DIRTY_PROGRAM if the program hasn't been linked yet.
+    // Once linked, the Metal shaders are compiled from SPIRV/MSL which persists
+    // independently of whether the GLSL shaders are still attached.
+    if (!pptr->linked_glsl_program)
+    {
+        fprintf(stderr, "DEBUG: mglDetachShader setting DIRTY_PROGRAM on program %u\n", pptr->name);
+        pptr->dirty_bits |= DIRTY_PROGRAM;
+    }
+    else
+    {
+        fprintf(stderr, "DEBUG: mglDetachShader skipping DIRTY_PROGRAM on linked program %u\n", pptr->name);
+    }
 
     // If the shader is marked for deletion, clean it up now
     if (sptr->delete_pending)
@@ -637,6 +650,7 @@ bool linkAndCompileProgramToMetal(GLMContext ctx, Program *pptr, int stage)
     ERROR_CHECK_RETURN(pptr->spirv[stage].msl_str, GL_INVALID_OPERATION);
 
     pptr->linked_glsl_program = glsl_program;
+    fprintf(stderr, "DEBUG: linkAndCompileProgramToMetal (stage %d) setting DIRTY_PROGRAM on program %u\n", stage, pptr->name);
     pptr->dirty_bits |= DIRTY_PROGRAM;
 
     free(glsl_program);
@@ -721,6 +735,7 @@ void mglLinkProgram(GLMContext ctx, GLuint program)
 
     // Save the linked glslang program
     pptr->linked_glsl_program = glsl_program;
+    fprintf(stderr, "DEBUG: mglLinkProgram setting DIRTY_PROGRAM on program %u\n", pptr->name);
     pptr->dirty_bits |= DIRTY_PROGRAM;
 
     ctx->mtl_funcs.mtlBindProgram(ctx, pptr);
@@ -731,6 +746,9 @@ void mglLinkProgram(GLMContext ctx, GLuint program)
 void mglUseProgram(GLMContext ctx, GLuint program)
 {
     Program *pptr;
+
+    fprintf(stderr, "DEBUG: mglUseProgram called with program %u (current: %u)\n",
+            program, ctx->state.program ? ctx->state.program->name : 0);
 
     if (program)
     {
@@ -752,6 +770,8 @@ void mglUseProgram(GLMContext ctx, GLuint program)
 
     ctx->state.program = pptr;
     ctx->state.dirty_bits |= DIRTY_PROGRAM;
+    fprintf(stderr, "DEBUG: mglUseProgram set context DIRTY_PROGRAM, new program: %u\n",
+            pptr ? pptr->name : 0);
 }
 
 void mglBindAttribLocation(GLMContext ctx, GLuint program, GLuint index, const GLchar *name)
