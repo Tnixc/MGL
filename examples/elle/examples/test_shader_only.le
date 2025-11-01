@@ -1,0 +1,37 @@
+use std/raylib;
+use std/prelude;
+
+const SCREEN_FACTOR = 80;
+const SCREEN_WIDTH = 8 * SCREEN_FACTOR;
+const SCREEN_HEIGHT = 8 * SCREEN_FACTOR;
+
+fn main() {
+    rl::init_window(SCREEN_WIDTH, SCREEN_HEIGHT, "Shader Only Test");
+    defer rl::close_window();
+    rl::set_target_fps(60);
+
+    shader := rl::load_shader(nil,"../resources/burning_ship.fs");
+    defer rl::unload_shader(shader);
+
+    // Get the default texture to draw with proper UV coordinates
+    tex := rl::get_default_texture();
+
+    while !rl::window_should_close() {
+        rl::begin_drawing();
+            rl::clear_background(BLACK);
+
+            rl::begin_shader_mode(shader);
+                // Draw a fullscreen quad to test UV shader
+                rl::draw_texture_pro(
+                    tex,
+                    Rectangle { x = 0, y = 0, width = 1, height = 1 },
+                    Rectangle { x = 0, y = 0, width = SCREEN_WIDTH, height = SCREEN_HEIGHT },
+                    Vector2 { x = 0, y = 0 },
+                    0, WHITE
+                );
+            rl::end_shader_mode();
+
+            // NO TEXT DRAWING - just the shader
+        rl::end_drawing();
+    }
+}

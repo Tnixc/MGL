@@ -1871,6 +1871,11 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
             }
         }
 
+        // Clear the pipeline cache since the program's shaders have changed
+        // Any cached pipelines using this program are now invalid
+        fprintf(stderr, "DEBUG: Clearing pipeline cache due to DIRTY_PROGRAM on program %u\n", ptr->name);
+        [_pipelineStateCache removeAllObjects];
+
         fprintf(stderr, "DEBUG: bindMTLProgram clearing DIRTY_PROGRAM on program %u\n", ptr->name);
         ptr->dirty_bits &= ~DIRTY_PROGRAM;
     }
@@ -3081,13 +3086,25 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
             }
             else
             {
+            // Don't clear the entire cache here - the cache key includes the program pointer,
+            // so different programs will have different cache keys.
+            // Cache clearing happens in bindMTLProgram when a program's shaders are relinked.
+            
             NSUInteger cacheKey = [self generatePipelineCacheKey];
             NSNumber *cacheKeyNum = @(cacheKey);
+            
+            fprintf(stderr, "DEBUG: processGLState - looking up pipeline with key=0x%lx (program=%u, VAO=%p, FBO=%p)\n",
+                    (unsigned long)cacheKey,
+                    ctx->state.program ? ctx->state.program->name : 0,
+                    ctx->state.vao, ctx->state.framebuffer);
 
             _pipelineState = _pipelineStateCache[cacheKeyNum];
             
             if (_pipelineState == nil)
             {
+                fprintf(stderr, "DEBUG: Pipeline cache MISS - creating new pipeline for program %u\n",
+                        ctx->state.program ? ctx->state.program->name : 0);
+                
                 // create pipeline descriptor
                 MTLRenderPipelineDescriptor *pipelineStateDescriptor;
 
@@ -3125,7 +3142,16 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
                 NSAssert(_pipelineState, @"Failed to created pipeline state: %@", error);
                 RETURN_FALSE_ON_NULL(_pipelineState);
                 
+                fprintf(stderr, "DEBUG: Caching new pipeline (key=0x%lx) for program %u, cache now has %lu entries\n",
+                        (unsigned long)cacheKey,
+                        ctx->state.program ? ctx->state.program->name : 0,
+                        (unsigned long)[_pipelineStateCache count] + 1);
                 _pipelineStateCache[cacheKeyNum] = _pipelineState;
+            }
+            else
+            {
+                fprintf(stderr, "DEBUG: Pipeline cache HIT - reusing existing pipeline for program %u\n",
+                        ctx->state.program ? ctx->state.program->name : 0);
             }
 
             ctx->state.dirty_bits &= ~(DIRTY_PROGRAM | DIRTY_VAO | DIRTY_FBO);
