@@ -2888,8 +2888,14 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
 {
     if (_currentRenderEncoder)
     {
+        fprintf(stderr, "DEBUG: endRenderEncoding - ending encoder %p\n", (__bridge void*)_currentRenderEncoder);
         [_currentRenderEncoder endEncoding];
         _currentRenderEncoder = NULL;
+        fprintf(stderr, "DEBUG: endRenderEncoding - encoder set to NULL\n");
+    }
+    else
+    {
+        fprintf(stderr, "DEBUG: endRenderEncoding - encoder was already NULL\n");
     }
 }
 
@@ -2965,6 +2971,13 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
                 }
 
                 // dirty FBO state can't be cleared just yet its needed below
+            }
+
+            // If we have a clear pending and no encoder, create one now
+            if (ctx->state.clear_bitmask && _currentRenderEncoder == NULL)
+            {
+                fprintf(stderr, "DEBUG: DIRTY_STATE with clear_bitmask and no encoder - creating new encoder\n");
+                RETURN_FALSE_ON_FAILURE([self newRenderEncoder]);
             }
 
             ctx->state.dirty_bits &= ~DIRTY_STATE;

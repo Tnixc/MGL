@@ -37,6 +37,7 @@ void mglClear(GLMContext ctx, GLbitfield mask)
     }
 
     ctx->state.clear_bitmask = mask;
+    ctx->state.dirty_bits |= DIRTY_STATE;  // Ensure a new encoder is created to apply the clear
     fprintf(stderr, "DEBUG: *** clear_bitmask set to 0x%x ***\n", ctx->state.clear_bitmask);
 }
 
