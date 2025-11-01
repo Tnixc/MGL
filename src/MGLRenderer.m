@@ -125,11 +125,11 @@ enum
 - (NSUInteger)generatePipelineCacheKey
 {
     NSUInteger hash = 0;
-    
+
     hash ^= (NSUInteger)ctx->state.program;
     hash ^= (NSUInteger)ctx->state.vao << 8;
     hash ^= (NSUInteger)ctx->state.framebuffer << 16;
-    
+
     if (ctx->state.caps.blend)
     {
         for (int i = 0; i < MAX_COLOR_ATTACHMENTS; i++)
@@ -138,7 +138,7 @@ enum
             hash ^= (NSUInteger)_dst_blend_rgb_factor[i] << (28 + i);
         }
     }
-    
+
     return hash;
 }
 
@@ -2834,11 +2834,6 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
             pipelineStateDescriptor.colorAttachments[i].alphaBlendOperation = _alpha_blend_operation[i];
 
             pipelineStateDescriptor.colorAttachments[i].writeMask = _color_mask[i];
-
-            fprintf(stderr, "DEBUG: Blend[%d]: srcRGB=%lu, dstRGB=%lu, srcA=%lu, dstA=%lu, writeMask=0x%lx\n",
-                    i, (unsigned long)_src_blend_rgb_factor[i], (unsigned long)_dst_blend_rgb_factor[i],
-                    (unsigned long)_src_blend_alpha_factor[i], (unsigned long)_dst_blend_alpha_factor[i],
-                    (unsigned long)_color_mask[i]);
         }
     }
 }
@@ -3029,8 +3024,8 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
                 RETURN_FALSE_ON_FAILURE([self bindFragmentBuffersToCurrentRenderEncoder]);
             }
 
-            // clear dirty render state
-            ctx->state.dirty_bits &= ~DIRTY_RENDER_STATE;
+            // clear dirty VAO bit
+            ctx->state.dirty_bits &= ~DIRTY_VAO;
         }
         else if (ctx->state.dirty_bits & DIRTY_BUFFER)
         {
@@ -3052,7 +3047,7 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
             // updateCurrentRenderEncoder will update the renderstate outside of creating a new one
             [self updateCurrentRenderEncoder];
 
-            ctx->state.dirty_bits &= ~DIRTY_RENDER_STATE;
+            ctx->state.dirty_bits &= ~DIRTY_VAO;
         }
 
         // new pipeline / vertex / renderbuffer and pipelinestate descriptor, should probably make this a single dirty
@@ -3060,12 +3055,13 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
         if (ctx->state.dirty_bits & (DIRTY_PROGRAM | DIRTY_VAO | DIRTY_FBO | DIRTY_ALPHA_STATE | DIRTY_RENDER_STATE))
         {
             // If program is NULL (glUseProgram(0) was called), skip pipeline state update
-            // This can happen when EndShaderMode() is called in raylib
+            // This can happen when EndShaderMode() is called in raylib, but it should switch
+            // to the default shader first
             if (ctx->state.program == NULL)
             {
-                fprintf(stderr, "ERROR: processGLState called with NULL program! Pipeline=%p, draw_command=%d\n", 
+                fprintf(stderr, "ERROR: processGLState called with NULL program! Pipeline=%p, draw_command=%d\n",
                         _pipelineState, draw_command);
-                fprintf(stderr, "       This indicates a draw call is being made with no shader bound!\n");
+                fprintf(stderr, "       Keeping existing pipeline state and clearing dirty bits.\n");
                 // Keep using the current pipeline state, just clear the dirty bits
                 ctx->state.dirty_bits &= ~(DIRTY_PROGRAM | DIRTY_VAO | DIRTY_FBO);
                 // Continue to the rest of processGLState
@@ -3074,12 +3070,8 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
             {
             NSUInteger cacheKey = [self generatePipelineCacheKey];
             NSNumber *cacheKeyNum = @(cacheKey);
-            
+
             _pipelineState = _pipelineStateCache[cacheKeyNum];
-            
-            fprintf(stderr, "DEBUG: Pipeline lookup for program %u: cache key %lu, %s\n", 
-                    ctx->state.program->name, (unsigned long)cacheKey, 
-                    _pipelineState ? "HIT" : "MISS");
             
             if (_pipelineState == nil)
             {
@@ -4236,9 +4228,11 @@ void mtlDrawArrays(GLMContext glm_ctx, GLenum mode, GLint first, GLsizei count)
     MTLPrimitiveType primitiveType;
     MTLIndexType indexType;
 
-    fprintf(stderr, "DEBUG: mtlDrawElements called, count=%d, VAO=%p\n", count, ctx->state.vao);
+    fprintf(stderr, "DEBUG: mtlDrawElements called, count=%d, VAO=%p, program=%u\n",
+            count, ctx->state.vao, ctx->state.program ? ctx->state.program->name : 0);
     bool processResult = [self processGLState:true];
-    fprintf(stderr, "DEBUG: mtlDrawElements processGLState returned %d\n", processResult);
+    fprintf(stderr, "DEBUG: mtlDrawElements processGLState returned %d, pipeline=%p\n",
+            processResult, _pipelineState);
     if (!processResult)
     {
         fprintf(stderr, "DEBUG: mtlDrawElements skipping draw, processGLState failed\n");
@@ -5405,6 +5399,10 @@ void *CppCreateMGLRendererFromContextAndBindToWindow(void *glm_ctx, void *window
     }
 
     mglDrawBuffer(glm_ctx, GL_FRONT);
+
+    // Initialize blend state cache from current OpenGL state
+    // This ensures _src_blend_rgb_factor and friends are set before first pipeline creation
+    [self updateBlendStateCache];
 
     // not sure if this is still needed
     [self newCommandBuffer];

@@ -764,9 +764,6 @@ void mglUseProgram(GLMContext ctx, GLuint program)
 {
     Program *pptr;
 
-    fprintf(stderr, "DEBUG: mglUseProgram called with program %u (current: %u)\n",
-            program, ctx->state.program ? ctx->state.program->name : 0);
-
     if (program)
     {
         pptr = findProgram(ctx, program);
@@ -787,8 +784,6 @@ void mglUseProgram(GLMContext ctx, GLuint program)
 
     ctx->state.program = pptr;
     ctx->state.dirty_bits |= DIRTY_PROGRAM;
-    fprintf(stderr, "DEBUG: mglUseProgram set context DIRTY_PROGRAM, new program: %u\n",
-            pptr ? pptr->name : 0);
 }
 
 void mglBindAttribLocation(GLMContext ctx, GLuint program, GLuint index, const GLchar *name)

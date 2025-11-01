@@ -355,6 +355,8 @@ char *LoadFileText(const char *fileName)
 #if defined(SUPPORT_STANDARD_FILEIO)
         FILE *file = fopen(fileName, "rt");
 
+        fprintf(stderr, "DEBUG: LoadFileText loading file: %s, fopen result: %p\n", fileName, file);
+
         if (file != NULL)
         {
             // WARNING: When reading a file as 'text' file,
@@ -378,6 +380,9 @@ char *LoadFileText(const char *fileName)
 
                     // Zero-terminate the string
                     text[count] = '\0';
+
+                    fprintf(stderr, "DEBUG: LoadFileText read %u bytes from %s\n", count, fileName);
+                    fprintf(stderr, "       First 300 chars: %.300s\n", text);
 
                     TRACELOG(LOG_INFO, "FILEIO: [%s] Text file loaded successfully", fileName);
                 }

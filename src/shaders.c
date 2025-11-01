@@ -298,6 +298,11 @@ void mglShaderSource(GLMContext ctx, GLuint shader, GLsizei count, const GLchar 
     ptr->src_len = len;
     ptr->src = src;
     ptr->dirty_bits |= DIRTY_SHADER;
+
+    // Debug: Print shader source
+    fprintf(stderr, "DEBUG: mglShaderSource for shader %u (type %d), len=%zu\n", shader, ptr->type, len);
+    fprintf(stderr, "       Full source:\n%s\n", src);
+    fprintf(stderr, "       ===END SHADER SOURCE===\n");
 }
 
 void mglCompileShader(GLMContext ctx, GLuint shader)

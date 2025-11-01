@@ -181,6 +181,9 @@ void mglDrawArrays(GLMContext ctx, GLenum mode, GLint first, GLsizei count)
 
     ERROR_CHECK_RETURN(validate_program(ctx), GL_INVALID_OPERATION);
 
+    fprintf(stderr, "DEBUG: mglDrawArrays mode=%d, first=%d, count=%d, program=%u\n",
+            mode, first, count, ctx->state.program ? ctx->state.program->name : 0);
+
     ctx->mtl_funcs.mtlDrawArrays(ctx, mode, first, count);
 }
 
