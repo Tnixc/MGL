@@ -1,4 +1,6 @@
 build/
 subprojects/*
 !subprojects/CMakeLists.txt
+!subprojects/SPIRV-Cross/
+!subprojects/SPIRV-Headers/
 *.DS_Store
