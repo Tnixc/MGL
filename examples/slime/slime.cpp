@@ -14,6 +14,15 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <vector>
+#include <cmath>
+#include <random>
+
+struct Agent {
+    float position[2];
+    float angle;
+    float padding; // For alignment
+};
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -183,25 +192,52 @@ int main()
         return -1;
     }
 
-    // Create texture for compute shader output
-    GLuint texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    // Simulation parameters
+    const unsigned int NUM_AGENTS = 10000;
+    const float MOVE_SPEED = 100.0f;
 
-    // Bind texture as image for compute shader
-    glBindImageTexture(0, texture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+    // Initialize agents with random positions and angles
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<float> posDistX(0.0f, static_cast<float>(width));
+    std::uniform_real_distribution<float> posDistY(0.0f, static_cast<float>(height));
+    std::uniform_real_distribution<float> angleDist(0.0f, 2.0f * 3.14159265359f);
+
+    std::vector<Agent> agents(NUM_AGENTS);
+    for (unsigned int i = 0; i < NUM_AGENTS; i++)
+    {
+        agents[i].position[0] = posDistX(gen);
+        agents[i].position[1] = posDistY(gen);
+        agents[i].angle = angleDist(gen);
+        agents[i].padding = 0.0f;
+    }
+
+    // Create agent buffer
+    GLuint agentBuffer;
+    glGenBuffers(1, &agentBuffer);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, agentBuffer);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, agents.size() * sizeof(Agent), agents.data(), GL_DYNAMIC_DRAW);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, agentBuffer);
+
+    // Create texture for trail map using DSA (like the working example)
+    GLuint texture;
+    glCreateTextures(GL_TEXTURE_2D, 1, &texture);
+    glTextureStorage2D(texture, 1, GL_RGBA32F, width, height);
+    glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTextureParameteri(texture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(texture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    // Initialize texture to black (prevents magenta/uninitialized data)
+    std::vector<float> blackPixels(width * height * 4, 0.0f);
+    glTextureSubImage2D(texture, 0, 0, 0, width, height, GL_RGBA, GL_FLOAT, blackPixels.data());
 
     // Set uniforms for compute shader
     glUseProgram(computeProgram);
-    GLint widthLoc = glGetUniformLocation(computeProgram, "width");
-    GLint heightLoc = glGetUniformLocation(computeProgram, "height");
-    glUniform1ui(widthLoc, width);
-    glUniform1ui(heightLoc, height);
+    glUniform1ui(0, width);  // location 0
+    glUniform1ui(1, height); // location 1
+    glUniform1ui(2, NUM_AGENTS); // location 2
+    glUniform1f(3, MOVE_SPEED); // location 3
 
     // Create fullscreen quad
     float quadVertices[] = {
@@ -226,28 +262,52 @@ int main()
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 
+    // Set display shader uniforms
+    glUseProgram(displayProgram);
+    GLint texLoc = glGetUniformLocation(displayProgram, "screenTexture");
+    glUniform1i(texLoc, 0); // Texture unit 0
+
     std::cout << "Slime simulation initialized" << std::endl;
-    std::cout << "Window size: " << width << "x" << height << std::endl;
+    std::cout << "Window size (logical): " << WINDOW_WIDTH << "x" << WINDOW_HEIGHT << std::endl;
+    std::cout << "Framebuffer size: " << width << "x" << height << std::endl;
+    std::cout << "Number of agents: " << NUM_AGENTS << std::endl;
+    std::cout << "Expected pixels written: " << NUM_AGENTS << std::endl;
+    std::cout << "Expected rows (at width=" << width << "): " << (NUM_AGENTS / width) + 1 << std::endl;
+    std::cout << "Compute dispatch: (" << ((NUM_AGENTS + 15) / 16) << ", 1, 1) work groups" << std::endl;
+    std::cout << "Total threads: " << ((NUM_AGENTS + 15) / 16) * 16 << std::endl;
+    std::cout << "First agent position: (" << agents[0].position[0] << ", " << agents[0].position[1] << ")" << std::endl;
+    std::cout << "First agent angle: " << agents[0].angle << std::endl;
+
+    // Timing
+    float lastFrame = 0.0f;
+    float deltaTime = 0.0f;
 
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window))
     {
+        // Calculate delta time
+        float currentFrame = static_cast<float>(glfwGetTime());
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
         // input
         // -----
         processInput(window);
 
-        // Dispatch compute shader
+        // Bind texture as image and dispatch compute shader (one thread per agent)
         glUseProgram(computeProgram);
-        glDispatchCompute((width + 7) / 8, (height + 7) / 8, 1);
+        glUniform1f(4, deltaTime); // Update deltaTime
+        glBindImageTexture(0, texture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+        glDispatchCompute((NUM_AGENTS + 15) / 16, 1, 1);
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
+        glFinish();
 
-        // Wait for compute shader to finish
-        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-
-        // Render the texture to screen
+        // Clear the screen framebuffer
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        // Draw fullscreen quad displaying the texture
         glUseProgram(displayProgram);
         glBindVertexArray(quadVAO);
         glActiveTexture(GL_TEXTURE0);
@@ -263,6 +323,7 @@ int main()
     // cleanup
     glDeleteVertexArrays(1, &quadVAO);
     glDeleteBuffers(1, &quadVBO);
+    glDeleteBuffers(1, &agentBuffer);
     glDeleteTextures(1, &texture);
     glDeleteProgram(computeProgram);
     glDeleteProgram(displayProgram);
