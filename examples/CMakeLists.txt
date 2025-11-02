@@ -60,11 +60,9 @@ target_compile_definitions(hello_triangle PUBLIC ${EXAMPLE_COMPILE_DEFS})
 target_compile_options(hello_triangle PUBLIC -fsanitize=undefined,address)
 target_link_options(hello_triangle PUBLIC -fsanitize=undefined,address)
 
-# embed shader files at compile time
-# NOTE: idk if this is the right way to do it, doesn't seem like it
-embed_shaders(
-    TARGET hello_triangle
-    SHADERS
-        ${CMAKE_CURRENT_SOURCE_DIR}/hello_triangle/shader_triangle.vert
-        ${CMAKE_CURRENT_SOURCE_DIR}/hello_triangle/shader_triangle.frag
-)
+add_executable(slime slime/slime.cpp)
+target_include_directories(slime PUBLIC ${SDL2_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/glfw/include)
+target_link_libraries(slime glfw mgl)
+target_compile_definitions(slime PUBLIC ${EXAMPLE_COMPILE_DEFS})
+target_compile_options(slime PUBLIC -fsanitize=undefined,address)
+target_link_options(slime PUBLIC -fsanitize=undefined,address)

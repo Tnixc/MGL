@@ -20,17 +20,13 @@ fn main() {
         rl::begin_drawing();
             rl::clear_background(RED);
 
+            rl::draw_rectangle(10, 10, 40, 40, GREEN);
             rl::begin_shader_mode(shader);
                 // Draw using DrawTexturePro to get proper UV coordinates (0,0) to (1,1)
-                // DrawRectangle uses a small pixel from the shapes texture atlas,
-                // so all corners get nearly identical UV coords (e.g., ~0.32-0.36)
-                // which makes everything appear as a single color.
-
-                // Draw a rectangle that will show proper UV gradient
                 rl::draw_texture_pro(
                     tex,
                     Rectangle { x = 0, y = 0, width = 1, height = 1 },
-                    Rectangle { x = 100, y = 100, width = 400, height = 400 },
+                    Rectangle { x = SCREEN_WIDTH / 2, y = SCREEN_HEIGHT / 2, width = 400, height = 400 },
                     Vector2 { x = 0, y = 0 },
                     0, WHITE
                 );
@@ -45,8 +41,10 @@ fn main() {
                 );
             rl::end_shader_mode();
 
+            // Draw something BEFORE text to see if it forces a batch flush
+
             //rl::draw_fps(4, 4);
-            //rl::draw_text("UV coords as colors: Blue(0,0)->Cyan(0,1) left, Magenta(1,0)->White(1,1) right", 4, SCREEN_HEIGHT - 24, 18, WHITE);
+            //rl::draw_text("Text test", 200, 200, 18, BLACK);
         rl::end_drawing();
     }
 }

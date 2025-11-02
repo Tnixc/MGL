@@ -782,6 +782,10 @@ void mglUseProgram(GLMContext ctx, GLuint program)
         pptr = NULL;
     }
 
+    fprintf(stderr, "DEBUG: mglUseProgram switching from program %u to program %u\n",
+            ctx->state.program ? ctx->state.program->name : 0,
+            pptr ? pptr->name : 0);
+
     ctx->state.program = pptr;
     ctx->state.dirty_bits |= DIRTY_PROGRAM;
 }

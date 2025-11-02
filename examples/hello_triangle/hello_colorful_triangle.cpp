@@ -19,12 +19,35 @@
 #include <SDL2/SDL_syswm.h>
 
 #include <iostream>
-
-#include "shader_triangle.vert.h"
-#include "shader_triangle.frag.h"
+#include <fstream>
+#include <sstream>
+#include <string>
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
+
+std::string readShaderFile(const char *filePath)
+{
+    std::ifstream shaderFile;
+    std::stringstream shaderStream;
+
+    // Open file
+    shaderFile.open(filePath);
+    if (!shaderFile.is_open())
+    {
+        std::cerr << "Failed to open shader file: " << filePath << std::endl;
+        return "";
+    }
+
+    // Read file's buffer contents into stream
+    shaderStream << shaderFile.rdbuf();
+
+    // Close file
+    shaderFile.close();
+
+    // Convert stream into string
+    return shaderStream.str();
+}
 
 GLuint compileShader(GLenum type, const char *source)
 {
@@ -44,10 +67,20 @@ GLuint compileShader(GLenum type, const char *source)
     return shader;
 }
 
-GLuint create_programme_from_embedded_shaders()
+GLuint create_programme_from_shaders()
 {
-    GLuint vertShader = compileShader(GL_VERTEX_SHADER, embedded_shaders::shader_triangle_vert);
-    GLuint fragShader = compileShader(GL_FRAGMENT_SHADER, embedded_shaders::shader_triangle_frag);
+    // Load shader source from files
+    std::string vertSource = readShaderFile("shader_triangle.vert");
+    std::string fragSource = readShaderFile("shader_triangle.frag");
+
+    if (vertSource.empty() || fragSource.empty())
+    {
+        std::cerr << "Failed to load shader files" << std::endl;
+        return 0;
+    }
+
+    GLuint vertShader = compileShader(GL_VERTEX_SHADER, vertSource.c_str());
+    GLuint fragShader = compileShader(GL_FRAGMENT_SHADER, fragSource.c_str());
 
     if (vertShader == 0 || fragShader == 0)
     {
@@ -157,9 +190,9 @@ int main()
     glVertexArrayAttribBinding(hctVAO, attribPos, vaoBindingPoint);
     glVertexArrayAttribBinding(hctVAO, attribCol, vaoBindingPoint);
 
-    // Create shader program from embedded shaders
+    // Create shader program from shader files
     //  ---------------------------
-    GLuint shader_prog = create_programme_from_embedded_shaders();
+    GLuint shader_prog = create_programme_from_shaders();
     glUseProgram(shader_prog); // Could be copy-pasted in render loop too...
 
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);//Wireframe rendering

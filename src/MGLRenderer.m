@@ -1530,6 +1530,10 @@ void logDirtyBits(GLMContext ctx)
                     assert(sampler);
                 }
 
+                fprintf(stderr, "DEBUG: Binding texture ID %u to slot %u for program %u\n",
+                        ptr->name, spirv_binding,
+                        ctx->state.program ? ctx->state.program->name : 0);
+
                 [_currentRenderEncoder setFragmentTexture:texture atIndex:spirv_binding];
                 [_currentRenderEncoder setFragmentSamplerState:sampler atIndex:spirv_binding];
 
@@ -2550,6 +2554,10 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
     assert(vertexFunction);
     assert(fragmentFunction);
 
+    fprintf(stderr, "DEBUG: generatePipelineDescriptor for program %u, vertex=%p, fragment=%p, entry=%s\n",
+            program->name, (__bridge void*)vertexFunction, (__bridge void*)fragmentFunction,
+            program->mtl_data[_FRAGMENT_SHADER].entry_point);
+
     // Configure a pipeline descriptor that is used to create a pipeline state.
     pipelineStateDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
     assert(pipelineStateDescriptor);
@@ -2893,7 +2901,15 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
 {
     if (_currentRenderEncoder)
     {
-        fprintf(stderr, "DEBUG: endRenderEncoding - ending encoder %p\n", (__bridge void*)_currentRenderEncoder);
+        fprintf(stderr, "DEBUG: endRenderEncoding - ending encoder %p, called from:\n", (__bridge void*)_currentRenderEncoder);
+        void* callstack[5];
+        int frames = backtrace(callstack, 5);
+        char** symbols = backtrace_symbols(callstack, frames);
+        for (int i = 0; i < frames && i < 3; i++) {
+            fprintf(stderr, "  %s\n", symbols[i]);
+        }
+        free(symbols);
+
         [_currentRenderEncoder endEncoding];
         _currentRenderEncoder = NULL;
         fprintf(stderr, "DEBUG: endRenderEncoding - encoder set to NULL\n");
@@ -3004,16 +3020,6 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
             ctx->state.dirty_bits &= ~DIRTY_BUFFER_BASE_STATE;
         }
 
-        // dirty tex covers all texture modifications
-        if (ctx->state.dirty_bits & (DIRTY_PROGRAM | DIRTY_TEX | DIRTY_TEX_BINDING | DIRTY_SAMPLER))
-        {
-            RETURN_FALSE_ON_FAILURE([self bindActiveTexturesToMTL]);
-            RETURN_FALSE_ON_FAILURE([self bindTexturesToCurrentRenderEncoder]);
-
-            // textures / active textures and samplers are all handled in bindActiveTexturesToMTL
-            ctx->state.dirty_bits &= ~(DIRTY_TEX | DIRTY_TEX_BINDING | DIRTY_SAMPLER);
-        }
-
         // a dirty vao needs to update the render encoder and buffer list
         if (ctx->state.dirty_bits & DIRTY_VAO)
         {
@@ -3099,7 +3105,7 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
                     ctx->state.vao, ctx->state.framebuffer);
 
             _pipelineState = _pipelineStateCache[cacheKeyNum];
-            
+
             if (_pipelineState == nil)
             {
                 fprintf(stderr, "DEBUG: Pipeline cache MISS - creating new pipeline for program %u\n",
@@ -3150,8 +3156,9 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
             }
             else
             {
-                fprintf(stderr, "DEBUG: Pipeline cache HIT - reusing existing pipeline for program %u\n",
-                        ctx->state.program ? ctx->state.program->name : 0);
+                fprintf(stderr, "DEBUG: Pipeline cache HIT - reusing existing pipeline for program %u, pipeline=%p\n",
+                        ctx->state.program ? ctx->state.program->name : 0,
+                        (__bridge void*)_pipelineState);
             }
 
             ctx->state.dirty_bits &= ~(DIRTY_PROGRAM | DIRTY_VAO | DIRTY_FBO);
@@ -3194,7 +3201,22 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
         fprintf(stderr, "ERROR: Pipeline state is NULL!\n");
         return false;
     }
+
+    fprintf(stderr, "DEBUG: setRenderPipelineState for program %u, pipeline=%p\n",
+            ctx->state.program ? ctx->state.program->name : 0,
+            (__bridge void*)_pipelineState);
     [_currentRenderEncoder setRenderPipelineState:_pipelineState];
+
+    // Bind textures AFTER setting pipeline state to ensure correct shader is active
+    // This prevents texture bindings from being done with the wrong/old pipeline
+    if (ctx->state.dirty_bits & (DIRTY_PROGRAM | DIRTY_TEX | DIRTY_TEX_BINDING | DIRTY_SAMPLER))
+    {
+        RETURN_FALSE_ON_FAILURE([self bindActiveTexturesToMTL]);
+        RETURN_FALSE_ON_FAILURE([self bindTexturesToCurrentRenderEncoder]);
+
+        // textures / active textures and samplers are all handled in bindActiveTexturesToMTL
+        ctx->state.dirty_bits &= ~(DIRTY_TEX | DIRTY_TEX_BINDING | DIRTY_SAMPLER);
+    }
 
     return true;
 }
@@ -4269,6 +4291,7 @@ void mtlDrawArrays(GLMContext glm_ctx, GLenum mode, GLint first, GLsizei count)
 
     fprintf(stderr, "DEBUG: mtlDrawElements called, count=%d, VAO=%p, program=%u\n",
             count, ctx->state.vao, ctx->state.program ? ctx->state.program->name : 0);
+
     bool processResult = [self processGLState:true];
     fprintf(stderr, "DEBUG: mtlDrawElements processGLState returned %d, pipeline=%p\n",
             processResult, _pipelineState);
@@ -4310,7 +4333,12 @@ void mtlDrawArrays(GLMContext glm_ctx, GLenum mode, GLint first, GLsizei count)
 
     // indices parameter is a byte offset into the index buffer (when using VBO)
     size_t offset = (size_t)indices;
-    fprintf(stderr, "DEBUG: mtlDrawElements calling Metal drawIndexedPrimitives, count=%d, offset=%zu\n", count, offset);
+
+    fprintf(stderr, "DEBUG: About to draw with program %u, _pipelineState=%p, encoder=%p\n",
+            ctx->state.program ? ctx->state.program->name : 0,
+            (__bridge void*)_pipelineState,
+            (__bridge void*)_currentRenderEncoder);
+
     [_currentRenderEncoder drawIndexedPrimitives:primitiveType
                                       indexCount:count
                                        indexType:indexType

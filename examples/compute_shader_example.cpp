@@ -377,7 +377,7 @@ class ComputeShaderExample
 
             render();
 
-            SDL_Delay(16);
+            // SDL_Delay(16);
         }
     }
 
