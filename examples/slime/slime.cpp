@@ -154,11 +154,14 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);  // Disable resizing
 
     // glfw window creation
     // --------------------
-    const int WINDOW_WIDTH = 800;
-    const int WINDOW_HEIGHT = 600;
+    const int RENDER_WIDTH = 400;
+    const int RENDER_HEIGHT = 300;
+    const int WINDOW_WIDTH = RENDER_WIDTH * 2;  // 800
+    const int WINDOW_HEIGHT = RENDER_HEIGHT * 2;  // 600
     GLFWwindow *window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Slime Simulation", NULL, NULL);
     if (window == NULL)
     {
@@ -169,10 +172,14 @@ int main()
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    // Set initial viewport
-    int width, height;
-    glfwGetFramebufferSize(window, &width, &height);
-    glViewport(0, 0, width, height);
+    // Set initial viewport to match window
+    int fbWidth, fbHeight;
+    glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
+    glViewport(0, 0, fbWidth, fbHeight);
+
+    // Use fixed render resolution regardless of window/framebuffer size
+    const int width = RENDER_WIDTH;
+    const int height = RENDER_HEIGHT;
 
     // Create compute shader program
     GLuint computeProgram = createComputeProgram();
@@ -194,22 +201,32 @@ int main()
 
     // Simulation parameters
     const unsigned int NUM_AGENTS = 10000;
-    const float MOVE_SPEED = 100.0f;
+    const float MOVE_SPEED = 50.0f;
 
     // Initialize agents with random positions and angles
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_real_distribution<float> posDistX(0.0f, static_cast<float>(width));
-    std::uniform_real_distribution<float> posDistY(0.0f, static_cast<float>(height));
     std::uniform_real_distribution<float> angleDist(0.0f, 2.0f * 3.14159265359f);
 
     std::vector<Agent> agents(NUM_AGENTS);
+    float centerX = static_cast<float>(width) / 2.0f;
+    float centerY = static_cast<float>(height) / 2.0f;
+
+    std::cout << "DEBUG: Spawning agents at center (" << centerX << ", " << centerY << ")" << std::endl;
+    std::cout << "DEBUG: Framebuffer dimensions: " << width << " x " << height << std::endl;
+
     for (unsigned int i = 0; i < NUM_AGENTS; i++)
     {
-        agents[i].position[0] = posDistX(gen);
-        agents[i].position[1] = posDistY(gen);
+        agents[i].position[0] = centerX;
+        agents[i].position[1] = centerY;
         agents[i].angle = angleDist(gen);
         agents[i].padding = 0.0f;
+    }
+
+    std::cout << "DEBUG: First 3 agents initialized:" << std::endl;
+    for (int i = 0; i < 3; i++) {
+        std::cout << "  Agent[" << i << "]: pos=(" << agents[i].position[0] << ", " << agents[i].position[1]
+                  << "), angle=" << agents[i].angle << std::endl;
     }
 
     // Create agent buffer
@@ -268,15 +285,10 @@ int main()
     glUniform1i(texLoc, 0); // Texture unit 0
 
     std::cout << "Slime simulation initialized" << std::endl;
-    std::cout << "Window size (logical): " << WINDOW_WIDTH << "x" << WINDOW_HEIGHT << std::endl;
-    std::cout << "Framebuffer size: " << width << "x" << height << std::endl;
+    std::cout << "Window size: " << WINDOW_WIDTH << "x" << WINDOW_HEIGHT << std::endl;
+    std::cout << "Framebuffer size: " << fbWidth << "x" << fbHeight << std::endl;
+    std::cout << "Render resolution: " << width << "x" << height << " (scaled " << (WINDOW_WIDTH/width) << "x)" << std::endl;
     std::cout << "Number of agents: " << NUM_AGENTS << std::endl;
-    std::cout << "Expected pixels written: " << NUM_AGENTS << std::endl;
-    std::cout << "Expected rows (at width=" << width << "): " << (NUM_AGENTS / width) + 1 << std::endl;
-    std::cout << "Compute dispatch: (" << ((NUM_AGENTS + 15) / 16) << ", 1, 1) work groups" << std::endl;
-    std::cout << "Total threads: " << ((NUM_AGENTS + 15) / 16) * 16 << std::endl;
-    std::cout << "First agent position: (" << agents[0].position[0] << ", " << agents[0].position[1] << ")" << std::endl;
-    std::cout << "First agent angle: " << agents[0].angle << std::endl;
 
     // Timing
     float lastFrame = 0.0f;
