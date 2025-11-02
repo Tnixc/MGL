@@ -1,5 +1,14 @@
 # Run
 
+
+```
+brew install glslang
+```
+
+```
+mkdir build && cd build && cmake ..
+```
+
 ```
 cmake --build build
 ```
