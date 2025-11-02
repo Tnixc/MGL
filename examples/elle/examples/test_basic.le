@@ -10,7 +10,7 @@ fn main() {
 
     rl::set_target_fps(60);
 
-    shader := rl::load_shader(nil,"/Users/tnixc/Developer/MGL/examples/resources/test.fs");
+    shader := rl::load_shader(nil,"./resources/test.fs");
     defer rl::unload_shader(shader);
 
     tex := rl::get_default_texture();

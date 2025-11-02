@@ -9,7 +9,7 @@ fn main() {
     defer rl::close_window();
     rl::set_target_fps(60);
 
-    shader := rl::load_shader(nil,"../resources/burning_ship.fs");
+    shader := rl::load_shader(nil,"./resources/burning_ship.fs");
     defer rl::unload_shader(shader);
 
     // Use the default texture which has proper 0-1 UV mapping
