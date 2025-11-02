@@ -8,6 +8,10 @@ cmake --build build
 ./build/examples/compute_shader_example
 ```
 
+# building this raylib (very cool)
+1. ```cmake -B build -S . -DUSE_EXTERNAL_GLFW=ON -DBUILD_SHARED_LIBS=OFF```
+2. ```cmake --build build --target raylib```
+
 ---
 
 # MGL
