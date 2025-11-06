@@ -105,6 +105,43 @@ GLuint createComputeProgram()
     return program;
 }
 
+GLuint createDecayProgram()
+{
+    // Load decay shader source from file
+    std::string decaySource = readShaderFile("decay.glsl");
+
+    if (decaySource.empty())
+    {
+        std::cerr << "Failed to load decay shader file" << std::endl;
+        return 0;
+    }
+
+    GLuint decayShader = compileShader(GL_COMPUTE_SHADER, decaySource.c_str());
+
+    if (decayShader == 0)
+    {
+        return 0;
+    }
+
+    GLuint program = glCreateProgram();
+    glAttachShader(program, decayShader);
+    glLinkProgram(program);
+
+    GLint success;
+    glGetProgramiv(program, GL_LINK_STATUS, &success);
+    if (!success)
+    {
+        char infoLog[512];
+        glGetProgramInfoLog(program, 512, nullptr, infoLog);
+        std::cerr << "Decay program linking failed:\n" << infoLog << std::endl;
+        return 0;
+    }
+
+    glDeleteShader(decayShader);
+
+    return program;
+}
+
 GLuint createDisplayProgram()
 {
     // Load shader sources from files
@@ -190,6 +227,15 @@ int main()
         return -1;
     }
 
+    // Create decay shader program
+    GLuint decayProgram = createDecayProgram();
+    if (decayProgram == 0)
+    {
+        std::cerr << "Failed to create decay program" << std::endl;
+        glfwTerminate();
+        return -1;
+    }
+
     // Create display shader program
     GLuint displayProgram = createDisplayProgram();
     if (displayProgram == 0)
@@ -202,6 +248,7 @@ int main()
     // Simulation parameters
     const unsigned int NUM_AGENTS = 1000;
     const float MOVE_SPEED = 50.0f;
+    const float DECAY_RATE = 0.95f; // Trail decay rate (0.95 = 95% remains, 5% fades per frame)
 
     // Initialize agents with random positions and angles
     std::random_device rd;
@@ -309,12 +356,22 @@ int main()
         // -----
         processInput(window);
 
-        // Bind texture as image and dispatch compute shader (one thread per agent)
+        // Pass 1: Agent movement and trail deposition
         glUseProgram(computeProgram);
         glUniform1f(4, deltaTime); // Update deltaTime
-        glBindImageTexture(0, texture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+        // Changed from GL_WRITE_ONLY to GL_READ_WRITE to allow trail accumulation
+        glBindImageTexture(0, texture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
         glDispatchCompute((NUM_AGENTS + 15) / 16, 1, 1);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
+
+        // Pass 2: Trail decay and diffusion
+        glUseProgram(decayProgram);
+        glUniform1ui(5, width);  // location 5
+        glUniform1ui(6, height); // location 6
+        glUniform1f(7, DECAY_RATE); // location 7
+        glBindImageTexture(0, texture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+        glDispatchCompute((width + 15) / 16, (height + 15) / 16, 1);
+        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
         glFinish();
 
         // Clear the screen framebuffer
@@ -340,6 +397,7 @@ int main()
     glDeleteBuffers(1, &agentBuffer);
     glDeleteTextures(1, &texture);
     glDeleteProgram(computeProgram);
+    glDeleteProgram(decayProgram);
     glDeleteProgram(displayProgram);
 
     // glfw: terminate, clearing all previously allocated GLFW resources.

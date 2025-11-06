@@ -12,7 +12,8 @@ layout(std430, binding = 1) buffer AgentBuffer {
     Agent agents[];
 };
 
-layout(rgba32f, binding = 0) uniform writeonly image2D TrailMap;
+// Changed from writeonly to allow reading AND writing for trail accumulation
+layout(rgba32f, binding = 0) uniform image2D TrailMap;
 
 layout(location = 0) uniform uint width;
 layout(location = 1) uniform uint height;
@@ -61,8 +62,21 @@ void main() {
     // Update position
     agents[id].position = newPos;
 
-    // Draw trail
+    // Draw trail by ADDING to existing trail value (accumulation)
     // Convert from intuitive coordinate system (0,0 = top-left) to OpenGL texture coordinates (0,0 = bottom-left)
     ivec2 pixelPos = ivec2(int(newPos.x), int(float(height) - 1.0 - newPos.y));
-    imageStore(TrailMap, pixelPos, vec4(1.0, 1.0, 1.0, 1.0));
+
+    // Check bounds before accessing texture
+    if (pixelPos.x >= 0 && pixelPos.x < int(width) && pixelPos.y >= 0 && pixelPos.y < int(height)) {
+        // Read existing trail value
+        vec4 currentTrail = imageLoad(TrailMap, pixelPos);
+
+        // Add agent deposit to trail (0.1 per agent)
+        vec4 newTrail = currentTrail + vec4(0.1, 0.1, 0.1, 0.0);
+
+        // Clamp to prevent overflow
+        newTrail = min(newTrail, vec4(1.0));
+
+        imageStore(TrailMap, pixelPos, newTrail);
+    }
 }
