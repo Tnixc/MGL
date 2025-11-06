@@ -22,9 +22,9 @@
 
 void mglDispatchCompute(GLMContext ctx, GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z)
 {
-    ERROR_CHECK_RETURN(num_groups_x < ctx->state.var.max_compute_work_group_size[0], GL_INVALID_VALUE);
-    ERROR_CHECK_RETURN(num_groups_y < ctx->state.var.max_compute_work_group_size[1], GL_INVALID_VALUE);
-    ERROR_CHECK_RETURN(num_groups_z < ctx->state.var.max_compute_work_group_size[2], GL_INVALID_VALUE);
+    ERROR_CHECK_RETURN(num_groups_x <= ctx->state.var.max_compute_work_group_count[0], GL_INVALID_VALUE);
+    ERROR_CHECK_RETURN(num_groups_y <= ctx->state.var.max_compute_work_group_count[1], GL_INVALID_VALUE);
+    ERROR_CHECK_RETURN(num_groups_z <= ctx->state.var.max_compute_work_group_count[2], GL_INVALID_VALUE);
 
     ctx->mtl_funcs.mtlDispatchCompute(ctx, num_groups_x, num_groups_y, num_groups_z);
 }

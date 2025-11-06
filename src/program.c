@@ -417,6 +417,84 @@ char *parseSPIRVShaderToMetal(GLMContext ctx, Program *ptr, int stage)
         assert(0);
     }
 
+    // Set up MSL resource bindings to preserve GLSL binding numbers
+    // This needs to be done before creating shader resources
+    // We'll do a preliminary reflection to find all resources and set their MSL bindings
+    spvc_resources temp_resources = NULL;
+    spvc_compiler_create_shader_resources(compiler_msl, &temp_resources);
+    
+    // Configure MSL bindings for uniform buffers
+    const spvc_reflected_resource *ubo_list = NULL;
+    size_t ubo_count = 0;
+    if (spvc_resources_get_resource_list_for_type(temp_resources, SPVC_RESOURCE_TYPE_UNIFORM_BUFFER, 
+                                                   &ubo_list, &ubo_count) == SPVC_SUCCESS)
+    {
+        for (size_t i = 0; i < ubo_count; i++)
+        {
+            spvc_msl_resource_binding binding;
+            memset(&binding, 0, sizeof(binding));
+            binding.stage = model;
+            binding.desc_set = spvc_compiler_get_decoration(compiler_msl, ubo_list[i].id, SpvDecorationDescriptorSet);
+            binding.binding = spvc_compiler_get_decoration(compiler_msl, ubo_list[i].id, SpvDecorationBinding);
+            binding.msl_buffer = binding.binding;  // Preserve the GLSL binding number
+            
+            spvc_result res = spvc_compiler_msl_add_resource_binding(compiler_msl, &binding);
+            if (res == SPVC_SUCCESS)
+            {
+                DEBUG_PRINT("Set MSL buffer binding: UBO '%s' GLSL binding=%u -> MSL buffer=%u\n",
+                           ubo_list[i].name, binding.binding, binding.msl_buffer);
+            }
+        }
+    }
+    
+    // Configure MSL bindings for storage buffers (SSBOs)
+    const spvc_reflected_resource *ssbo_list = NULL;
+    size_t ssbo_count = 0;
+    if (spvc_resources_get_resource_list_for_type(temp_resources, SPVC_RESOURCE_TYPE_STORAGE_BUFFER,
+                                                   &ssbo_list, &ssbo_count) == SPVC_SUCCESS)
+    {
+        for (size_t i = 0; i < ssbo_count; i++)
+        {
+            spvc_msl_resource_binding binding;
+            memset(&binding, 0, sizeof(binding));
+            binding.stage = model;
+            binding.desc_set = spvc_compiler_get_decoration(compiler_msl, ssbo_list[i].id, SpvDecorationDescriptorSet);
+            binding.binding = spvc_compiler_get_decoration(compiler_msl, ssbo_list[i].id, SpvDecorationBinding);
+            binding.msl_buffer = binding.binding;  // Preserve the GLSL binding number
+            
+            spvc_result res = spvc_compiler_msl_add_resource_binding(compiler_msl, &binding);
+            if (res == SPVC_SUCCESS)
+            {
+                DEBUG_PRINT("Set MSL buffer binding: SSBO '%s' GLSL binding=%u -> MSL buffer=%u\n",
+                           ssbo_list[i].name, binding.binding, binding.msl_buffer);
+            }
+        }
+    }
+    
+    // Configure MSL bindings for storage images
+    const spvc_reflected_resource *image_list = NULL;
+    size_t image_count = 0;
+    if (spvc_resources_get_resource_list_for_type(temp_resources, SPVC_RESOURCE_TYPE_STORAGE_IMAGE,
+                                                   &image_list, &image_count) == SPVC_SUCCESS)
+    {
+        for (size_t i = 0; i < image_count; i++)
+        {
+            spvc_msl_resource_binding binding;
+            memset(&binding, 0, sizeof(binding));
+            binding.stage = model;
+            binding.desc_set = spvc_compiler_get_decoration(compiler_msl, image_list[i].id, SpvDecorationDescriptorSet);
+            binding.binding = spvc_compiler_get_decoration(compiler_msl, image_list[i].id, SpvDecorationBinding);
+            binding.msl_texture = binding.binding;  // Preserve the GLSL binding number for textures
+            
+            spvc_result res = spvc_compiler_msl_add_resource_binding(compiler_msl, &binding);
+            if (res == SPVC_SUCCESS)
+            {
+                DEBUG_PRINT("Set MSL texture binding: Image '%s' GLSL binding=%u -> MSL texture=%u\n",
+                           image_list[i].name, binding.binding, binding.msl_texture);
+            }
+        }
+    }
+
     switch (stage)
     {
     case _VERTEX_SHADER:

@@ -547,24 +547,6 @@ void logDirtyBits(GLMContext ctx)
         }
     }
 
-    // Calculate offset for plain uniforms to avoid conflicts with SSBOs/UBOs
-    // Find the maximum binding used by SSBOs and UBOs
-    int max_buffer_binding = -1;
-    for (int i = 0; i < buffer_map->count; i++)
-    {
-        if (buffer_map->buffers[i].buffer_base_index > max_buffer_binding)
-        {
-            max_buffer_binding = buffer_map->buffers[i].buffer_base_index;
-        }
-    }
-    
-    // Offset for plain uniforms starts after all SSBOs/UBOs
-    int plain_uniform_offset = max_buffer_binding + 1;
-    if (plain_uniform_offset < 8)
-    {
-        plain_uniform_offset = 8; // Use a reasonable minimum offset
-    }
-    
     // Add plain uniforms (standalone uniforms not in a UBO) to the buffer map
     int plain_uniform_count = [self getProgramBindingCount:stage type:SPVC_RESOURCE_TYPE_GL_PLAIN_UNIFORM];
     fprintf(stderr, "DEBUG: Plain uniform count for stage %d: %d\n", stage, plain_uniform_count);
@@ -592,7 +574,7 @@ void logDirtyBits(GLMContext ctx)
         }
 
         buffer_map->buffers[buffer_map->count].attribute_mask = 0;
-        buffer_map->buffers[buffer_map->count].buffer_base_index = plain_uniform_offset + location;
+        buffer_map->buffers[buffer_map->count].buffer_base_index = location;
         buffer_map->buffers[buffer_map->count].buf = buf;
         buffer_map->buffers[buffer_map->count].offset = ctx->state.buffer_base[_UNIFORM_BUFFER].buffers[location].offset;
         buffer_map->count++;

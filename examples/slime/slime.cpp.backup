@@ -197,10 +197,10 @@ int main()
 
     // glfw window creation
     // --------------------
-    const int RENDER_WIDTH = 800;
-    const int RENDER_HEIGHT = 600;
-    const int WINDOW_WIDTH = 800;   // Window display size
-    const int WINDOW_HEIGHT = 600;  // Window display size
+    const int RENDER_WIDTH = 400;
+    const int RENDER_HEIGHT = 300;
+    const int WINDOW_WIDTH = RENDER_WIDTH * 2;  // 800
+    const int WINDOW_HEIGHT = RENDER_HEIGHT * 2;  // 600
     GLFWwindow *window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Slime Simulation", NULL, NULL);
     if (window == NULL)
     {
@@ -248,9 +248,9 @@ int main()
     }
 
     // Simulation parameters
-    const unsigned int NUM_AGENTS = 10000;
+    const unsigned int NUM_AGENTS = 1000;
     const float MOVE_SPEED = 40.0f;  // Reduced from 50 for more controlled movement
-    const float DECAY_RATE = 0.98f;  // Trails last longer (98% remains, 2% fades per frame)
+    const float DECAY_RATE = 0.92f;  // Slightly less aggressive decay (92% remains, 8% fades per frame)
 
     // Initialize agents with random angles (all starting from center)
     std::random_device rd;
@@ -327,64 +327,18 @@ int main()
     
     std::cout << "Texture initialized: " << width << "x" << height << " (cleared to black)" << std::endl;
 
-    // Create uniform buffer for compute shader parameters
-    GLuint computeParamsUBO;
-    glGenBuffers(1, &computeParamsUBO);
-    glBindBuffer(GL_UNIFORM_BUFFER, computeParamsUBO);
-    
-    struct alignas(16) ComputeParams {
-        uint32_t width;      // offset 0
-        uint32_t height;     // offset 4
-        uint32_t numAgents;  // offset 8
-        float moveSpeed;     // offset 12
-        float deltaTime;     // offset 16
-        float padding[3];    // offset 20, total 32 bytes
-    };
-    
-    ComputeParams computeParams;
-    computeParams.width = width;
-    computeParams.height = height;
-    computeParams.numAgents = NUM_AGENTS;
-    computeParams.moveSpeed = MOVE_SPEED;
-    computeParams.deltaTime = 0.016f;
-    
-    std::cout << "ComputeParams UBO setup:" << std::endl;
-    std::cout << "  sizeof(ComputeParams) = " << sizeof(ComputeParams) << " bytes" << std::endl;
-    std::cout << "  width = " << computeParams.width << std::endl;
-    std::cout << "  height = " << computeParams.height << std::endl;
-    std::cout << "  numAgents = " << computeParams.numAgents << std::endl;
-    std::cout << "  moveSpeed = " << computeParams.moveSpeed << std::endl;
-    std::cout << "  deltaTime = " << computeParams.deltaTime << std::endl;
-    
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(ComputeParams), &computeParams, GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_UNIFORM_BUFFER, 2, computeParamsUBO);
-    
-    // Create uniform buffer for decay shader parameters
-    GLuint decayParamsUBO;
-    glGenBuffers(1, &decayParamsUBO);
-    glBindBuffer(GL_UNIFORM_BUFFER, decayParamsUBO);
-    
-    struct alignas(16) DecayParams {
-        uint32_t width;      // offset 0
-        uint32_t height;     // offset 4
-        float decayRate;     // offset 8
-        float padding;       // offset 12, total 16 bytes
-    };
-    
-    DecayParams decayParams;
-    decayParams.width = width;
-    decayParams.height = height;
-    decayParams.decayRate = DECAY_RATE;
-    decayParams.padding = 0.0f;
-    
-    std::cout << "DecayParams UBO setup:" << std::endl;
-    std::cout << "  sizeof(DecayParams) = " << sizeof(DecayParams) << " bytes" << std::endl;
-    std::cout << "  width = " << decayParams.width << std::endl;
-    std::cout << "  height = " << decayParams.height << std::endl;
-    std::cout << "  decayRate = " << decayParams.decayRate << std::endl;
-    
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(DecayParams), &decayParams, GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_UNIFORM_BUFFER, 2, decayParamsUBO);
+    // Set uniforms for compute shader
+    glUseProgram(computeProgram);
+    glUniform1ui(8, width);  // location 0
+    glUniform1ui(9, height); // location 1
+    glUniform1ui(10, NUM_AGENTS); // location 2
+    glUniform1f(11, MOVE_SPEED); // location 3
+
+    // Set uniforms for decay shader (initialize before render loop)
+    glUseProgram(decayProgram);
+    glUniform1ui(8, width);  // location 5
+    glUniform1ui(9, height); // location 6
+    glUniform1f(10, DECAY_RATE); // location 7
 
     // Create fullscreen quad with correct texture coordinates for Metal/MGL
     // Metal convention: texture (0,0) is at TOP-LEFT
@@ -486,13 +440,8 @@ int main()
 
         // Pass 1: Agent movement and trail deposition
         glUseProgram(computeProgram);
-        glBindBufferBase(GL_UNIFORM_BUFFER, 2, computeParamsUBO);
         // Pass clamped deltaTime to shader
-        // Update deltaTime in compute params UBO
-        computeParams.deltaTime = deltaTime;
-        glBindBuffer(GL_UNIFORM_BUFFER, computeParamsUBO);
-        glBufferSubData(GL_UNIFORM_BUFFER, offsetof(ComputeParams, deltaTime), sizeof(float), &deltaTime);
-        glBindBufferBase(GL_UNIFORM_BUFFER, 2, computeParamsUBO);
+        glUniform1f(12, deltaTime); // Update deltaTime (clamped to max 0.0333s)
         // Changed from GL_WRITE_ONLY to GL_READ_WRITE to allow trail accumulation
         glBindImageTexture(0, texture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
         glDispatchCompute((NUM_AGENTS + 15) / 16, 1, 1);
@@ -500,7 +449,6 @@ int main()
 
         // Pass 2: Trail decay and diffusion
         glUseProgram(decayProgram);
-        glBindBufferBase(GL_UNIFORM_BUFFER, 2, decayParamsUBO);
         glBindImageTexture(0, texture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
         glDispatchCompute((width + 15) / 16, (height + 15) / 16, 1);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
@@ -530,8 +478,6 @@ int main()
     glDeleteTextures(1, &texture);
     glDeleteProgram(computeProgram);
     glDeleteProgram(decayProgram);
-    glDeleteBuffers(1, &computeParamsUBO);
-    glDeleteBuffers(1, &decayParamsUBO);
     glDeleteProgram(displayProgram);
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
