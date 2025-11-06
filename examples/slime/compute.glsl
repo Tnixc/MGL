@@ -63,8 +63,8 @@ void main() {
     agents[id].position = newPos;
 
     // Draw trail by ADDING to existing trail value (accumulation)
-    // Convert from intuitive coordinate system (0,0 = top-left) to OpenGL texture coordinates (0,0 = bottom-left)
-    ivec2 pixelPos = ivec2(int(newPos.x), int(float(height) - 1.0 - newPos.y));
+    // Use standard OpenGL coordinates: (0,0) = bottom-left
+    ivec2 pixelPos = ivec2(int(newPos.x), int(newPos.y));
 
     // Check bounds before accessing texture
     if (pixelPos.x >= 0 && pixelPos.x < int(width) && pixelPos.y >= 0 && pixelPos.y < int(height)) {

@@ -256,12 +256,12 @@ int main()
     std::uniform_real_distribution<float> angleDist(0.0f, 2.0f * 3.14159265359f);
 
     std::vector<Agent> agents(NUM_AGENTS);
-    // Use intuitive coordinate system: (0,0) at top-left, (width, height) at bottom-right
+    // Use standard OpenGL coordinate system: (0,0) at bottom-left, (width, height) at top-right
     float centerX = static_cast<float>(width) / 2.0f;
     float centerY = static_cast<float>(height) / 2.0f;
 
     std::cout << "DEBUG: Spawning agents at center (" << centerX << ", " << centerY << ")" << std::endl;
-    std::cout << "DEBUG: Using top-left origin coordinate system" << std::endl;
+    std::cout << "DEBUG: Using OpenGL coordinate system (0,0)=bottom-left" << std::endl;
     std::cout << "DEBUG: Render dimensions: " << width << " x " << height << std::endl;
 
     for (unsigned int i = 0; i < NUM_AGENTS; i++)
@@ -305,16 +305,22 @@ int main()
     glUniform1ui(2, NUM_AGENTS); // location 2
     glUniform1f(3, MOVE_SPEED); // location 3
 
+    // Set uniforms for decay shader (initialize before render loop)
+    glUseProgram(decayProgram);
+    glUniform1ui(5, width);  // location 5
+    glUniform1ui(6, height); // location 6
+    glUniform1f(7, DECAY_RATE); // location 7
+
     // Create fullscreen quad
     float quadVertices[] = {
-        // positions   // texCoords (V flipped to match intuitive coordinate system)
-        -1.0f,  1.0f,  0.0f, 0.0f,
-        -1.0f, -1.0f,  0.0f, 1.0f,
-         1.0f, -1.0f,  1.0f, 1.0f,
+        // positions   // texCoords (standard OpenGL: (0,0)=bottom-left, (1,1)=top-right)
+        -1.0f,  1.0f,  0.0f, 1.0f,  // Top-left screen -> Top-left texture
+        -1.0f, -1.0f,  0.0f, 0.0f,  // Bottom-left screen -> Bottom-left texture
+         1.0f, -1.0f,  1.0f, 0.0f,  // Bottom-right screen -> Bottom-right texture
 
-        -1.0f,  1.0f,  0.0f, 0.0f,
-         1.0f, -1.0f,  1.0f, 1.0f,
-         1.0f,  1.0f,  1.0f, 0.0f
+        -1.0f,  1.0f,  0.0f, 1.0f,  // Top-left screen -> Top-left texture
+         1.0f, -1.0f,  1.0f, 0.0f,  // Bottom-right screen -> Bottom-right texture
+         1.0f,  1.0f,  1.0f, 1.0f   // Top-right screen -> Top-right texture
     };
 
     GLuint quadVAO, quadVBO;
@@ -366,9 +372,6 @@ int main()
 
         // Pass 2: Trail decay and diffusion
         glUseProgram(decayProgram);
-        glUniform1ui(5, width);  // location 5
-        glUniform1ui(6, height); // location 6
-        glUniform1f(7, DECAY_RATE); // location 7
         glBindImageTexture(0, texture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
         glDispatchCompute((width + 15) / 16, (height + 15) / 16, 1);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);

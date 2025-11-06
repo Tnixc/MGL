@@ -19,12 +19,8 @@ void main() {
     // Read current trail value
     vec4 current = imageLoad(TrailMap, pixelPos);
 
-    // IMPORTANT: Decay FIRST to remove brightness from system
-    vec4 decayed = current * decayRate;
-
-    // Then apply diffusion: average with neighbors (3x3 box blur)
-    // This creates smooth organic patterns while decayed values prevent white-out
-    vec4 sum = decayed;
+    // Apply simple box blur for diffusion (3x3)
+    vec4 sum = current;
     int count = 1;
 
     for (int dy = -1; dy <= 1; dy++) {
@@ -36,16 +32,18 @@ void main() {
             // Check bounds
             if (neighborPos.x >= 0 && neighborPos.x < int(width) &&
                 neighborPos.y >= 0 && neighborPos.y < int(height)) {
-                // Read and decay neighbors too
                 vec4 neighbor = imageLoad(TrailMap, neighborPos);
-                sum += neighbor * decayRate;
+                sum += neighbor;
                 count++;
             }
         }
     }
 
-    // Average the decayed values (diffusion)
-    vec4 result = sum / float(count);
+    // Average with neighbors (diffusion)
+    vec4 blurred = sum / float(count);
+
+    // Then apply decay to the blurred result
+    vec4 result = blurred * decayRate;
 
     // Write back
     imageStore(TrailMap, pixelPos, result);
