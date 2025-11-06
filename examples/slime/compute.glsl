@@ -63,7 +63,7 @@ void main() {
     agents[id].position = newPos;
 
     // Draw trail by ADDING to existing trail value (accumulation)
-    // Use standard OpenGL coordinates: (0,0) = bottom-left
+    // MGL/Metal uses (0,0) = TOP-LEFT, so use position directly
     ivec2 pixelPos = ivec2(int(newPos.x), int(newPos.y));
 
     // Check bounds before accessing texture

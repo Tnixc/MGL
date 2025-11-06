@@ -256,12 +256,13 @@ int main()
     std::uniform_real_distribution<float> angleDist(0.0f, 2.0f * 3.14159265359f);
 
     std::vector<Agent> agents(NUM_AGENTS);
-    // Use standard OpenGL coordinate system: (0,0) at bottom-left, (width, height) at top-right
+    // Use Metal coordinate system: (0,0) at TOP-LEFT, (width, height) at BOTTOM-RIGHT
+    // This matches how MGL/Metal handles textures natively
     float centerX = static_cast<float>(width) / 2.0f;
     float centerY = static_cast<float>(height) / 2.0f;
 
     std::cout << "DEBUG: Spawning agents at center (" << centerX << ", " << centerY << ")" << std::endl;
-    std::cout << "DEBUG: Using OpenGL coordinate system (0,0)=bottom-left" << std::endl;
+    std::cout << "DEBUG: Using Metal coordinate system (0,0)=top-left" << std::endl;
     std::cout << "DEBUG: Render dimensions: " << width << " x " << height << std::endl;
 
     for (unsigned int i = 0; i < NUM_AGENTS; i++)
@@ -312,15 +313,17 @@ int main()
     glUniform1f(7, DECAY_RATE); // location 7
 
     // Create fullscreen quad
+    // IMPORTANT: MGL/Metal uses texture origin at TOP-LEFT, not bottom-left like OpenGL
+    // So texture coordinates must be: top screen = y:0, bottom screen = y:1
     float quadVertices[] = {
-        // positions   // texCoords (standard OpenGL: (0,0)=bottom-left, (1,1)=top-right)
-        -1.0f,  1.0f,  0.0f, 1.0f,  // Top-left screen -> Top-left texture
-        -1.0f, -1.0f,  0.0f, 0.0f,  // Bottom-left screen -> Bottom-left texture
-         1.0f, -1.0f,  1.0f, 0.0f,  // Bottom-right screen -> Bottom-right texture
+        // positions   // texCoords (Metal convention: top=0, bottom=1)
+        -1.0f,  1.0f,  0.0f, 0.0f,  // Top-left screen -> texcoord (0,0) - top of texture
+        -1.0f, -1.0f,  0.0f, 1.0f,  // Bottom-left screen -> texcoord (0,1) - bottom of texture
+         1.0f, -1.0f,  1.0f, 1.0f,  // Bottom-right screen -> texcoord (1,1)
 
-        -1.0f,  1.0f,  0.0f, 1.0f,  // Top-left screen -> Top-left texture
-         1.0f, -1.0f,  1.0f, 0.0f,  // Bottom-right screen -> Bottom-right texture
-         1.0f,  1.0f,  1.0f, 1.0f   // Top-right screen -> Top-right texture
+        -1.0f,  1.0f,  0.0f, 0.0f,  // Top-left screen -> texcoord (0,0)
+         1.0f, -1.0f,  1.0f, 1.0f,  // Bottom-right screen -> texcoord (1,1)
+         1.0f,  1.0f,  1.0f, 0.0f   // Top-right screen -> texcoord (1,0) - top-right of texture
     };
 
     GLuint quadVAO, quadVBO;
