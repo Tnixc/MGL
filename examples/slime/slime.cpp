@@ -200,7 +200,7 @@ int main()
     }
 
     // Simulation parameters
-    const unsigned int NUM_AGENTS = 10000;
+    const unsigned int NUM_AGENTS = 1000;
     const float MOVE_SPEED = 50.0f;
 
     // Initialize agents with random positions and angles
@@ -209,11 +209,13 @@ int main()
     std::uniform_real_distribution<float> angleDist(0.0f, 2.0f * 3.14159265359f);
 
     std::vector<Agent> agents(NUM_AGENTS);
+    // Use intuitive coordinate system: (0,0) at top-left, (width, height) at bottom-right
     float centerX = static_cast<float>(width) / 2.0f;
     float centerY = static_cast<float>(height) / 2.0f;
 
     std::cout << "DEBUG: Spawning agents at center (" << centerX << ", " << centerY << ")" << std::endl;
-    std::cout << "DEBUG: Framebuffer dimensions: " << width << " x " << height << std::endl;
+    std::cout << "DEBUG: Using top-left origin coordinate system" << std::endl;
+    std::cout << "DEBUG: Render dimensions: " << width << " x " << height << std::endl;
 
     for (unsigned int i = 0; i < NUM_AGENTS; i++)
     {
@@ -258,14 +260,14 @@ int main()
 
     // Create fullscreen quad
     float quadVertices[] = {
-        // positions   // texCoords
-        -1.0f,  1.0f,  0.0f, 1.0f,
-        -1.0f, -1.0f,  0.0f, 0.0f,
-         1.0f, -1.0f,  1.0f, 0.0f,
+        // positions   // texCoords (V flipped to match intuitive coordinate system)
+        -1.0f,  1.0f,  0.0f, 0.0f,
+        -1.0f, -1.0f,  0.0f, 1.0f,
+         1.0f, -1.0f,  1.0f, 1.0f,
 
-        -1.0f,  1.0f,  0.0f, 1.0f,
-         1.0f, -1.0f,  1.0f, 0.0f,
-         1.0f,  1.0f,  1.0f, 1.0f
+        -1.0f,  1.0f,  0.0f, 0.0f,
+         1.0f, -1.0f,  1.0f, 1.0f,
+         1.0f,  1.0f,  1.0f, 0.0f
     };
 
     GLuint quadVAO, quadVBO;

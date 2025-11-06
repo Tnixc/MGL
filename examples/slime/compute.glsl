@@ -62,6 +62,7 @@ void main() {
     agents[id].position = newPos;
 
     // Draw trail
-    ivec2 pixelPos = ivec2(int(newPos.x), int(newPos.y));
+    // Convert from intuitive coordinate system (0,0 = top-left) to OpenGL texture coordinates (0,0 = bottom-left)
+    ivec2 pixelPos = ivec2(int(newPos.x), int(float(height) - 1.0 - newPos.y));
     imageStore(TrailMap, pixelPos, vec4(1.0, 1.0, 1.0, 1.0));
 }
