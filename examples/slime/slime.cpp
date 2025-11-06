@@ -351,6 +351,11 @@ int main()
     // Timing
     float lastFrame = 0.0f;
     float deltaTime = 0.0f;
+    int frameCount = 0;
+
+    std::cout << "\n=== STARTING RENDER LOOP ===" << std::endl;
+    std::cout << "Compute dispatch groups (agents): " << ((NUM_AGENTS + 15) / 16) << " x 1 x 1" << std::endl;
+    std::cout << "Decay dispatch groups: " << ((width + 15) / 16) << " x " << ((height + 15) / 16) << " x 1" << std::endl;
 
     // render loop
     // -----------
@@ -360,12 +365,35 @@ int main()
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
+        frameCount++;
 
         // input
         // -----
         processInput(window);
 
+        if (frameCount % 60 == 0 || frameCount < 5) {
+            std::cout << "\n=== FRAME " << frameCount << " (t=" << currentFrame << "s, dt=" << deltaTime << "s) ===" << std::endl;
+
+            // Read back first few agent positions
+            Agent readbackAgents[3];
+            glBindBuffer(GL_SHADER_STORAGE_BUFFER, agentBuffer);
+            void* ptr = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
+            if (ptr) {
+                memcpy(readbackAgents, ptr, 3 * sizeof(Agent));
+                glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+
+                for (int i = 0; i < 3; i++) {
+                    std::cout << "Agent[" << i << "]: pos=(" << readbackAgents[i].position[0]
+                              << ", " << readbackAgents[i].position[1] << "), angle="
+                              << readbackAgents[i].angle << std::endl;
+                }
+            }
+        }
+
         // Pass 1: Agent movement and trail deposition
+        if (frameCount % 60 == 0 || frameCount < 5) {
+            std::cout << "Dispatching agent compute shader..." << std::endl;
+        }
         glUseProgram(computeProgram);
         glUniform1f(4, deltaTime); // Update deltaTime
         // Changed from GL_WRITE_ONLY to GL_READ_WRITE to allow trail accumulation
@@ -374,6 +402,9 @@ int main()
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
 
         // Pass 2: Trail decay and diffusion
+        if (frameCount % 60 == 0 || frameCount < 5) {
+            std::cout << "Dispatching decay compute shader..." << std::endl;
+        }
         glUseProgram(decayProgram);
         glBindImageTexture(0, texture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
         glDispatchCompute((width + 15) / 16, (height + 15) / 16, 1);

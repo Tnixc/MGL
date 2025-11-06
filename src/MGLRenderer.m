@@ -3234,15 +3234,25 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
     RETURN_FALSE_ON_FAILURE([self mapGLBuffersToMTLBufferMap:&ctx->state.compute_buffer_map_list
                                                        stage:_COMPUTE_SHADER]);
 
-    // Debug: print buffer count
+    // DEBUG: print buffer count and details
     static int map_debug_count = 0;
-    if (map_debug_count++ % 60 == 0)
+    map_debug_count++;
+    if (map_debug_count <= 5 || map_debug_count % 60 == 0)
     {
-        // NSLog(@"Compute buffer map count: %d", ctx->state.compute_buffer_map_list.count);
+        NSLog(@"=== Compute buffer binding (call #%d) ===", map_debug_count);
+        NSLog(@"Compute buffer map count: %d", ctx->state.compute_buffer_map_list.count);
         for (int j = 0; j < ctx->state.compute_buffer_map_list.count; j++)
         {
             Buffer *b = ctx->state.compute_buffer_map_list.buffers[j].buf;
-            // NSLog(@"  Buffer %d: size=%ld, dirty=0x%x", j, (long)b->size, b->data.dirty_bits);
+            NSLog(@"  Buffer %d: size=%ld bytes, dirty=0x%x, mtl_data=%p",
+                  j, (long)b->size, b->data.dirty_bits, b->data.mtl_data);
+
+            // For agent buffer, print first few bytes
+            if (b->size >= sizeof(float) * 8 && b->data.buffer_data != NULL) {
+                float *data = (float *)b->data.buffer_data;
+                NSLog(@"    First 8 floats: [%.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f]",
+                      data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]);
+            }
         }
     }
 
@@ -3369,6 +3379,18 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
                     texture = (__bridge id<MTLTexture>)(ptr->mtl_data);
                     assert(texture);
 
+                    // DEBUG LOGGING for texture binding
+                    static int tex_bind_count = 0;
+                    tex_bind_count++;
+                    if (tex_bind_count <= 10 || tex_bind_count % 120 == 0) {
+                        const char *type_name = (gl_texture_type == _TEXTURE) ? "SAMPLED" : "STORAGE_IMAGE";
+                        NSLog(@"Binding compute texture [%s] at binding=%u: size=%lux%lu, format=%lu, usage=0x%lx, access=%d",
+                              type_name, spirv_binding,
+                              (unsigned long)[texture width], (unsigned long)[texture height],
+                              (unsigned long)[texture pixelFormat], (unsigned long)[texture usage],
+                              ptr->access);
+                    }
+
                     id<MTLSamplerState> sampler;
 
                     // late binding of texture samplers.. but its better than scanning the entire texture_samplers
@@ -3483,6 +3505,14 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
                    groupsY:(GLuint)groups_y
                    groupsZ:(GLuint)groups_z
 {
+    // DEBUG LOGGING
+    static int dispatch_count = 0;
+    dispatch_count++;
+    if (dispatch_count <= 5 || dispatch_count % 60 == 0) {
+        NSLog(@"\n=== MGL COMPUTE DISPATCH #%d ===", dispatch_count);
+        NSLog(@"Dispatch groups: %u x %u x %u", groups_x, groups_y, groups_z);
+    }
+
     // end encoding on current render encoder
     [self endRenderEncoding];
 
@@ -3505,12 +3535,25 @@ void mtlBlitFramebuffer(GLMContext glm_ctx, GLint srcX0, GLint srcY0, GLint srcX
         threadsPerThreadgroup =
             MTLSizeMake(ptr->local_workgroup_size.x, ptr->local_workgroup_size.y, ptr->local_workgroup_size.z);
 
+        if (dispatch_count <= 5 || dispatch_count % 60 == 0) {
+            NSLog(@"Local workgroup size: %u x %u x %u", ptr->local_workgroup_size.x, ptr->local_workgroup_size.y, ptr->local_workgroup_size.z);
+            NSLog(@"Total threads: %u x %u x %u = %u",
+                  groups_x * ptr->local_workgroup_size.x,
+                  groups_y * ptr->local_workgroup_size.y,
+                  groups_z * ptr->local_workgroup_size.z,
+                  groups_x * ptr->local_workgroup_size.x * groups_y * ptr->local_workgroup_size.y * groups_z * ptr->local_workgroup_size.z);
+        }
+
         [computeCommandEncoder dispatchThreadgroups:numThreadgroups threadsPerThreadgroup:threadsPerThreadgroup];
     }
     else
     {
         numThreadgroups = MTLSizeMake(groups_x, groups_y, groups_z);
         threadsPerThreadgroup = MTLSizeMake(1, 1, 1);
+
+        if (dispatch_count <= 5 || dispatch_count % 60 == 0) {
+            NSLog(@"No local workgroup size specified, using 1x1x1");
+        }
 
         [computeCommandEncoder dispatchThreadgroups:numThreadgroups threadsPerThreadgroup:threadsPerThreadgroup];
     }
