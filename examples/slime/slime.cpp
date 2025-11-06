@@ -248,7 +248,7 @@ int main()
     // Simulation parameters
     const unsigned int NUM_AGENTS = 1000;
     const float MOVE_SPEED = 50.0f;
-    const float DECAY_RATE = 0.95f; // Trail decay rate (0.95 = 95% remains, 5% fades per frame)
+    const float DECAY_RATE = 0.90f; // Trail decay rate (0.90 = 90% remains, 10% fades per frame - increased from 0.95 to prevent white-out)
 
     // Initialize agents with random positions and angles
     std::random_device rd;

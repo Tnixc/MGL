@@ -71,8 +71,8 @@ void main() {
         // Read existing trail value
         vec4 currentTrail = imageLoad(TrailMap, pixelPos);
 
-        // Add agent deposit to trail (0.1 per agent)
-        vec4 newTrail = currentTrail + vec4(0.1, 0.1, 0.1, 0.0);
+        // Add agent deposit to trail (reduced from 0.1 to 0.03 to prevent white-out)
+        vec4 newTrail = currentTrail + vec4(0.03, 0.03, 0.03, 0.0);
 
         // Clamp to prevent overflow
         newTrail = min(newTrail, vec4(1.0));
